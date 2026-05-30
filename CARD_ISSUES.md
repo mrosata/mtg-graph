@@ -478,11 +478,6 @@ At the beginning of your upkeep, exile the top X cards of target opponent's libr
 
 ### Issues
 
-- **missing**: `effect.cast_from_exile`
-  - **What's wrong:** Rule should fire on "Until end of turn, you may cast spells from among those cards" — canonical opponent-library theft pattern (Dack Fayden / Knowledge Pool / Etali). Currently not firing.
-  - **Evidence vs reality:** Substring `you may cast spells from among those cards` is exactly the anaphoric "cast a spell this way" form the tagDef describes ("from-among-exiled-cards").
-  - **Suggested fix:** Audit `pipeline/rules/effect.cast_from_exile.ts` patterns. Likely missing `\byou may cast (?:[^.]*?)from among those cards\b` or the `among those cards` variant where "those" refers to a prior `exile the top X cards of …` clause. Add Jasper Flint regression.
-
 - **missing**: no `condition.cares_outlaws` exists (coverage gap — MKM Outlaw type-group)
   - **What's wrong:** "where X is the number of outlaws you control" scales on Outlaws (Assassin/Mercenary/Pirate/Rogue/Warlock per MKM rules text). Multiple MKM cards reference Outlaws as a unit (Jasper Flint, Tinybones Bauble Burglar, Kellan Joins Up's family). No catalog tag captures the axis.
   - **Suggested fix:** Author `condition.cares_outlaws` (axis: condition). Anchor: `\boutlaws? you control\b`, `\bnumber of outlaws\b`, `\bwhenever an outlaw\b`. PairsWith: each of the 5 outlaw tribal tags + tribal payoffs.
@@ -534,11 +529,6 @@ Whenever you commit a crime, put a +1/+1 counter on Lazav. Then you may exile a 
 
 ### Issues
 
-- **missing**: `effect.clone_in_place`
-  - **What's wrong:** Rule should fire on "you may have Lazav become a copy of that card until end of turn" — temporary self-clone, classic Lazav-template. The tagDef explicitly says "Includes 'becomes a copy of'". Currently not firing.
-  - **Evidence vs reality:** Substring `__SELF__ become a copy of that card` (post-normalization) is exactly the becomes-a-copy form. Rule probably anchors on `target permanent becomes a copy` and misses `__SELF__ becomes/become a copy of <referent>`.
-  - **Suggested fix:** Audit `pipeline/rules/effect.clone_in_place.ts` patterns. Add `\b__SELF__ becomes? a copy of\b` and `\bhave __SELF__ becomes? a copy of\b`. Add Lazav regression.
-
 - **missing**: `trigger.commit_a_crime` — second instance of the MKM Crime mechanic coverage gap. See Kaervek, the Punisher entry above for the rule-authoring proposal.
 
 ---
@@ -558,11 +548,6 @@ Whenever you cast a multicolored instant or sorcery spell from your hand, exile 
 **Current tags:** `effect.has_plot`, `effect.has_prowess`, `condition.cares_noncreature_spell`
 
 ### Issues
-
-- **missing**: `trigger.spell_cast`
-  - **What's wrong:** Rule fails to fire on "Whenever you cast a multicolored instant or sorcery spell from your hand". The rule fires on simpler "whenever you cast … spell" forms (Kraum matches "second spell"); this card's combination of pre-noun modifier "multicolored instant or sorcery" + post-noun qualifier "from your hand" defeats the anchor.
-  - **Evidence vs reality:** Substring `whenever you cast a multicolored instant or sorcery spell from your hand` is unambiguously a spell-cast trigger.
-  - **Suggested fix:** Loosen `pipeline/rules/trigger.spell_cast.ts` post-modifier handling. Allow `[^.]*\bspell(?:\s+from your hand)?\b` after the determiner. Add Lilah regression.
 
 - **missing**: no `condition.cares_multicolored` exists (coverage gap)
   - **What's wrong:** "Multicolored instant or sorcery spell" is a key qualifier; Spelltable Wizard, Riveteers Charm, and other multicolor-matters cards reference it. No catalog tag.

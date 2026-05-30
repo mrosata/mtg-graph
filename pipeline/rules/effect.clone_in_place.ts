@@ -40,7 +40,13 @@ const COPY_DIRECT = /\bcopy (?:target |that |the )?(?:[\w\-]+ )?(?:creature|perm
 // The original 3-word filler quantifier couldn't span the "up to one other
 // target" prefix; broadening the determiner is tighter than bumping the
 // filler quantifier since `becomes a copy of` is already a strong anchor.
-const BECOMES_COPY = /\bbecomes? a copy of (?:target |another target |another |that |the |any |an? |up to (?:one|two|three) (?:other )?target )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|enchantment|planeswalker|land|it)\b/;
+//
+// v0.14.41 — added `card` to the type-noun alternation for anaphoric
+// `that card` referents (Lazav, Familiar Stranger: "you may have __SELF__
+// become a copy of that card", where `that card` binds to an earlier
+// "if a creature card was exiled this way" conditional). The determiner
+// gating (`becomes a copy of <det>`) keeps the broadening safe.
+const BECOMES_COPY = /\bbecomes? a copy of (?:target |another target |another |that |the |any |an? |up to (?:one|two|three) (?:other )?target )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|enchantment|planeswalker|land|it|card)\b/;
 // "you may have this creature enter as a copy of …" — Mockingbird-style ETB-
 // as-copy. Per the v0.13 audit, accept 0-2 inserted modifier words ("enter
 // tapped as a copy of …", Echoing Deeps).

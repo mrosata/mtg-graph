@@ -15,6 +15,13 @@ describe('effect.cast_from_exile', () => {
     ['you may cast an instant or sorcery spell from among cards exiled with it'],
     ['cast any number of instant and/or sorcery spells from among the exiled cards without paying their mana costs'],
     ['you may cast a creature spell from among cards exiled with __self__'],
+    // Regression (Laughing Jasper Flint, Dack Fayden / Knowledge Pool /
+    // Etali family): "from among those cards" — anaphoric reference where
+    // "those cards" binds to a preceding `exile the top X cards of …`
+    // clause in the same effect. Same cast-from-exile semantic as the
+    // "from among the exiled cards" form.
+    ['at the beginning of your upkeep, exile the top x cards of target opponent\'s library. until end of turn, you may cast spells from among those cards, and mana of any type can be spent to cast those spells.'],
+    ['you may cast spells from among those cards'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

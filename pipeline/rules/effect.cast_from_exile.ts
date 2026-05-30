@@ -52,6 +52,14 @@ const PATTERNS = [
   // between "cast" and "from among" (handles "any number of instant and/or
   // sorcery spells" — 7 tokens of qualifier plus headroom).
   /\bcast (?:[\w\-'/]+\s+){0,12}?from among (?:the )?(?:cards exiled|exiled cards)\b/,
+  // (4) v0.14.41 — anaphoric "from among those cards" where "those cards"
+  // binds to a preceding `exile the top X cards of …` clause in the same
+  // effect (Laughing Jasper Flint, Dack Fayden, Knowledge Pool, Etali
+  // family). Same cast-from-exile semantic — opponent-library theft is
+  // the canonical hit. The phrase is distinctive enough on its own
+  // (MTG oracle templating only uses "from among those cards" after an
+  // exile clause).
+  /\bcast (?:[\w\-'/]+\s+){0,12}?from among those cards\b/,
 ];
 
 export const rule: Rule = {

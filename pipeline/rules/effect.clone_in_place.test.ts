@@ -19,6 +19,15 @@ describe('effect.clone_in_place', () => {
     // (Magnetic Whirlpool, Memory Plunder, Fleeting Reflection).
     ['target creature you control gains hexproof until end of turn. untap that creature. until end of turn, it becomes a copy of up to one other target creature.'],
     ['it becomes a copy of up to one other target nonlegendary creature.'],
+    // Regression (Lazav, Familiar Stranger): "you may have __self__ become a
+    // copy of that card" — anaphoric `that card` referent (binds to an
+    // earlier `if a creature card was exiled this way` conditional). The
+    // existing noun alternation (creature|permanent|artifact|...|it) didn't
+    // include the bare-noun `card`, but "that card" is a standard clone
+    // referent in the Lazav / exile-and-copy family.
+    ['if a creature card was exiled this way, you may have __self__ become a copy of that card until end of turn.'],
+    ['you may have __self__ become a copy of that card'],
+    ['__self__ becomes a copy of that card'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
