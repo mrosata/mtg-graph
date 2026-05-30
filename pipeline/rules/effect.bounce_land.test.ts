@@ -22,4 +22,18 @@ describe('effect.bounce_land', () => {
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
+
+  // Regression (Arid Archway and the OTJ "Archway" cycle): self-bounce land
+  // template uses the bare "a" determiner ("return a land you control to its
+  // owner's hand") rather than "target" / "another". PATTERN_RETURN_OWN and
+  // PATTERN_BROAD both gated on `another|target|each|all`, missing the entire
+  // cycle. ("a" only — "an land" is ungrammatical; typed-land subjects like
+  // "an Island" would require teaching the rule about land subtypes, which is
+  // a separate broadening.)
+  it.each([
+    ['this land enters tapped. when this land enters, return a land you control to its owner\'s hand. if another desert was returned this way, surveil 1.'],
+    ['return a land you control to its owner\'s hand'],
+  ])('matches "a" determiner self-bounce land: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
 });

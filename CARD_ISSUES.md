@@ -310,31 +310,6 @@ Saddle 3
 
 ---
 
-## Arid Archway  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Land — Desert
-**Mana cost:** (none)
-
-**Oracle text:**
-
-```
-This land enters tapped.
-When this land enters, return a land you control to its owner's hand. If another Desert was returned this way, surveil 1.
-{T}: Add {C}{C}.
-```
-
-**Current tags:** `condition.cares_lands`, `effect.add_mana`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.surveil`, `trigger.self_etb`
-
-### Issues
-
-- **missing**: `effect.bounce_land`
-  - **What's wrong:** `PATTERN_RETURN_OWN` (`pipeline/rules/effect.bounce_land.ts:14`) requires the determiner to be one of `another|target|each|all`. Arid Archway uses `return A land you control` — "a" determiner. Rule misses.
-  - **Evidence vs reality:** Normalized substring is `return a land you control to its owner's hand` — quintessential self-bounce land. Lands cycle (OTJ "Archway" cycle, including Arid Archway) all use this template.
-  - **Suggested fix:** Add `a|an` to the determiner alternation in PATTERN_RETURN_OWN (and PATTERN_BROAD): `(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+)`. Verify the `(?!\s+card)` guard still excludes the graveyard-recursion form. Add Arid Archway + cycle partners regression to `effect.bounce_land.test.ts`.
-- (Same `has_mana_activated_ability` tap-only FP as Tunnel Tipster — already logged.)
-
----
-
 ## At Knifepoint  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Enchantment
@@ -359,37 +334,6 @@ Whenever you commit a crime, create a 1/1 red Mercenary creature token with "{T}
   - **Suggested fix:**
     1. Author `trigger.commit_crime` keyed on `\bwhen(?:ever)? you commit a crime\b`. Pair with whatever the "you cast a removal spell or target an opponent" producer becomes (or just pair with general targeting effects).
     2. Author `condition.cares_outlaws` keyed on `\boutlaws? you control\b` and `\beach outlaw\b`. Pair with no tag yet — outlaws are a supertype, not a creature type with an `effect.create_outlaw_token` axis. The pairsWith axis-cross constraint applies; route via existing tribal-pairing patterns.
-
----
-
-## Aven Interrupter  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Bird Rogue
-**Mana cost:** {1}{W}{W}
-
-**Oracle text:**
-
-```
-Flash
-Flying
-When this creature enters, exile target spell. It becomes plotted.
-Spells your opponents cast from graveyards or from exile cost {2} more to cast.
-```
-
-**Current tags:** `effect.exile_from_graveyard`, `effect.has_flash`, `effect.has_flying`, `effect.has_plot`, `trigger.self_etb`
-
-### Issues
-
-- **false-positive**: `effect.exile_from_graveyard`
-  - **What's wrong:** Rule's FOREIGN_OR_GENERIC pattern (`pipeline/rules/effect.exile_from_graveyard.ts:26`) uses `.+?` filler that spans sentence boundaries. Normalized text reads `exile target spell. it becomes plotted. spells your opponents cast from graveyards ...`. The lazy `.+?` greedily walks past two sentence terminators to reach `from graveyards` in an unrelated cost-tax clause.
-  - **Evidence vs reality:** Evidence string `exile target spell. it becomes plotted. spells your opponents cast from graveyard` clearly crosses two `.` terminators. Card actually exiles a SPELL (stack) and PLOTS it — nothing leaves a graveyard.
-  - **Suggested fix:** Replace `.+?` with `[^.]+?` (or `[^.\n]+?`) in FOREIGN_OR_GENERIC, OWN_TARGETED, OWN_QUANTIFIED, IN_GRAVEYARD. Add Aven Interrupter regression as negative.
-- **false-positive**: `effect.has_plot`
-  - **What's wrong:** Rule (`pipeline/rules/effect.has_plot.ts:22`) trusts `card.keywords.includes('Plot')`. Scryfall's `keywords` array includes "Plot" for ANY card that mentions the plot mechanic in oracle text — including Aven Interrupter, which only causes an OPPONENT'S spell to become plotted. Aven Interrupter cannot itself be plotted (no `Plot {cost}` line on the card).
-  - **Evidence vs reality:** Card has no `Plot {N}` cost in its oracle, yet still gets `effect.has_plot`. Conflates "uses the plot keyword as an effect" with "is itself plottable" — Aven is a Plot enabler / payoff, not a Plot card.
-  - **Suggested fix:** Strengthen the rule: still require `card.keywords.includes('Plot')` BUT also verify the oracle text contains a literal `\bplot\s*\{` (the cost notation) — that's the unambiguous "Plot {cost}" intrinsic line. Add Aven Interrupter regression as negative + Aloe Alchemist as positive.
-
-
 
 ---
 
@@ -600,29 +544,6 @@ Whenever you commit a crime, exile up to one target black card from your graveya
 
 ---
 
-## Kellan Joins Up  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Legendary Enchantment
-**Mana cost:** {G}{W}{U}
-
-**Oracle text:**
-
-```
-When Kellan Joins Up enters, you may exile a nonland card with mana value 3 or less from your hand. If you do, it becomes plotted.
-Whenever a legendary creature you control enters, put a +1/+1 counter on each creature you control.
-```
-
-**Current tags:** `condition.cares_low_mana_value`, `effect.counter_modified`, `effect.has_plot`, `effect.plus_one_counter`, `trigger.another_creature_etb`, `trigger.self_etb`
-
-### Issues
-
-- **false-positive**: `effect.has_plot`
-  - **What's wrong:** Card does NOT have the Plot keyword as a printed alternate cast cost. It is an enchantment whose ETB ability *plots another card* ("it becomes plotted"). Scryfall populates the `keywords` array with "Plot" because the card uses the plot action, and the rule almost certainly trusts the keywords array.
-  - **Evidence vs reality:** evidence was `"Plot"` (matching keywords array, not oracle text). The tagDef description "may be exiled from hand for an alternate cost and cast as a sorcery on a later turn" describes a printed Plot {cost} line, which Kellan does not have.
-  - **Suggested fix:** Narrow `effect.has_plot` rule to require a literal `^plot\b\s*\{` (Plot followed by a mana-cost brace) in the normalized oracle text, instead of (or in addition to) trusting the Scryfall keywords array. The same Scryfall-keywords trap likely affects other plotter cards (search artifact for `becomes plotted` to find peers).
-
----
-
 ## Laughing Jasper Flint  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Lizard Rogue
@@ -720,8 +641,6 @@ Whenever you cast a multicolored instant or sorcery spell from your hand, exile 
 
 ### Issues
 
-- **false-positive**: `effect.has_plot` — same Scryfall-keywords-array trap as Kellan Joins Up. The card *plots other spells* via a triggered exile-replacement; it does not have a printed Plot {cost} cast cost. See Kellan Joins Up entry above for the proposed regex narrowing.
-
 - **missing**: `trigger.spell_cast`
   - **What's wrong:** Rule fails to fire on "Whenever you cast a multicolored instant or sorcery spell from your hand". The rule fires on simpler "whenever you cast … spell" forms (Kraum matches "second spell"); this card's combination of pre-noun modifier "multicolored instant or sorcery" + post-noun qualifier "from your hand" defeats the anchor.
   - **Evidence vs reality:** Substring `whenever you cast a multicolored instant or sorcery spell from your hand` is unambiguously a spell-cast trigger.
@@ -800,8 +719,6 @@ Look at the top three cards of your library. You may exile a nonland card from a
 **Current tags:** `effect.cast_noncreature_spell`, `effect.has_plot`, `effect.is_instant_or_sorcery`, `effect.look_at_top_n`
 
 ### Issues
-
-- **false-positive**: `effect.has_plot` — third Scryfall-keywords-array trap (see Kellan Joins Up entry above). Card plots a card from top of library; does not have a printed Plot {cost}.
 
 - **missing**: `effect.exile_from_library`
   - **What's wrong:** Rule should fire on "You may exile a nonland card from among them" (where "them" = the top three cards of your library). Library → exile movement. Currently not firing.
@@ -1151,3 +1068,200 @@ Spree (Choose one or more additional costs.)
   - **What's wrong:** Rule should fire on "You may put up to two creature cards from your hand onto the battlefield" — canonical Show-and-Tell / Elvish Piper hand-to-battlefield cheat. The tagDef explicitly covers "Puts a card from a zone OTHER than the graveyard directly onto the battlefield — skipping the casting process." Currently not firing.
   - **Evidence vs reality:** Substring `put up to two creature cards from your hand onto the battlefield` is exactly the hand-cheat form. Rule likely anchors on a tighter "put target creature card from your hand onto the battlefield" template and misses the multi-target / "up to N" quantifier.
   - **Suggested fix:** Loosen `pipeline/rules/effect.cheat_into_play.ts` to admit `put (?:up to \w+ |a |an )?(?:target )?(?:creature|permanent|nonland) cards? from your hand onto the battlefield`. Add Smuggler's Surprise regression.
+
+---
+
+## Steer Clear  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {W}
+
+**Oracle text:**
+
+```
+Steer Clear deals 2 damage to target attacking or blocking creature. Steer Clear deals 4 damage to that creature instead if you controlled a Mount as you cast this spell.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.deals_damage`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `condition.cares_tribe.mount`
+  - **What's wrong:** Mount tribe isn't in `THEME_TRIBES`, so no `condition.cares_tribe.mount` tag exists. Card explicitly scales on "if you controlled a Mount as you cast this spell".
+  - **Evidence vs reality:** oracle clause `"if you controlled a Mount as you cast this spell"` is the canonical tribal-care frame, but the parametric tribe rule has no Mount entry to fire.
+  - **Suggested fix:** add `"mount"` to `pipeline/themes.ts` `THEME_TRIBES`. Mount is an OTJ family with multiple Mount-payoff cards (Slick Sequence, Stagecoach Security's Plot eve, Bandit's Talent, etc.) — a real coverage family, not one-off.
+
+---
+
+## Step Between Worlds  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {3}{U}{U}
+
+**Oracle text:**
+
+```
+Each player may shuffle their hand and graveyard into their library. Each player who does draws seven cards. Exile Step Between Worlds.
+Plot {4}{U}{U} (You may pay {4}{U}{U} and exile this card from your hand. Cast it as a sorcery on a later turn without paying its mana cost. Plot only as a sorcery.)
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.has_plot`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** Wheel effect ("Each player who does draws seven cards") not flagged. The rule likely requires `draw[s]? \d+` and misses the spelled numeral "seven".
+  - **Evidence vs reality:** oracle clause `"Each player who does draws seven cards"` is a mass-draw — controller draws 7 — but the regex probably only matches digit forms (`draws 7 cards`).
+  - **Suggested fix:** broaden `effect.draws_or_discards` to accept spelled cardinals (`one|two|three|four|five|six|seven|eight|nine|ten`) alongside digits. Affects wheel family (Day of Judgment-shaped wheels) and old-template draws.
+
+---
+
+## Stingerback Terror  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Scorpion Dragon
+**Mana cost:** {2}{R}{R}
+
+**Oracle text:**
+
+```
+Flying, trample
+This creature gets -1/-1 for each card in your hand.
+Plot {2}{R} (You may pay {2}{R} and exile this card from your hand. Cast it as a sorcery on a later turn without paying its mana cost. Plot only as a sorcery.)
+```
+
+**Current tags:** `effect.debuff_minus_n`, `effect.has_flying`, `effect.has_plot`, `effect.has_trample`
+
+### Issues
+
+- **missing**: `condition.cares_hand_size` (no such tag exists — coverage gap)
+  - **What's wrong:** No catalog tag for "for each card in your hand" scaling. This is a real family — empty-hand / full-hand payoffs (Stingerback Terror, Library of Alexandria-style, Madness-feeders, Reckless Wurm). Plot-cast version of this card is the payoff: empty-hand 4/4 flying trample for {2}{R}.
+  - **Evidence vs reality:** oracle `"gets -1/-1 for each card in your hand"` is a hand-size scaling clause; no condition tag flags it.
+  - **Suggested fix:** add `condition.cares_hand_size` rule — anchors `for each card in your hand`, `cards in your hand`, `your hand is empty`, `no cards in hand`, etc. Pair with `effect.draws_or_discards`, `effect.targeted_discard`. Coverage family also includes hellbent payoffs and Mind Carver-style hand-attack.
+
+---
+
+## Stoic Sphinx  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Sphinx
+**Mana cost:** {2}{U}{U}
+
+**Oracle text:**
+
+```
+Flash
+Flying
+This creature has hexproof as long as you haven't cast a spell this turn.
+```
+
+**Current tags:** `effect.grants_hexproof`, `effect.has_flash`, `effect.has_flying`
+
+### Issues
+
+- **false-positive**: `effect.grants_hexproof`
+  - **What's wrong:** Recurring pattern — `effect.grants_<kw>` fires on self-conditional intrinsic phrasing ("this creature has hexproof"). The tagDef explicitly distinguishes itself from `effect.has_hexproof`, but the regex matches the `this creature has hexproof` self-reference.
+  - **Evidence vs reality:** evidence `"this creature has hexproof"` is the card describing its own conditional intrinsic, not granting hexproof to another creature.
+  - **Suggested fix:** narrow `effect.grants_hexproof` to exclude `this creature has <kw>` / `__SELF__ has <kw>` self-references (mirror the lookbehind already used by other grants_ rules per the patterns doc).
+- **missing**: `effect.has_hexproof`
+  - **What's wrong:** Card has hexproof as a (conditional) intrinsic ability, which is exactly what `effect.has_hexproof` flags. Currently absent.
+  - **Evidence vs reality:** oracle clause `"this creature has hexproof as long as you haven't cast a spell this turn"` describes a printed intrinsic conditional hexproof. The companion `grants_` tag is mis-firing instead.
+  - **Suggested fix:** broaden `effect.has_hexproof` to include `this creature has hexproof` / `__SELF__ has hexproof` (including `as long as` conditional gates). Currently likely scopes to bare-keyword/printed-only.
+
+---
+
+## Stubborn Burrowfiend  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Badger Beast Mount
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+Whenever this creature becomes saddled for the first time each turn, mill two cards, then this creature gets +X/+X until end of turn, where X is the number of creature cards in your graveyard.
+Saddle 2 (Tap any number of other creatures you control with total power 2 or more: This Mount becomes saddled until end of turn. Saddle only as a sorcery.)
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.grants_stat_buff`, `effect.mill`
+
+### Issues
+
+- **missing**: `effect.has_saddle` (no such tag exists — coverage gap)
+  - **What's wrong:** Saddle is an OTJ keyword (multi-card family — Stubborn Burrowfiend, Bovine Intervention, Slick Sequence's Mount partner, Aven Interrupter–partner Mounts, etc.). No tag flags the keyword or the saddle-payoff axis.
+  - **Evidence vs reality:** oracle `"Saddle 2"` (keyword line) and `"becomes saddled for the first time each turn"` (saddle trigger) — both unflagged.
+  - **Suggested fix:** add `effect.has_saddle` (mirrors `effect.has_crew`) and `trigger.becomes_saddled` (mirrors `trigger.becomes_crewed`-style triggers; verify whether the crew-equivalent trigger tag exists). Pair with the Mount-tribe coverage gap (already logged under Steer Clear).
+
+---
+
+## Take for a Ride  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {2}{R}
+
+**Oracle text:**
+
+```
+Take for a Ride has flash as long as you've committed a crime this turn. (Targeting opponents, anything they control, and/or cards in their graveyards is a crime.)
+Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.control_change`, `effect.grants_haste`, `effect.is_instant_or_sorcery`, `effect.untap`
+
+### Issues
+
+- **missing**: `effect.has_flash`
+  - **What's wrong:** Card has conditional intrinsic flash ("Take for a Ride has flash as long as you've committed a crime this turn"). Same pattern as Stoic Sphinx (logged above) — self-conditional intrinsic keyword fails to register on `effect.has_<kw>`.
+  - **Evidence vs reality:** oracle `"Take for a Ride has flash as long as ..."` — anchored to card name (which normalizes to __SELF__), so `__SELF__ has flash` should match.
+  - **Suggested fix:** broaden `effect.has_flash` to include `__SELF__ has flash` (and `as long as` conditional gates). Probably mirrors the fix for `effect.has_hexproof` flagged on Stoic Sphinx — same family of fix across all `effect.has_<kw>` rules.
+- **missing**: `condition.committed_a_crime` / `condition.cares_crime` (no such tag exists — coverage gap)
+  - **What's wrong:** MKM keyword action "commit a crime" has no catalog tag. Real family — Take for a Ride, Lassoed by the Law, Detective's Phoenix, dozens of MKM cards trigger off or scale on crimes committed.
+  - **Evidence vs reality:** oracle clause `"as long as you've committed a crime this turn"` is the canonical crime-payoff condition.
+  - **Suggested fix:** add `condition.cares_crime` (or `condition.committed_a_crime`). Mirrors `condition.cares_suspected` shape. Anchors: `committed a crime`, `commit a crime`, `crime this turn`.
+
+---
+
+## Take the Fall  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {U}
+
+**Oracle text:**
+
+```
+Target creature gets -1/-0 until end of turn. It gets -4/-0 until end of turn instead if you control an outlaw. (Assassins, Mercenaries, Pirates, Rogues, and Warlocks are outlaws.)
+Draw a card.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.debuff_minus_n`, `effect.draws_or_discards`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `condition.cares_outlaw` (no such tag exists — coverage gap)
+  - **What's wrong:** Outlaw is an OTJ keyword that unifies Assassins, Mercenaries, Pirates, Rogues, and Warlocks under one umbrella. No catalog tag for outlaw-cares despite being a real family (Take the Fall, Slick Sequence, Tinybones, Bounding Felidar's adventure half, etc.).
+  - **Evidence vs reality:** oracle clause `"if you control an outlaw"` is the canonical outlaw payoff condition.
+  - **Suggested fix:** add `condition.cares_outlaw` (matches `condition.cares_tribe.*` shape but as a meta-tribe). Pair with effects that create outlaw-type creatures.
+
+---
+
+## The Key to the Vault  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Artifact — Equipment
+**Mana cost:** {1}{U}
+
+**Oracle text:**
+
+```
+Whenever equipped creature deals combat damage to a player, look at that many cards from the top of your library. You may exile a nonland card from among them. Put the rest on the bottom of your library in a random order. You may cast the exiled card without paying its mana cost.
+Equip {2}{U}
+```
+
+**Current tags:** `effect.cast_for_free`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.look_at_top_n`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.has_equip` (no such tag exists — coverage gap)
+  - **What's wrong:** Equipment cards uniformly have Equip {N} but no catalog tag flags the Equip keyword. Common deckbuilding filter ("equipment-matters" decks want every Equip-keyword card).
+  - **Evidence vs reality:** oracle `"Equip {2}{U}"` is the canonical Equip keyword line.
+  - **Suggested fix:** add `effect.has_equip` mirroring `effect.has_crew` / `effect.has_cycling` shape. Pair with `condition.cares_subtype.equipment`.
+- **missing**: `effect.exile_from_library`
+  - **What's wrong:** Card does the canonical impulse-shape (look-N, exile-one, may-cast) — but rule likely scopes to `exile the top N cards of your library` rather than `look ... You may exile ... from among them`.
+  - **Evidence vs reality:** oracle clauses `"look at that many cards from the top of your library"` then `"You may exile a nonland card from among them"` chain into a net library→exile zone move.
+  - **Suggested fix:** broaden `effect.exile_from_library` to recognize the look-then-exile-from-among shape. Same family as Outpost Siege / Robber of the Rich. Not impulse_draw (cast is unbounded, not "this turn").

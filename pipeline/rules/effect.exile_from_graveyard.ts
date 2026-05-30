@@ -23,8 +23,14 @@ export const tagDef: TagDef = {
 // ("exile up to one target card from an opponent's graveyard").
 // "a single graveyard" / "target player's graveyard" added for Digsite
 // Conservator ("exile up to four target cards from a single graveyard").
-const FOREIGN_OR_GENERIC = /exile .+? from (?:a |a single |an opponent's |target opponent's |target player's )?graveyard(?!s*\s*[:—])|exile .+? from graveyards/;
-const OWN_TARGETED = /exile (?:up to [\w-]+ |any number of )?target .+? from your graveyard/;
+// v0.14.38 — filler tightened from `.+?` to `[^.]+?` so the match can't span
+// across sentence terminators. Aven Interrupter's "exile target spell. it
+// becomes plotted. spells your opponents cast from graveyards or from exile
+// cost {2} more to cast." used to FP because the greedy filler walked past
+// two periods to reach `from graveyards` in an unrelated tax clause; the
+// card actually touches the stack, not any graveyard.
+const FOREIGN_OR_GENERIC = /exile [^.]+? from (?:a |a single |an opponent's |target opponent's |target player's )?graveyard(?!s*\s*[:—])|exile [^.]+? from graveyards/;
+const OWN_TARGETED = /exile (?:up to [\w-]+ |any number of )?target [^.]+? from your graveyard/;
 // "Exile one or more X cards from your graveyard" — variable-scope exile that
 // scales a subsequent effect by cards exiled. Excludes cost forms (colon/em-dash
 // terminator) via negative lookahead. Filler `[^:.—]+?` forbids colons,

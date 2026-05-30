@@ -52,6 +52,15 @@ describe('effect.exile_from_graveyard', () => {
     // from your graveyard". The forbid-colon filler prevents this; the cost
     // half has no "from your graveyard", the effect half is reanimation.
     ['{2}{w}, {t}, exile one or more other artifacts you control with total mana value x: return target artifact card with mana value x or less from your graveyard to the battlefield. activate only as a sorcery.'],
+    // Regression (Aven Interrupter): FOREIGN_OR_GENERIC's `.+?` filler used
+    // to span across sentence terminators. Aven exiles a SPELL on the stack
+    // ("exile target spell. it becomes plotted.") — no graveyard touched —
+    // but the rule walked past two periods to reach a later cost-tax clause
+    // ("spells your opponents cast from graveyards or from exile cost {2}
+    // more to cast") and tagged the card as graveyard-hate. The fix:
+    // `[^.]+?` (forbid `.` in the filler) keeps the match within one sentence.
+    ['when this creature enters, exile target spell. it becomes plotted. spells your opponents cast from graveyards or from exile cost {2} more to cast.'],
+    ['exile target nonland permanent. it becomes a copy of a forest. spells from graveyards cost more to cast.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
