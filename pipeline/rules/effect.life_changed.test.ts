@@ -1,0 +1,48 @@
+import { describe, it, expect } from 'vitest';
+import { rule } from './effect.life_changed';
+
+describe('effect.life_changed', () => {
+  it.each([
+    ['you gain 3 life'],
+    ['target opponent loses 2 life'],
+    ['target player loses 4 life'],
+    ['you lose 1 life'],
+    ['you gain 1 life'],
+    // "may" between pronoun and verb is common (e.g. Ancient Cornucopia).
+    [", you may gain 1 life for each of that spell's colors"],
+    ['you may gain 2 life'],
+    // Colon-introduced effect on activated abilities (regression: Candy Trail).
+    ['{2}, {t}, sacrifice this artifact: you gain 3 life and draw a card'],
+    ['{t}: you gain 1 life'],
+    // Sequential / conjunction frames.
+    ['draw a card, then you gain 2 life'],
+    // Regression: Eriette of the Charmed Apple — "each opponent loses X life
+    // and you gain X life" pair. Subject is "each opponent", amount is the
+    // letter X (variable), not an integer.
+    ['at the beginning of your end step, each opponent loses x life and you gain x life'],
+    ['each opponent loses 2 life'],
+    ['target opponent loses x life'],
+    // Regression (Rankle's Prank): modal frame with "each player" subject.
+    ['• each player loses 4 life'],
+    // Regression (Rankle's Prank, first-bullet form): em-dash modal header
+    // precedes the first bullet — no preceding period to anchor the leadin.
+    ['choose one or more — • each player loses 4 life. • each player sacrifices two creatures'],
+    // Regression (Syr Ginger): variable-amount form "gain life equal to ..."
+    // — the quantifier is the entire "equal to X" clause rather than a digit.
+    ['{2}, {t}, sacrifice __self__: you gain life equal to its power'],
+    ['target opponent loses life equal to the number of cards in your hand'],
+    // v0.14.1 — comma-separated thousand-digit amounts. The Millennium
+    // Calendar: "each opponent loses 1,000 life".
+    ['when there are 1,000 or more time counters on __self__, sacrifice it and each opponent loses 1,000 life'],
+    ['you gain 1,000 life'],
+  ])('matches: %s', (text) => {
+    expect(rule.match(text)).toBeTruthy();
+  });
+  it.each([
+    ['whenever you gain life'],
+    ['if you would gain life'],
+    ['each time a player gains life'],
+  ])('does not match: %s', (text) => {
+    expect(rule.match(text)).toBe(false);
+  });
+});

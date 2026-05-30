@@ -1,0 +1,62 @@
+// pipeline/rules/condition.cares_lands.ts
+import type { Rule } from './types';
+import type { TagDef } from '../../shared/types';
+
+export const tagDef: TagDef = {
+  tagId: 'condition.cares_lands',
+  axis: 'condition',
+  label: 'Cares about lands',
+  description: 'Triggers, scales, or pays off on lands you control, land cards in graveyard, or manland-style land creatures.',
+  pairsWith: ['effect.is_manland', 'effect.animate_land', 'effect.ramp_nonland', 'effect.play_extra_land'],
+};
+
+// Cares-about-lands phrasings: lands-you-control payoffs, lands-in-graveyard payoffs,
+// land-count gates, and manland buffs ("land creatures"). Excludes tutor/destroy
+// effects that just *mention* lands without caring about them as a count or class.
+//
+// v0.14.10 — "more/fewer lands than <you|opponent>" admits the catch-up gate
+// frame (Discerning Financier: "if an opponent controls more lands than you").
+// Same semantic as "for each land" — gates an effect on a land-count
+// comparison. Covers 4 cards in Standard.
+const PATTERN = new RegExp(
+  '\\b(?:' +
+    'lands? you control' +
+    '|lands? (?:in|from) (?:your|a) graveyard' +
+    '|land cards? (?:in|from) (?:your|a) graveyard' +
+    '|each land you control' +
+    '|for each land' +
+    '|(?:two|three|four|five|six|seven|eight|nine|ten|\\d+) or more lands' +
+    '|(?:more|fewer) lands than (?:you|an opponent|target opponent)' +
+    '|land creatures? you control' +
+    '|number of lands' +
+  ')\\b',
+);
+
+// Land-SUBTYPE-cares phrasings. The rule above keys on the literal word "land",
+// which misses cards that gate only on a land subtype (Bat Colony's "a Cave you
+// control", Spelunking's "if you put a Cave onto the battlefield"). These
+// phrasings are still cares-about-lands semantically — the subtype IS a land.
+//
+// Restricted to a controlled-permanent frame ("<subtype> you control",
+// "for each <subtype>", "a <subtype> [enters|you control]", "number of
+// <subtype>") so we don't false-fire on mere mentions in flavor.
+const LAND_SUBTYPE = '(?:plains|islands?|swamps?|mountains?|forests?|caves?|deserts?|gates?|towns?|planets?)';
+const SUBTYPE_PATTERN = new RegExp(
+  '\\b(?:' +
+    `(?:a|an|another|target|each) ${LAND_SUBTYPE} you control` +
+    `|${LAND_SUBTYPE} you control` +
+    `|for each ${LAND_SUBTYPE}` +
+    `|number of ${LAND_SUBTYPE}` +
+    `|(?:two|three|four|five|six|seven|eight|nine|ten|\\d+) or more ${LAND_SUBTYPE}` +
+  ')\\b',
+);
+
+export const rule: Rule = {
+  id: 'condition.cares_lands',
+  axis: 'condition',
+  match: (t) => {
+    const m = t.match(PATTERN) ?? t.match(SUBTYPE_PATTERN);
+    return m ? { evidence: m[0] } : false;
+  },
+  nearMiss: { anchors: ['land'], proximity: ['you control', 'graveyard', 'each', 'or more'], window: 4 },
+};

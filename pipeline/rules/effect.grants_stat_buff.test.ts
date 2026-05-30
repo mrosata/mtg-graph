@@ -1,0 +1,37 @@
+import { describe, it, expect } from 'vitest';
+import { rule } from './effect.grants_stat_buff';
+
+describe('effect.grants_stat_buff', () => {
+  it.each([
+    ['other creatures you control get +1/+1 until end of turn'],
+    ['creatures you control get +2/+2 and gain trample'],
+    ['creatures get +1/+0 until end of turn'],
+    ['target creature gets +3/+3 until end of turn'],
+    ['all creatures get +1/+1 and gain flying'],
+    ['attacking creatures get +1/+0 until end of turn'],
+    ['target attacking creature gets +2/+2 until end of turn'],
+    // Regression (Moonshaker Cavalry, Night of the Sweets' Revenge): X/X
+    // variable anthem — scales with a count.
+    ['creatures you control gain flying and get +x/+x until end of turn, where x is the number of creatures you control'],
+    ['creatures you control get +x/+x until end of turn, where x is the number of foods you control'],
+    // v0.12.9 — tribal anthem (Goddric, Cloaked Reveler grants this through
+    // a nested-quoted ability — "{R}: Dragons you control get +1/+0 until end
+    // of turn."). The subject is a tribal subtype rather than the literal
+    // word "creatures".
+    ['dragons you control get +1/+0 until end of turn'],
+    ['knights you control get +1/+1 until end of turn'],
+    ['merfolk you control get +1/+1'],
+  ])('matches: %s', (text) => {
+    expect(rule.match(text)).toBeTruthy();
+  });
+
+  it.each([
+    ['put a +1/+1 counter on target creature'],
+    ['__self__ enters with a +1/+1 counter on it'],
+    ['target creature gets -3/-3 until end of turn'],
+    ['draw a card'],
+    ['creatures you control have flying'],
+  ])('does not match: %s', (text) => {
+    expect(rule.match(text)).toBe(false);
+  });
+});

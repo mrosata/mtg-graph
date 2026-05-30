@@ -1,0 +1,128 @@
+{
+  "generatedAt": "2026-05-22T12:24:52.768Z",
+  "minFreq": 30,
+  "twoGrams": [
+    {
+      "ngram": "{t}: add",
+      "count": 217
+    },
+    {
+      "ngram": "land enters",
+      "count": 91
+    },
+    {
+      "ngram": "enters tapped.",
+      "count": 82
+    },
+    {
+      "ngram": "activate only",
+      "count": 72
+    },
+    {
+      "ngram": "mana value",
+      "count": 65
+    },
+    {
+      "ngram": "where x",
+      "count": 60
+    },
+    {
+      "ngram": "tapped. {t}:",
+      "count": 59
+    },
+    {
+      "ngram": "{t}, sacrifice",
+      "count": 58
+    },
+    {
+      "ngram": "creature card",
+      "count": 44
+    },
+    {
+      "ngram": "— •",
+      "count": 41
+    },
+    {
+      "ngram": "basic land",
+      "count": 36
+    },
+    {
+      "ngram": "base power",
+      "count": 33
+    },
+    {
+      "ngram": "spell costs",
+      "count": 32
+    },
+    {
+      "ngram": "mana only",
+      "count": 32
+    },
+    {
+      "ngram": "add {c}.",
+      "count": 32
+    },
+    {
+      "ngram": "damage equal",
+      "count": 30
+    },
+    {
+      "ngram": "enters tapped",
+      "count": 30
+    }
+  ],
+  "threeGrams": [
+    {
+      "ngram": "land enters tapped.",
+      "count": 64
+    },
+    {
+      "ngram": "enters tapped. {t}:",
+      "count": 59
+    },
+    {
+      "ngram": "tapped. {t}: add",
+      "count": 59
+    },
+    {
+      "ngram": "search your library",
+      "count": 54
+    },
+    {
+      "ngram": "add one mana",
+      "count": 50
+    },
+    {
+      "ngram": "onto the battlefield",
+      "count": 40
+    },
+    {
+      "ngram": "draw a card.",
+      "count": 37
+    },
+    {
+      "ngram": "power and toughness",
+      "count": 37
+    },
+    {
+      "ngram": "instant or sorcery",
+      "count": 33
+    },
+    {
+      "ngram": "choose one —",
+      "count": 33
+    },
+    {
+      "ngram": "spend this mana",
+      "count": 32
+    },
+    {
+      "ngram": "{t}: add {c}.",
+      "count": 32
+    },
+    {
+      "ngram": "can't be blocked",
+      "count": 30
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+// pipeline/rules/effect.deals_damage.ts
+import type { Rule } from './types';
+import type { TagDef } from '../../shared/types';
+
+export const tagDef: TagDef = {
+  tagId: 'effect.deals_damage',
+  axis: 'effect',
+  label: 'Deals damage',
+  description: 'Deals damage to a player, permanent, or planeswalker.',
+  pairsWith: ['trigger.damage_dealt', 'trigger.life_changed'],
+};
+
+// Self-reference forms a card may use to refer to itself. Includes the
+// name-substituted `__self__` token, plus "this <type>" phrasings — modern
+// oracle templating ("this creature deals 1 damage to any target") and
+// Rooms ("this Room deals damage equal to...") both use these. Other rules
+// like trigger.self_etb already accept the same shape.
+const SELF = '(?:__self__|this (?:room|creature|artifact|enchantment|land|permanent|saga|vehicle|equipment|planeswalker))';
+
+// Three damage-action shapes:
+//   1. literal amount: "X deals 2 damage"
+//   2. variable amount: "X deals X damage" / "X deals N damage" where N is X
+//   3. equal-to clause: "X deals damage equal to its power"
+// All three are EFFECT shapes (the card actually deals damage). Trigger-on-
+// damage phrasings ("whenever X deals damage") deliberately don't match —
+// they describe a response to damage, not a damage-dealing effect.
+//
+// `IT` (granted-ability subject) is scoped via `(?<=: )` or `(?<=, )` positive
+// lookbehind — the ": " is the activated-ability separator (Food Fight /
+// Goblin Bombardment-style "{cost}, sacrifice X: it deals damage..."); the
+// ", " covers modern ETB templating "When this <type> enters, it deals N
+// damage" (Idol of the Deep King, Magmatic Galleon). Period-prefixed "it"
+// ("create a 2/2 token. it deals 2 damage") is still excluded because the
+// referent is a token, not the host.
+const IT = '(?<=: |, )it';
+const SUBJ = `(?:${SELF}|${IT})`;
+
+const PATTERNS = [
+  new RegExp(`\\b${SUBJ} deals \\d+ (?:combat )?damage\\b`),
+  new RegExp(`\\b${SUBJ} deals x (?:combat )?damage\\b`),
+  // Optional `(?: to [^.]*?)?` accepts a target phrase between "damage" and
+  // "equal to" — Food Fight phrasing "deals damage to any target equal to
+  // 1 plus the number of...". Existing positives ("deals damage equal to its
+  // power") still match because the inner group is optional.
+  new RegExp(`\\b${SUBJ} deals (?:combat )?damage(?: to [^.]*?)? equal to\\b`),
+  // v0.12.9: variable bound damage where the amount was bound earlier in the
+  // ability ("...deals damage to that creature, __self__ deals that much
+  // damage to each opponent"). Imodane the Pyrohammer is the canonical case.
+  new RegExp(`\\b${SUBJ} deals that (?:much|many) (?:combat )?damage\\b`),
+];
+
+export const rule: Rule = {
+  id: 'effect.deals_damage',
+  axis: 'effect',
+  match: (t) => {
+    for (const re of PATTERNS) {
+      const m = t.match(re);
+      if (m) return { evidence: m[0] };
+    }
+    return false;
+  },
+  // v0.14.6 — multi-word legendary names without comma/of/the separators
+  // (e.g. "Zoyowa Lava-Tongue") don't get short-name self-substitution from
+  // normalize.ts. The card's oracle uses the short legendary name ("Zoyowa
+  // deals 3 damage to each opponent"), which the SUBJ pattern misses. The
+  // matchCard branch uses the card's first name word as a self-ref subject.
+  matchCard: (card, text) => {
+    if (!card.name) return false;
+    const firstWord = card.name.split(/\s+/)[0];
+    if (!firstWord || firstWord.length < 4) return false;
+    // Only fire when the full name didn't already become __SELF__ via the
+    // single-segment path (i.e. multi-word name with no comma/of/the). If
+    // text already contains __self__, skip — text-side path handles it.
+    if (text.includes('__self__')) return false;
+    const lower = firstWord.toLowerCase();
+    const escaped = lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const dyn = [
+      new RegExp(`\\b${escaped}\\s+deals \\d+ (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deals x (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deals (?:combat )?damage(?: to [^.]*?)? equal to\\b`),
+      new RegExp(`\\b${escaped}\\s+deals that (?:much|many) (?:combat )?damage\\b`),
+    ];
+    for (const re of dyn) {
+      const m = text.match(re);
+      if (m) return { evidence: m[0] };
+    }
+    return false;
+  },
+};

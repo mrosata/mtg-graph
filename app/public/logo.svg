@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MTG Graph">
+  <g stroke="#525252" stroke-width="1.2" stroke-linecap="round" fill="none">
+    <line x1="32" y1="6" x2="56.7" y2="24" />
+    <line x1="56.7" y1="24" x2="47.3" y2="53" />
+    <line x1="47.3" y1="53" x2="16.7" y2="53" />
+    <line x1="16.7" y1="53" x2="7.3" y2="24" />
+    <line x1="7.3" y1="24" x2="32" y2="6" />
+    <line x1="32" y1="6" x2="47.3" y2="53" />
+    <line x1="32" y1="6" x2="16.7" y2="53" />
+    <line x1="56.7" y1="24" x2="16.7" y2="53" />
+    <line x1="56.7" y1="24" x2="7.3" y2="24" />
+    <line x1="47.3" y1="53" x2="7.3" y2="24" />
+  </g>
+  <g stroke="#0a0a0a" stroke-width="0.5">
+    <circle cx="32" cy="6" r="6" fill="#FFFBD5" />
+    <circle cx="56.7" cy="24" r="6" fill="#AAE0FA" />
+    <circle cx="47.3" cy="53" r="6" fill="#CBC2BF" />
+    <circle cx="16.7" cy="53" r="6" fill="#F9AA8F" />
+    <circle cx="7.3" cy="24" r="6" fill="#9BD3AE" />
+  </g>
+</svg>
