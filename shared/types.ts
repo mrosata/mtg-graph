@@ -62,6 +62,26 @@ export type InteractionEdge = {
   };
 };
 
+// Wire-format edge for the artifact JSON. Tuple of
+//   [sourceOracleId, targetOracleId, sourceTagIdx, targetTagIdx]
+// where `sourceTagIdx` and `targetTagIdx` are positional indices into
+// `Artifact.tagCatalog`. The pipeline emits this compact form so the artifact
+// fits in browser memory (the rich-object form crossed V8's 512 MB string-
+// length cap once Commander sets were backfilled); `graphStore.applyArtifact`
+// decodes back to `InteractionEdge` at hydrate time.
+//
+// `direction` is omitted because the catalog currently has exactly one value
+// (`source_produces_for_target`) — `pipeline/graph.ts` is the sole producer.
+// If/when other directions appear (anti-synergy, symmetric, etc.) the tuple
+// can grow a 5th `directionIdx` slot without rewriting the schema; omitted =
+// canonical.
+export type WireEdge = readonly [
+  source: string,
+  target: string,
+  sourceTagIdx: number,
+  targetTagIdx: number,
+];
+
 export type TagCategory = 'interaction' | 'theme';
 
 export type PairingRequirement = {
@@ -95,7 +115,7 @@ export type TagDef = {
 
 export type Artifact = {
   cards: Card[];
-  edges: InteractionEdge[];
+  edges: WireEdge[];
   tagCatalog: TagDef[];
   generatedAt: string;
   sourceSet: string;

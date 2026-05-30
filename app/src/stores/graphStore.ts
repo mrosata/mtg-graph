@@ -19,15 +19,43 @@ function applyArtifact(
   set: (partial: Partial<GraphState>) => void,
 ): void {
   const cards = new Map(artifact.cards.map((c) => [c.oracleId, c]));
+  // Wire-format decode: each artifact edge is `[source, target, sourceTagIdx,
+  // targetTagIdx]` where the tag indices are positions in `artifact.tagCatalog`.
+  // Re-hydrate into the in-memory `InteractionEdge` shape every other module
+  // consumes. Indices that fall outside the catalog are skipped with a warn —
+  // that signals a wire-format / RULE_VERSION mismatch rather than a runtime
+  // condition the user should see crash.
+  const tagIdByIdx = artifact.tagCatalog.map((t) => t.tagId);
   const edges = new Map<string, InteractionEdge[]>();
   const edgesInbound = new Map<string, InteractionEdge[]>();
-  for (const edge of artifact.edges) {
+  let droppedOutOfRange = 0;
+  for (const wire of artifact.edges) {
+    const sourceTagId = tagIdByIdx[wire[2]];
+    const targetTagId = tagIdByIdx[wire[3]];
+    if (sourceTagId === undefined || targetTagId === undefined) {
+      droppedOutOfRange += 1;
+      continue;
+    }
+    const edge: InteractionEdge = {
+      source: wire[0],
+      target: wire[1],
+      reason: {
+        sourceTagId,
+        targetTagId,
+        direction: 'source_produces_for_target',
+      },
+    };
     const out = edges.get(edge.source) ?? [];
     out.push(edge);
     edges.set(edge.source, out);
     const inb = edgesInbound.get(edge.target) ?? [];
     inb.push(edge);
     edgesInbound.set(edge.target, inb);
+  }
+  if (droppedOutOfRange > 0) {
+    console.warn(
+      `[graphStore] dropped ${droppedOutOfRange} edges with tag indices outside catalog (size ${tagIdByIdx.length}) — likely a wire-format / ruleVersion mismatch`,
+    );
   }
   const tagCatalog = new Map(artifact.tagCatalog.map((t) => [t.tagId, t]));
   set({
