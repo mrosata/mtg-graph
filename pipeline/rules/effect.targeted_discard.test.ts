@@ -30,6 +30,13 @@ describe('effect.targeted_discard', () => {
     // "that player discards that card" but with pronouns substituted.
     ['target opponent reveals their hand. you may choose a nonland card from it. if you do, they discard it. otherwise, you may put a face-up exiled card they own into their graveyard.'],
     ['target opponent reveals their hand. choose a card from it. they discard that card.'],
+    // Regression (Hollow Marauder): plural-subject multi-opponent template
+    // "any number of target opponents each discard a card". The plural
+    // "opponents" + distributive "each" + plural verb "discard" (no s)
+    // defeated every existing pattern (all required singular subject).
+    ['when this creature enters, any number of target opponents each discard a card.'],
+    ['target opponents each discard a card'],
+    ['each of those opponents discards a card'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

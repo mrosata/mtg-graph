@@ -13,6 +13,12 @@ describe('effect.clone_in_place', () => {
     ['you may have this creature enter as a copy of any creature on the battlefield.'],
     // Echoing Deeps — "enter tapped as a copy of"
     ['you may have this land enter tapped as a copy of any land card in a graveyard.'],
+    // Regression (Fleeting Reflection): "up to one other target creature" is
+    // 5 filler words between `becomes a copy of` and `creature`, exceeding
+    // the old {0,3} quantifier. Modern targeting templating uses this form
+    // (Magnetic Whirlpool, Memory Plunder, Fleeting Reflection).
+    ['target creature you control gains hexproof until end of turn. untap that creature. until end of turn, it becomes a copy of up to one other target creature.'],
+    ['it becomes a copy of up to one other target nonlegendary creature.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

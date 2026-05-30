@@ -432,62 +432,11 @@ Plot {1}{W}
 
 ### Issues
 
-- **missing**: `condition.cares_lands` ("untapped lands" modifier breaks count pattern)
-  - **What's wrong:** Rule pattern (`pipeline/rules/condition.cares_lands.ts`) matches `(?:two|three|four|five|...) or more lands` strictly. Dust Animus reads `five or more UNTAPPED lands` — the `untapped` modifier between `more` and `lands` defeats the pattern.
-  - **Evidence vs reality:** "Five or more untapped lands" is a deck-state gate identical in intent to "five or more lands" — just narrower. The rule should fire.
-  - **Suggested fix:** Broaden to `(?:two|three|...) or more (?:untapped |tapped |basic |snow )?lands`. Add Dust Animus regression.
 - **missing**: `effect.grants_lifelink` (keyword-counter via "enters with" frame)
   - **What's wrong:** `effect.grants_keyword.ts` Frame (i) matches `\bput a ${kw} counter\b`. Dust Animus uses `enters with two +1/+1 counters and a lifelink counter on it` — the keyword-counter is granted via ETB-with replacement, not via active "put a ... counter" verb.
   - **Evidence vs reality:** Lifelink counter on the creature still grants lifelink — same semantic outcome as "put a lifelink counter on it". Rule frame just doesn't cover ETB-with.
   - **Suggested fix:** Add a parallel frame `\b(?:enters with|with) (?:[\w/+]+ )?(?:and )?a ${kw} counter\b` to the GRANTABLE_KEYWORDS pattern builder. Mirror across all 11 grantable keywords. Add Dust Animus regression to `effect.grants_lifelink.test.ts` (or `grants_keyword.test.ts`).
 
-
----
-
-## Fleeting Reflection  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Instant
-**Mana cost:** {1}{U}
-
-**Oracle text:**
-
-```
-Target creature you control gains hexproof until end of turn. Untap that creature. Until end of turn, it becomes a copy of up to one other target creature.
-```
-
-**Current tags:** `effect.cast_noncreature_spell`, `effect.grants_hexproof`, `effect.is_instant_or_sorcery`, `effect.untap`
-
-### Issues
-
-- **missing**: `effect.clone_in_place`
-  - **What's wrong:** `BECOMES_COPY` pattern (`pipeline/rules/effect.clone_in_place.ts:36`) allows at most 3 filler words between `becomes a copy of` and the type noun (`creature|permanent|...`). Fleeting Reflection has `becomes a copy of up to one other target creature` — that's 4-5 filler words (`up to one other target`), exceeding the `{0,3}` quantifier.
-  - **Evidence vs reality:** "up to one [other] target creature" is a modern targeting templating (Magnetic Whirlpool, Memory Plunder, Fleeting Reflection). Quintessential clone effect.
-  - **Suggested fix:** Either bump the filler quantifier to `{0,5}` (low FP risk — `becomes a copy of` is already a strong anchor) OR add explicit `(?:up to (?:one|two|three) )?` qualifier to the determiner alternation. Add Fleeting Reflection regression.
-
-
----
-
-## Hollow Marauder  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Specter Rogue
-**Mana cost:** {6}{B}
-
-**Oracle text:**
-
-```
-This spell costs {1} less to cast for each creature card in your graveyard.
-Flying
-When this creature enters, any number of target opponents each discard a card. For each of those opponents who didn't discard a card with mana value 4 or greater, draw a card.
-```
-
-**Current tags:** `condition.cares_graveyard`, `condition.cares_high_mana_value`, `effect.cost_reduction`, `effect.draws_or_discards`, `effect.has_flying`, `trigger.self_etb`
-
-### Issues
-
-- **missing**: `effect.targeted_discard`
-  - **What's wrong:** `pipeline/rules/effect.targeted_discard.ts:27` patterns require `target (?:player|opponent) discards` (singular) or `each opponent discards`. Hollow Marauder uses `any number of target opponents each discard a card` — plural subject "target opponents", verb agreement drops the `s`, "each" appears as a distributive between subject and verb. Pattern misses.
-  - **Evidence vs reality:** Substring `target opponents each discard a card` is hand-attack disruption. Modern multi-opponent templates increasingly use this form.
-  - **Suggested fix:** Add pattern `\b(?:any number of )?target opponents each discards?\b` and `\beach (?:of )?(?:those |target )?opponents? (?:may )?discards?\b`. Add Hollow Marauder regression.
 
 ---
 

@@ -33,7 +33,14 @@ const COPY_DIRECT = /\bcopy (?:target |that |the )?(?:[\w\-]+ )?(?:creature|perm
 // We require "permanent|creature|artifact|enchantment|planeswalker|land|it|that"
 // as the thing being copied so we don't capture stray "becomes a copy" in
 // flavor text.
-const BECOMES_COPY = /\bbecomes? a copy of (?:target |another target |another |that |the |any |an? )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|enchantment|planeswalker|land|it)\b/;
+//
+// v0.14.40 — added `up to (?:one|two|three) (?:other )?target ` to the
+// determiner allowlist so modern targeting templates like Fleeting
+// Reflection's "becomes a copy of up to one other target creature" match.
+// The original 3-word filler quantifier couldn't span the "up to one other
+// target" prefix; broadening the determiner is tighter than bumping the
+// filler quantifier since `becomes a copy of` is already a strong anchor.
+const BECOMES_COPY = /\bbecomes? a copy of (?:target |another target |another |that |the |any |an? |up to (?:one|two|three) (?:other )?target )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|enchantment|planeswalker|land|it)\b/;
 // "you may have this creature enter as a copy of …" — Mockingbird-style ETB-
 // as-copy. Per the v0.13 audit, accept 0-2 inserted modifier words ("enter
 // tapped as a copy of …", Echoing Deeps).

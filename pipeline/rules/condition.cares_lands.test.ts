@@ -32,6 +32,13 @@ describe('condition.cares_lands', () => {
     ['if you control a cave, draw a card'],
     ['if you control an island, this creature gets +2/+2 until end of turn'],
     ['this spell costs {2} less if you control two or more deserts'],
+    // Regression (Dust Animus): "five or more untapped lands" — the
+    // `untapped` modifier slotted between `more` and `lands` defeated the
+    // strict `N or more lands` count gate. Same shape applies to "tapped",
+    // "basic", "snow" modifiers (deck-state gates).
+    ['if you control five or more untapped lands, this creature enters with two +1/+1 counters and a lifelink counter on it.'],
+    ['if you control three or more basic lands, draw a card'],
+    ['if you control four or more snow lands, gain 2 life'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

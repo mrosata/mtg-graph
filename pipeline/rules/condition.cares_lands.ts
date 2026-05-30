@@ -25,7 +25,10 @@ const PATTERN = new RegExp(
     '|land cards? (?:in|from) (?:your|a) graveyard' +
     '|each land you control' +
     '|for each land' +
-    '|(?:two|three|four|five|six|seven|eight|nine|ten|\\d+) or more lands' +
+    // v0.14.40 — admit "untapped|tapped|basic|snow" modifier between `more`
+    // and `lands` (Dust Animus: "if you control five or more untapped
+    // lands"). Same deck-state-gate semantic as the bare-noun form.
+    '|(?:two|three|four|five|six|seven|eight|nine|ten|\\d+) or more (?:untapped |tapped |basic |snow )?lands' +
     '|(?:more|fewer) lands than (?:you|an opponent|target opponent)' +
     '|land creatures? you control' +
     '|number of lands' +

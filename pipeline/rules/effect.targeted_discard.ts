@@ -46,6 +46,16 @@ const PATTERNS = [
   // anchor: require both clauses in the same effect block (≤200 chars
   // between them) so "they" can't bind to something unrelated.
   /\btarget opponent reveals their hand\b[\s\S]{0,200}?\bthey discards?\s+(?:it|that card|those cards|the chosen card)\b/,
+  // v0.14.40 — plural-subject multi-opponent template "any number of target
+  // opponents each discard a card" (Hollow Marauder). The plural noun
+  // `opponents` + distributive `each` + plural verb `discard` (no s)
+  // defeats the singular `target opponent discards` anchor. Same axis: each
+  // opponent in the targeted set loses a card from hand.
+  /\b(?:any number of )?target opponents each discards?\b/,
+  // Bound-pronoun distributive variant: "each of those opponents discards
+  // a card" — refers back to the targeted set above and forces each
+  // member to discard. Same disruption semantic.
+  /\beach of those opponents discards?\b/,
 ];
 
 export const rule: Rule = {
