@@ -33,14 +33,12 @@ function parseArgs(argv: string[]): Args {
   const refresh = argv.includes('--refresh');
 
   if (standardIdx !== -1) {
-    // Standard ∪ Upcoming ∪ Commander: one merged artifact. The app shows
-    // Standard-legal expansion cards by default and lets users switch the
-    // scope toggle ("Standard" / "Unreleased" / "All") and the Commander
-    // toggle ("Include Commander cards", default off).
-    // Dedupe in case a code is listed in multiple groups (e.g. hoc is in
-    // both UPCOMING and COMMANDER).
+    // Commander sets are temporarily excluded: adding ~13 Commander products
+    // pushed the artifact past V8's max string length (~512 MB), crashing
+    // hydration in the browser. Re-enable once edges have a compact
+    // representation (or are computed client-side).
     const sets = Array.from(
-      new Set([...STANDARD_SET_CODES, ...UPCOMING_SET_CODES, ...COMMANDER_SET_CODES]),
+      new Set([...STANDARD_SET_CODES, ...UPCOMING_SET_CODES]),
     );
     return { sets, out, outName: 'standard', refresh };
   }
