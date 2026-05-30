@@ -22,7 +22,11 @@ export const rule: Rule = {
     // `(?:[\w\s]+?\s)?` (any whitespace-separated quantifier inside the
     // clause). Innocent Bystander: "is dealt 3 or more damage" — three
     // words in the quantifier slot. Recurring family ("N or more damage").
-    const m = t.match(/whenever (?:[^,.]*?)(?:deals (?:[\w\s]+?\s)?damage|(?:is|are) dealt (?:[\w\s]+?\s)?damage)/);
+    // v0.14.36 — verb `deals` relaxed to `deal(?:s)?` so plural-subject
+    // active-voice triggers ("one or more creatures you control deal combat
+    // damage to a player", Yarus, Roar of the Old Gods) also match. Common
+    // in face-down / token go-wide payoffs.
+    const m = t.match(/whenever (?:[^,.]*?)(?:deal(?:s)? (?:[\w\s]+?\s)?damage|(?:is|are) dealt (?:[\w\s]+?\s)?damage)/);
     return m ? { evidence: m[0] } : false;
   },
 };

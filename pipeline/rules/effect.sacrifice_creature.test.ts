@@ -61,6 +61,14 @@ describe('effect.sacrifice_creature', () => {
     // Bare "sacrifice them" with no creature-card antecedent — the anaphor
     // could refer to anything; without the antecedent gate this would FP.
     ['choose two target lands. sacrifice them.'],
+    // Regression (Vein Ripper): Ward—Sacrifice cost is paid by the OPPONENT
+    // targeting this card, not by the controller. The controller never
+    // sacrifices anything via Ward; pairing with aristocrats payoffs would
+    // mislead deckbuilders. Same exclusion shape as edicts / aristocrats
+    // triggers — handled via a NEGATIVE_WARD span.
+    ['flying ward—sacrifice a creature. whenever a creature dies, target opponent loses 2 life and you gain 2 life.'],
+    ['ward—sacrifice a creature.'],
+    ['ward—sacrifice another creature, then draw a card.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

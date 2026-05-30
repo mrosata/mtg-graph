@@ -20,6 +20,12 @@ describe('trigger.damage_dealt', () => {
     // Recurring family — "N or more damage" payoff cards.
     ['whenever this creature is dealt 3 or more damage, investigate'],
     ['whenever __self__ is dealt 5 or more damage, draw a card'],
+    // Regression (Yarus, Roar of the Old Gods): plural-subject ACTIVE-voice
+    // trigger uses the plural verb `deal` (no `s`). Existing rule required
+    // `deals` (singular). Common in token go-wide / face-down payoffs.
+    ['whenever one or more face-down creatures you control deal combat damage to a player, draw a card'],
+    ['whenever one or more creatures you control deal damage to an opponent'],
+    ['whenever creatures you control deal combat damage to a player'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

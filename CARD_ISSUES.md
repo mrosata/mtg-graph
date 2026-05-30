@@ -129,30 +129,6 @@ At the beginning of combat on your turn, choose one —
 
 ---
 
-## Vein Ripper  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Vampire Assassin
-**Mana cost:** {3}{B}{B}{B}
-
-**Oracle text:**
-
-```
-Flying
-Ward—Sacrifice a creature.
-Whenever a creature dies, target opponent loses 2 life and you gain 2 life.
-```
-
-**Current tags:** `effect.has_flying`, `effect.has_ward`, `effect.life_changed`, `effect.sacrifice_creature`, `trigger.creature_dies`
-
-### Issues
-
-- **false-positive**: `effect.sacrifice_creature`
-  - **What's wrong:** Only sacrifice phrasing on the card is `Ward—Sacrifice a creature`. Ward cost is paid by the OPPONENT targeting this card, not by the controller — Vein Ripper does not itself cause its controller to sacrifice. Pairing with aristocrats `effect.sacrifice_creature` payoffs is therefore misleading (deckbuilder filter "cards that sac your creatures" would surface this card incorrectly).
-  - **Evidence vs reality:** Evidence `sacrifice a creature` is part of a Ward action-cost suffix. The skill's "Typed-sacrifice leakage onto edicts and observer triggers" pattern names this exact failure mode for typed-sac rules; generic `sacrifice_creature` has the same blind spot for Ward—Sacrifice frames.
-  - **Suggested fix:** Exclude Ward cost suffix in `effect.sacrifice_creature` (and the typed siblings — `sacrifice_artifact`, `sacrifice_enchantment` etc.) — negative lookbehind for `\bward\s*[—\-]\s*$` before the sacrifice clause, OR scope by sentence boundary and skip sentences starting with `ward[—\-]`. Add Vein Ripper regression as negative.
-
----
-
 ## Voja, Jaws of the Conclave  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Wolf
@@ -176,28 +152,6 @@ Whenever Voja attacks, put X +1/+1 counters on each creature you control, where 
 
 ---
 
-## Worldsoul's Rage  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Sorcery
-**Mana cost:** {X}{R}{G}
-
-**Oracle text:**
-
-```
-Worldsoul's Rage deals X damage to any target. Put up to X land cards from your hand and/or graveyard onto the battlefield tapped.
-```
-
-**Current tags:** `condition.has_x_in_cost`, `effect.cast_noncreature_spell`, `effect.deals_damage`, `effect.is_instant_or_sorcery`, `effect.reanimate`
-
-### Issues
-
-- **missing**: `effect.ramp_nonland`
-  - **What's wrong:** Rule pattern 4 (`pipeline/rules/effect.ramp_nonland.ts:40`) `\bput (?:a |target )?lands? cards? from your hand onto the battlefield\b` requires `from your hand` immediately followed by `onto the battlefield`. Worldsoul's variant has `from your hand AND/OR graveyard` inserted between, breaking the match.
-  - **Evidence vs reality:** Card puts up to X land cards directly into play from hand OR graveyard — quintessential ramp/finisher. A "ramp options" deckbuilder query would miss this Standard finisher.
-  - **Suggested fix:** Broaden pattern 4 to admit the `from your hand (?:and/or graveyard|or graveyard)?` source variants. Specifically: `\bput (?:a |target |up to (?:one|two|three|four|five|x) )?lands? cards? from (?:your|a) (?:hand|graveyard)(?:\s+(?:and/or|or)\s+(?:hand|graveyard))? onto the battlefield\b`. Add Worldsoul's Rage and a hand-only Plant-Beans-style regression both.
-
----
-
 ## Yarus, Roar of the Old Gods  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Centaur Druid
@@ -215,10 +169,6 @@ Whenever a face-down creature you control dies, return it to the battlefield fac
 
 ### Issues
 
-- **missing**: `trigger.damage_dealt`
-  - **What's wrong:** Rule pattern (`pipeline/rules/trigger.damage_dealt.ts:25`) requires the singular verb `deals`. Yarus's plural-subject trigger `one or more face-down creatures you control deal combat damage` uses the plural verb `deal` (no s), which the pattern misses.
-  - **Evidence vs reality:** Substring `deal combat damage to a player` is a classic damage-dealt trigger. Plural subjects (`one or more creatures`, `creatures you control`) are common in token go-wide payoffs.
-  - **Suggested fix:** Change `deals ` to `deal(?:s)? ` in the pattern. Add Yarus regression + a plural-subject "creatures you control deal combat damage" generic case.
 - **missing** (coverage gap): `condition.cares_face_down` (same gap as Tunnel Tipster, Vannifar)
   - **What's wrong:** Both triggers explicitly gate on `face-down creature(s) you control`. Yarus is a Cloak/Disguise commander-shape payoff.
   - **Evidence vs reality:** Cannot be queried via "face-down matters" filter; no catalog tag.

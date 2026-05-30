@@ -34,6 +34,12 @@ const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you\s+)?sacrifices?|\bwhen(?:ever
 // bridges the opponent subject through the `unless they (X or)? sacrifice`
 // clause.
 const NEGATIVE_UNLESS = /(?:each|target|an?)\s+opponents?\s+[^.]{0,80}?\bunless\s+(?:they|he or she|that player)\s+(?:[^.]{0,40}?\s+or\s+)?sacrifices?/g;
+// v0.14.36 — Ward action-cost suffix (Vein Ripper-shape): "Ward—Sacrifice a
+// creature." Ward is paid by the OPPONENT targeting this card, not by the
+// controller. The span covers `ward—sacrifice ...` through end-of-sentence
+// so typed-sac patterns inside the Ward cost suppress correctly. Em-dash
+// (U+2014) and ASCII hyphen both admitted.
+const NEGATIVE_WARD = /\bward\s*[—\-]\s*sacrifices?\s+[^.\n]*/g;
 
 function collectNegativeSpans(t: string): Array<[number, number]> {
   const spans: Array<[number, number]> = [];
@@ -44,6 +50,9 @@ function collectNegativeSpans(t: string): Array<[number, number]> {
     if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
   }
   for (const m of t.matchAll(NEGATIVE_UNLESS)) {
+    if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
+  }
+  for (const m of t.matchAll(NEGATIVE_WARD)) {
     if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
   }
   return spans;

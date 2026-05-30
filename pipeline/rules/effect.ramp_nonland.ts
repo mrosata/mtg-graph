@@ -37,7 +37,12 @@ const PATTERNS = [
   // hand onto the battlefield". A free extra-land effect; structurally a
   // ramp source even though no library tutor is involved.
   // Spelunking, Nicanzil Current Conductor.
-  /\bput (?:a |target )?lands? cards? from your hand onto the battlefield\b/,
+  // v0.14.36 — broadened for Worldsoul's Rage: "put up to X land cards from
+  // your hand and/or graveyard onto the battlefield tapped". Two extensions:
+  // (a) determiner slot admits "up to one/two/three/four/five/x" /
+  // "up to \d+" quantifiers, and (b) source clause admits "from your
+  // graveyard" alone OR "from your hand (?:and/or|or) graveyard" combined.
+  /\bput (?:a |an |target |up to (?:one|two|three|four|five|x|\d+) )?lands? cards? from (?:your|a) (?:hand|graveyard)(?:\s+(?:and\/or|or)\s+(?:hand|graveyard))? onto the battlefield\b/,
   // v0.14.7 — typed-land split-sentence Cultivate variant (Flourishing Bloom-
   // Kin): "search your library for ... Forest cards ... . Put one of them
   // onto the battlefield". Same Cultivate family but split across two

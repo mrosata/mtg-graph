@@ -47,6 +47,15 @@ describe('effect.ramp_nonland', () => {
     // family, just split into two sentences and using "Forest" instead of
     // "basic land".
     [['Creature'], 'when this creature is turned face up, search your library for up to two forest cards and reveal them. put one of them onto the battlefield tapped and the other into your hand, then shuffle.'],
+    // Regression (Worldsoul's Rage): "put up to X land cards from your hand
+    // and/or graveyard onto the battlefield tapped". Two broadenings on
+    // pattern 4: (a) "up to N" / "up to X" quantifier in the determiner
+    // slot, and (b) optional "and/or graveyard" source clause between "from
+    // your hand" and "onto the battlefield".
+    [['Sorcery'], '__self__ deals x damage to any target. put up to x land cards from your hand and/or graveyard onto the battlefield tapped.'],
+    [['Sorcery'], 'put up to two land cards from your hand onto the battlefield tapped.'],
+    [['Sorcery'], 'put up to three land cards from your graveyard onto the battlefield tapped.'],
+    [['Sorcery'], 'put up to five land cards from your hand or graveyard onto the battlefield tapped.'],
   ])('matches non-land cards that tutor a basic land into play: %j', (types, oracle) => {
     expect(rule.matchCard!(card(types, oracle), oracle)).toBeTruthy();
   });

@@ -46,6 +46,9 @@ const NEGATIVE_EDICT = /(?:each|target|an?)\s+opponents?\s+(?:may\s+[^.]{0,40}?\
 const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you\s+)?sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
 // v0.14.31 — "unless they sacrifice" punisher frame (Polygraph Orb shape).
 const NEGATIVE_UNLESS = /(?:each|target|an?)\s+opponents?\s+[^.]{0,80}?\bunless\s+(?:they|he or she|that player)\s+(?:[^.]{0,40}?\s+or\s+)?sacrifices?/g;
+// v0.14.36 — Ward action-cost suffix (Vein Ripper-shape): paid by the
+// opponent targeting this card, not by the controller.
+const NEGATIVE_WARD = /\bward\s*[—\-]\s*sacrifices?\s+[^.\n]*/g;
 
 function collectNegativeSpans(t: string): Array<[number, number]> {
   const spans: Array<[number, number]> = [];
@@ -56,6 +59,9 @@ function collectNegativeSpans(t: string): Array<[number, number]> {
     if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
   }
   for (const m of t.matchAll(NEGATIVE_UNLESS)) {
+    if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
+  }
+  for (const m of t.matchAll(NEGATIVE_WARD)) {
     if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
   }
   return spans;

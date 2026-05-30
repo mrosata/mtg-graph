@@ -57,6 +57,11 @@ describe('effect.sacrifice_artifact', () => {
     // opponent may discard a card or sacrifice a permanent of their choice"
     // — same edict semantics, just phrased as a choice the opponent makes.
     ['each opponent may discard a card or sacrifice a permanent of their choice'],
+    // Regression (Ward—Sacrifice an artifact pattern): Ward cost is paid by
+    // the OPPONENT targeting this card, not by the controller. Same
+    // exclusion shape as edicts — handled via NEGATIVE_WARD span.
+    ['ward—sacrifice an artifact.'],
+    ['ward—sacrifice a treasure, then draw a card.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

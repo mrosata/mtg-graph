@@ -24,6 +24,9 @@ describe('effect.sacrifice_planeswalker', () => {
     ['whenever you sacrifice another permanent, you gain 2 life'],
     // v0.14.6 — punisher edict frame leak (Zoyowa Lava-Tongue).
     ['each opponent may discard a card or sacrifice a permanent of their choice'],
+    // Regression (Ward—Sacrifice pattern): Ward cost is paid by the
+    // OPPONENT targeting this card. Handled via NEGATIVE_WARD span.
+    ['ward—sacrifice a planeswalker.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
