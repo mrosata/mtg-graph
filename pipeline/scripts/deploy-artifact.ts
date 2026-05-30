@@ -47,6 +47,9 @@ const proc = spawn(
     '--content-type=application/json',
     '--content-encoding=br',
     '--cache-control=public,max-age=300',
+    // Without --remote, wrangler writes to the Miniflare local emulator
+    // (.wrangler/state/v3/r2/...), not the actual R2 bucket.
+    '--remote',
   ],
   { stdio: 'inherit' },
 );

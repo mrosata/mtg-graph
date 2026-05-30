@@ -9,6 +9,8 @@ pipeline/reports/rule-coverage.json
 pipeline/reports/rule-coverage-*.json
 pipeline/reports/rule-mine.json
 app/public/data/*.json
+app/public/data/*.json.br
+app/public/data/*.json.gz
 .env
 .env.local
 app/src/**/*.js
@@ -17,3 +19,4 @@ app/tests/**/*.js
 app/test-results/
 app/tsconfig.tsbuildinfo
 .superpowers/
+.wrangler/
