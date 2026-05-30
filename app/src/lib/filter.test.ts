@@ -107,6 +107,30 @@ describe('applyFilter', () => {
     });
   });
 
+  describe('includeCommander', () => {
+    // woc is a real commander code; blb is a real expansion code.
+    const cards = [
+      card({ oracleId: 'expansion_only', printings: ['blb'] }),
+      card({ oracleId: 'commander_only', printings: ['woc'] }),
+      card({ oracleId: 'reprint_both', printings: ['blb', 'woc'] }),
+    ];
+
+    it('default (undefined) hides cards whose printings are entirely in commander sets', () => {
+      expect(applyFilter(cards, {}).map((c) => c.oracleId))
+        .toEqual(['expansion_only', 'reprint_both']);
+    });
+
+    it('false hides cards whose printings are entirely in commander sets', () => {
+      expect(applyFilter(cards, { includeCommander: false }).map((c) => c.oracleId))
+        .toEqual(['expansion_only', 'reprint_both']);
+    });
+
+    it('true keeps commander-only cards', () => {
+      expect(applyFilter(cards, { includeCommander: true }).map((c) => c.oracleId))
+        .toEqual(['expansion_only', 'commander_only', 'reprint_both']);
+    });
+  });
+
   it('returns all cards when sets filter is empty array', () => {
     const cards = [
       card({ oracleId: 'a', set: 'blb', printings: ['blb'] }),

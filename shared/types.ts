@@ -105,4 +105,9 @@ export type Artifact = {
   // FilterPanel scope toggle ("Standard" / "Unreleased" / "All"). Absent on
   // legacy single-set artifacts.
   upcomingSets?: string[];
+  // Subset of `sourceSets` that are Commander companion products. Drives the
+  // FilterPanel "Include Commander cards" toggle (default off — hides cards
+  // whose printings are entirely in commander sets). Absent on artifacts that
+  // didn't ingest any commander set.
+  commanderSets?: string[];
 };

@@ -15,17 +15,26 @@ import { join } from 'path';
 import { isIntrinsicKeyword } from './normalize';
 import { rule as hasFlying } from './rules/effect.has_flying';
 import { rule as hasMenace } from './rules/effect.has_menace';
+import { COMMANDER_SET_CODES } from '../shared/sets';
 import type { Card } from '../shared/types';
 
 const CACHE_DIR = join(__dirname, '..', '.cache', 'scryfall');
 const EVASION_KEYWORDS = ['Flying', 'Menace', 'Intimidate'];
+// Commander companion products carry reprints of pre-Standard cards with the
+// legacy Intimidate keyword (e.g. Sepulchral Primordial). The retired
+// has_evasion_intrinsic umbrella was scoped to Standard-set ingestion, so
+// commander caches are out of scope for this migration check.
+const SKIPPED_CACHE_FILES = new Set([
+  'big.json',
+  ...COMMANDER_SET_CODES.map((c) => `${c}.json`),
+]);
 
 function buildCardsFromCache(): Card[] {
   if (!existsSync(CACHE_DIR)) return [];
   const cards: Card[] = [];
   const seen = new Set<string>();
   for (const file of readdirSync(CACHE_DIR)) {
-    if (!file.endsWith('.json') || file === 'big.json') continue;
+    if (!file.endsWith('.json') || SKIPPED_CACHE_FILES.has(file)) continue;
     const data = JSON.parse(readFileSync(join(CACHE_DIR, file), 'utf-8'));
     const list = Array.isArray(data) ? data : (data.data ?? []);
     for (const raw of list) {

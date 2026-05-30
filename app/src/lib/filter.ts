@@ -1,5 +1,5 @@
 import type { Card, Color, Rarity } from '@shared/types';
-import { STANDARD_SET_CODES, UPCOMING_SET_CODES } from '@shared/sets';
+import { STANDARD_SET_CODES, UPCOMING_SET_CODES, COMMANDER_SET_CODES } from '@shared/sets';
 
 // Standard ∪ Upcoming artifacts carry both; scope decides which the user sees.
 // 'standard' (default) hides cards whose printings are all in upcoming sets.
@@ -17,6 +17,10 @@ export type Filter = {
   rarities?: Rarity[];
   sets?: string[];
   scope?: Scope;
+  // When false/undefined (default), hide cards whose printings are entirely
+  // in Commander companion products. Reprints (any non-commander printing)
+  // are unaffected. Orthogonal to `scope`.
+  includeCommander?: boolean;
   text?: string;
   name?: string;
   tags?: string[];
@@ -24,11 +28,13 @@ export type Filter = {
 
 const STANDARD_SET_SET = new Set(STANDARD_SET_CODES);
 const UPCOMING_SET_SET = new Set(UPCOMING_SET_CODES);
+const COMMANDER_SET_SET = new Set(COMMANDER_SET_CODES);
 
 export function applyFilter(cards: Card[], f: Filter): Card[] {
   return cards.filter((c) => {
     if (f.scope === 'standard' && !c.printings.some((p) => STANDARD_SET_SET.has(p))) return false;
     if (f.scope === 'unreleased' && !c.printings.some((p) => UPCOMING_SET_SET.has(p))) return false;
+    if (!f.includeCommander && c.printings.every((p) => COMMANDER_SET_SET.has(p))) return false;
     if (f.colors?.length) {
       if (c.colors.length === 0) return false;
       if (!c.colors.every((col) => f.colors!.includes(col))) return false;

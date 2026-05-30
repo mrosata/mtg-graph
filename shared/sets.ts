@@ -29,12 +29,45 @@ export const STANDARD_SET_CODES: string[] = STANDARD_SETS.map((s) => s.code);
 // Previewed-but-unreleased sets. Scryfall returns whatever cards are spoiled so
 // far for `set:<code>`; 0-card sets are tolerated by fetch (404 → []). Move
 // entries into STANDARD_SETS once they release and rotate into Standard.
+// Includes the matching Commander companion codes (msc, hoc, trc) so
+// scope='unreleased' shows Commander previews alongside their parent set.
 export const UPCOMING_SETS: StandardSet[] = [
   { code: 'msh', name: 'Marvel Super Heroes' },
+  { code: 'msc', name: 'Marvel Super Heroes Commander' },
   { code: 'om2', name: 'Through the Omenpaths 2' },
   { code: 'hob', name: 'The Hobbit' },
+  { code: 'hoc', name: 'The Hobbit Commander' },
   { code: 'fra', name: 'Reality Fracture' },
   { code: 'trk', name: 'Star Trek' },
+  { code: 'trc', name: 'Star Trek Commander' },
 ];
 
 export const UPCOMING_SET_CODES: string[] = UPCOMING_SETS.map((s) => s.code);
+
+// Commander companion products. Orthogonal to STANDARD/UPCOMING — a set can
+// be both upcoming AND commander (e.g. hoc). The FilterPanel "Include
+// Commander cards" toggle hides cards whose printings are ALL in this list
+// (default off). Reprints into commander products still surface via their
+// non-commander printing.
+export const COMMANDER_SETS: StandardSet[] = [
+  // Linked to STANDARD_SETS:
+  { code: 'woc', name: 'Wilds of Eldraine Commander' },
+  { code: 'lcc', name: 'The Lost Caverns of Ixalan Commander' },
+  { code: 'mkc', name: 'Murders at Karlov Manor Commander' },
+  { code: 'otc', name: 'Outlaws of Thunder Junction Commander' },
+  { code: 'blc', name: 'Bloomburrow Commander' },
+  { code: 'dsc', name: 'Duskmourn: House of Horror Commander' },
+  { code: 'fdc', name: 'Foundations Commander' },
+  { code: 'drc', name: 'Aetherdrift Commander' },
+  { code: 'tdc', name: 'Tarkir: Dragonstorm Commander' },
+  { code: 'fic', name: 'Final Fantasy Commander' },
+  { code: 'eoc', name: 'Edge of Eternities Commander' },
+  { code: 'ecc', name: 'Lorwyn Eclipsed Commander' },
+  { code: 'soc', name: 'Secrets of Strixhaven Commander' },
+  // Linked to UPCOMING_SETS:
+  { code: 'msc', name: 'Marvel Super Heroes Commander' },
+  { code: 'hoc', name: 'The Hobbit Commander' },
+  { code: 'trc', name: 'Star Trek Commander' },
+];
+
+export const COMMANDER_SET_CODES: string[] = COMMANDER_SETS.map((s) => s.code);

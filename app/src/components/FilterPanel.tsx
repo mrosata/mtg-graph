@@ -163,6 +163,20 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
             );
           })}
         </div>
+        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-neutral-300">
+          <input
+            type="checkbox"
+            checked={!!value.includeCommander}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                includeCommander: e.target.checked ? true : undefined,
+              })
+            }
+            className="h-3.5 w-3.5 accent-amber-500"
+          />
+          <span>Include Commander cards</span>
+        </label>
       </section>
 
       <section>

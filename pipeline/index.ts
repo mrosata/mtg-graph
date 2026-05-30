@@ -1,8 +1,9 @@
 // pipeline/index.ts
 import { resolve } from 'node:path';
 import type { Artifact, Card, TagDef } from '../shared/types';
-import { STANDARD_SET_CODES, UPCOMING_SET_CODES } from '../shared/sets';
+import { STANDARD_SET_CODES, UPCOMING_SET_CODES, COMMANDER_SET_CODES } from '../shared/sets';
 const UPCOMING_SET_SET = new Set(UPCOMING_SET_CODES);
+const COMMANDER_SET_SET = new Set(COMMANDER_SET_CODES);
 import { fetchSetFromScryfall } from './fetch';
 import { DEFAULT_CACHE_DIR } from './cache';
 import { existsSync } from 'node:fs';
@@ -32,9 +33,15 @@ function parseArgs(argv: string[]): Args {
   const refresh = argv.includes('--refresh');
 
   if (standardIdx !== -1) {
-    // Standard ∪ Upcoming: the app shows Standard by default and lets users
-    // switch to Unreleased / All via the FilterPanel scope toggle.
-    const sets = [...STANDARD_SET_CODES, ...UPCOMING_SET_CODES];
+    // Standard ∪ Upcoming ∪ Commander: one merged artifact. The app shows
+    // Standard-legal expansion cards by default and lets users switch the
+    // scope toggle ("Standard" / "Unreleased" / "All") and the Commander
+    // toggle ("Include Commander cards", default off).
+    // Dedupe in case a code is listed in multiple groups (e.g. hoc is in
+    // both UPCOMING and COMMANDER).
+    const sets = Array.from(
+      new Set([...STANDARD_SET_CODES, ...UPCOMING_SET_CODES, ...COMMANDER_SET_CODES]),
+    );
     return { sets, out, outName: 'standard', refresh };
   }
   if (upcomingIdx !== -1) {
@@ -105,6 +112,7 @@ async function main() {
   console.log(`  → ${edges.length} edges`);
 
   const upcomingSets = args.sets.filter((s) => UPCOMING_SET_SET.has(s));
+  const commanderSets = args.sets.filter((s) => COMMANDER_SET_SET.has(s));
   const artifact: Artifact = {
     cards: taggedCards,
     edges,
@@ -114,6 +122,7 @@ async function main() {
     sourceSets: args.sets,
     ruleVersion: RULE_VERSION,
     ...(upcomingSets.length > 0 ? { upcomingSets } : {}),
+    ...(commanderSets.length > 0 ? { commanderSets } : {}),
   };
 
   const outPath = args.out ?? resolve(process.cwd(), `app/public/data/cards-${args.outName}.json`);

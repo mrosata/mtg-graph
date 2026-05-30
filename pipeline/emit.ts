@@ -1,19 +1,68 @@
 // pipeline/emit.ts
 import { createReadStream, createWriteStream } from 'node:fs';
-import { writeFile, mkdir } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
+import { once } from 'node:events';
+import type { WriteStream } from 'node:fs';
 import { dirname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createGzip, createBrotliCompress, constants as zlib } from 'node:zlib';
-import type { Artifact } from '../shared/types';
+import type { Artifact, Card, InteractionEdge } from '../shared/types';
 
 export async function writeArtifact(path: string, artifact: Artifact): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
-  // v0.14.9 — dropped JSON.stringify pretty-printing (`null, 2`). Artifact
-  // hit ~528 MB pretty-printed and started failing the V8 max-string-length
-  // limit (~536 MB) as edge count grew past 1.7M. Compact JSON is ~30%
-  // smaller; the app parses it the same way.
-  await writeFile(path, JSON.stringify(artifact) + '\n', 'utf8');
+  // v0.14.36 — switched from `writeFile(JSON.stringify(artifact))` to a
+  // streaming writer. With Commander sets backfilled, edge count crossed
+  // 4M and the full stringified artifact exceeded V8's max string length
+  // (~512 MB / ~1 GB depending on Node). Streaming serializes per-item so
+  // we never hold the whole document as one string in memory.
+  const stream = createWriteStream(path);
+  try {
+    await write(stream, '{');
+    await write(stream, '"cards":');
+    await writeArray(stream, artifact.cards);
+    await write(stream, ',"edges":');
+    await writeArray(stream, artifact.edges);
+    await write(stream, ',"tagCatalog":');
+    await write(stream, JSON.stringify(artifact.tagCatalog));
+    await write(stream, `,"generatedAt":${JSON.stringify(artifact.generatedAt)}`);
+    await write(stream, `,"sourceSet":${JSON.stringify(artifact.sourceSet)}`);
+    await write(stream, `,"sourceSets":${JSON.stringify(artifact.sourceSets)}`);
+    await write(stream, `,"ruleVersion":${JSON.stringify(artifact.ruleVersion)}`);
+    if (artifact.upcomingSets) {
+      await write(stream, `,"upcomingSets":${JSON.stringify(artifact.upcomingSets)}`);
+    }
+    if (artifact.commanderSets) {
+      await write(stream, `,"commanderSets":${JSON.stringify(artifact.commanderSets)}`);
+    }
+    await write(stream, '}\n');
+  } finally {
+    stream.end();
+    await once(stream, 'finish');
+  }
   await writeCompressedSidecars(path);
+}
+
+// Batched per-item JSON.stringify keeps each intermediate string well under
+// V8's max-string-length cap while still amortizing the per-write overhead.
+const BATCH_SIZE = 5000;
+async function writeArray(
+  stream: WriteStream,
+  items: readonly (Card | InteractionEdge)[],
+): Promise<void> {
+  await write(stream, '[');
+  for (let i = 0; i < items.length; i += BATCH_SIZE) {
+    const end = Math.min(i + BATCH_SIZE, items.length);
+    let buf = '';
+    for (let j = i; j < end; j++) {
+      buf += (j === 0 ? '' : ',') + JSON.stringify(items[j]);
+    }
+    await write(stream, buf);
+  }
+  await write(stream, ']');
+}
+
+async function write(stream: WriteStream, chunk: string): Promise<void> {
+  if (!stream.write(chunk)) await once(stream, 'drain');
 }
 
 // Emits `<path>.gz` and `<path>.br` alongside the raw artifact so an object
