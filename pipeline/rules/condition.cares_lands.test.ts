@@ -24,6 +24,14 @@ describe('condition.cares_lands', () => {
     // land-count payoff just like "for each land" / "N or more lands".
     ['at the beginning of your upkeep, if an opponent controls more lands than you, create a treasure token'],
     ['if you control fewer lands than an opponent, draw a card'],
+    // Regression (Cactarantula): reversed-word-order "if you control a
+    // <subtype>" phrasing. SUBTYPE_PATTERN handles "<subtype> you control"
+    // but didn't accept the determiner-first "you control a <subtype>"
+    // ordering. OTJ Desert-affinity cost-reduction is a recurring shape.
+    ['this spell costs {1} less to cast if you control a desert. reach.'],
+    ['if you control a cave, draw a card'],
+    ['if you control an island, this creature gets +2/+2 until end of turn'],
+    ['this spell costs {2} less if you control two or more deserts'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

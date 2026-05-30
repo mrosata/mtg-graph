@@ -40,6 +40,10 @@ const PATTERN = new RegExp(
 // Restricted to a controlled-permanent frame ("<subtype> you control",
 // "for each <subtype>", "a <subtype> [enters|you control]", "number of
 // <subtype>") so we don't false-fire on mere mentions in flavor.
+//
+// v0.14.39 — added reversed-word-order "you control (a|an|two or more)
+// <subtype>" branch (Cactarantula's "if you control a Desert" Desert-
+// affinity cost reduction). OTJ Desert family is the canonical hit.
 const LAND_SUBTYPE = '(?:plains|islands?|swamps?|mountains?|forests?|caves?|deserts?|gates?|towns?|planets?)';
 const SUBTYPE_PATTERN = new RegExp(
   '\\b(?:' +
@@ -48,6 +52,8 @@ const SUBTYPE_PATTERN = new RegExp(
     `|for each ${LAND_SUBTYPE}` +
     `|number of ${LAND_SUBTYPE}` +
     `|(?:two|three|four|five|six|seven|eight|nine|ten|\\d+) or more ${LAND_SUBTYPE}` +
+    `|you control (?:a|an|the) ${LAND_SUBTYPE}` +
+    `|you control (?:two|three|four|five|six|seven|eight|nine|ten|\\d+) or more ${LAND_SUBTYPE}` +
   ')\\b',
 );
 

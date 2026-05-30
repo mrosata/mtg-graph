@@ -17,6 +17,13 @@ describe('effect.impulse_draw', () => {
     ['exile the top two cards of your library. choose one of those cards. you may play it this turn.'],
     // Expedited Inheritance — 3rd-person controller framing + "from the top of" inversion.
     ['its controller may exile that many cards from the top of their library. they may play those cards until the end of their next turn'],
+    // Regression (Bruse Tarl, Roving Rancher): modern templating uses the
+    // verb `cast` instead of `play` for non-land impulse-draw effects. The
+    // "non-land card → you may cast it" branch of conditional impulse-draw
+    // is a recurring shape (Bruse Tarl, Twinflame Pathway-style cards).
+    ['exile the top card of your library. if it\'s a land card, create a 2/2 white ox creature token. otherwise, you may cast it until the end of your next turn.'],
+    ['exile the top card of your library. you may cast it this turn.'],
+    ['exile the top card of your library. you may cast that card until end of turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

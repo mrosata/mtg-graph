@@ -337,29 +337,6 @@ Whenever you commit a crime, create a 1/1 red Mercenary creature token with "{T}
 
 ---
 
-## Binding Negotiation  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Sorcery
-**Mana cost:** {1}{B}
-
-**Oracle text:**
-
-```
-Target opponent reveals their hand. You may choose a nonland card from it. If you do, they discard it. Otherwise, you may put a face-up exiled card they own into their graveyard.
-```
-
-**Current tags:** `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`
-
-### Issues
-
-- **missing**: `effect.targeted_discard`
-  - **What's wrong:** Patterns in `pipeline/rules/effect.targeted_discard.ts:27` cover `target opponent discards`, `each opponent discards`, `that player discards that card`, etc. — none match the modern "they discard it" pronoun form where the discarder is bound to an earlier `target opponent` clause.
-  - **Evidence vs reality:** Card says `Target opponent reveals their hand. You may choose a nonland card from it. If you do, they discard it.` This is Coercion/Thoughtseize-family hand attack. Modern oracle templating uses `they` as the bound pronoun.
-  - **Suggested fix:** Add a new pattern `\btarget opponent reveals their hand[^.]+?[\s\S]{0,200}?\bthey discards?\s+(?:it|that card|those cards|the chosen card)\b` (span-aware Thoughtseize variant anchored on reveal-then-they-discard chain). Add Binding Negotiation regression as positive.
-
-
----
-
 ## Bruse Tarl, Roving Rancher  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Human Warrior
@@ -380,10 +357,6 @@ Whenever Bruse Tarl enters or attacks, exile the top card of your library. If it
   - **What's wrong:** Frame (c) in `pipeline/rules/effect.grants_keyword.ts:57` requires the tribal subject to end in `s` (plural-s suffix): `[a-z][\w\-]+s\s+you control\s+(?:has|have)\s+${kw}`. Irregular plurals like `Oxen`, `Children`, `Mice`, `Geese`, `People`, `Sheep` don't match.
   - **Evidence vs reality:** Normalized text starts with `oxen you control have double strike.` This is the canonical tribal-anthem grant frame. Wrench-family analysis missed it; existing test suite likely has only regular-plural positives.
   - **Suggested fix:** Either (a) extend the subject pattern to allow specific irregular plurals: `(?:[a-z][\w\-]+s|oxen|children|mice|geese|people|sheep|fish|deer|moose|elk|cattle|tabaxi|naga|kami|samurai|fairie|drakkis)` (curate from observed irregular tribes), or (b) drop the trailing-s requirement and rely on `you control\s+(?:has|have)` for disambiguation (broader, simpler — verify no false-positives on bare singular noun + "you control"). Add Bruse Tarl regression. Same fix applies to all 11 `grants_<keyword>` slugs since they share `buildGrantRegex`.
-- **missing**: `effect.impulse_draw`
-  - **What's wrong:** Rule pattern (`pipeline/rules/effect.impulse_draw.ts:27`) requires the verb `play (?:it|that card|those cards|them)`. Bruse Tarl uses `you may cast it until the end of your next turn` — modern templating that uses `cast` instead of `play` for non-land impulse-draw.
-  - **Evidence vs reality:** Substring `exile the top card of your library. ... you may cast it until the end of your next turn` is impulse-draw textbook. Rule misses the `cast` verb variant.
-  - **Suggested fix:** Change `play` to `(?:play|cast)` in the rule's PATTERN. Add Bruse Tarl + a `cast it this turn` variant as regressions. Likely 5+ Standard cards affected (many recent impulse-draw effects use `cast`).
 
 
 ---
@@ -405,10 +378,6 @@ Whenever this creature becomes the target of a spell or ability an opponent cont
 
 ### Issues
 
-- **missing**: `condition.cares_lands` (Desert subtype branch — word-order miss)
-  - **What's wrong:** `SUBTYPE_PATTERN` (`pipeline/rules/condition.cares_lands.ts`) anchors on `<subtype> you control` and `a <subtype> you control`, but Cactarantula uses the reversed-order phrasing `if you control a Desert`. The "you control X" frame is not in the alternation.
-  - **Evidence vs reality:** Cards with Desert-Affinity cost reduction (`costs {N} less to cast if you control a Desert`) is a recurring OTJ shape; multiple cards likely affected. `you control a <subtype>` is a common conditional preamble.
-  - **Suggested fix:** Add `you control (?:a|an|the|two or more) ${LAND_SUBTYPE}` as an additional alternation in `SUBTYPE_PATTERN`. Same broadening applies to the literal-"land" PATTERN: `you control (?:a|an|the|two or more) lands?`. Add Cactarantula regression as positive.
 - **missing** (coverage gap): `trigger.becomes_target` (no such tag)
   - **What's wrong:** "Whenever this creature becomes the target of a spell or ability an opponent controls" is the Spellbomb / Strangleroot-Geist / Cactarantula trigger family. No catalog representation.
   - **Evidence vs reality:** No tag matches `becomes the target`. Closest is `effect.has_ward` (printed-keyword side), but ward is the cost; this is the payoff side.
@@ -1265,3 +1234,319 @@ Equip {2}{U}
   - **What's wrong:** Card does the canonical impulse-shape (look-N, exile-one, may-cast) — but rule likely scopes to `exile the top N cards of your library` rather than `look ... You may exile ... from among them`.
   - **Evidence vs reality:** oracle clauses `"look at that many cards from the top of your library"` then `"You may exile a nonland card from among them"` chain into a net library→exile zone move.
   - **Suggested fix:** broaden `effect.exile_from_library` to recognize the look-then-exile-from-among shape. Same family as Outpost Siege / Robber of the Rich. Not impulse_draw (cast is unbounded, not "this turn").
+
+---
+
+## Three Steps Ahead  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {U}
+
+**Oracle text:**
+
+```
+Spree (Choose one or more additional costs.)
++ {1}{U} — Counter target spell.
++ {3} — Create a token that's a copy of target artifact or creature you control.
++ {2} — Draw two cards, then discard a card.
+```
+
+**Current tags:** `condition.cares_artifacts`, `effect.cast_noncreature_spell`, `effect.copy_permanent_token`, `effect.counterspell`, `effect.create_token`, `effect.draws_or_discards`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **false-positive**: `condition.cares_artifacts`
+  - **What's wrong:** Evidence is `"artifact or creature you control"` — the disjunctive target restriction in a copy-effect ("copy target artifact OR creature you control"). The rule treats this as artifact-cares, but it's not a payoff for artifact-matters decks; the card targets EITHER. Recurring shape across copy spells (Sakashima's Will, Saheeli copy effects).
+  - **Evidence vs reality:** "artifact or creature you control" in a target clause = disjunctive target restriction, not artifact-care. The semantic test: would an artifact-deck deckbuilder want this card *because* of the artifact mention? No — they'd want it because it's a copy spell.
+  - **Suggested fix:** narrow `condition.cares_artifacts` to exclude `artifact or creature you control` (and `artifact or creature` generally) in target clauses — the disjunction signals "any one of these types", not artifact-specific care. Same shape applies to `condition.cares_enchantments` (cards mentioning "creature or enchantment").
+- **missing**: `effect.has_spree` (no such tag exists — coverage gap)
+  - **What's wrong:** Spree is an OTJ keyword. Multi-card family (Three Steps Ahead, Bovine Intervention, Skullcap Snail, Final Showdown). No tag flags either the keyword or the modal-additional-costs shape.
+  - **Evidence vs reality:** oracle `"Spree (Choose one or more additional costs.)"` is the keyword line.
+  - **Suggested fix:** add `effect.has_spree` (mirrors `effect.has_kicker`).
+
+---
+
+## Throw from the Saddle  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+Target creature you control gets +1/+1 until end of turn. Put a +1/+1 counter on it instead if it's a Mount. Then it deals damage equal to its power to target creature you don't control.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.counter_modified`, `effect.grants_stat_buff`, `effect.is_instant_or_sorcery`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `effect.causes_damage`
+  - **What's wrong:** "Then it deals damage equal to its power to target creature you don't control" is the textbook `effect.causes_damage` shape (one-sided fight via power-equal damage). Anaphoric "it" refers back to "target creature you control" from the prior sentence — rule probably scopes to literal `target creature you control deals damage equal to its power` and misses the pronoun.
+  - **Evidence vs reality:** semantic chain is `target creature you control gets +1/+1. ... Then **it** [= target creature you control] deals damage equal to its power to target creature you don't control` — the canonical Hunt-the-Hunter / Savage Smash one-way fight.
+  - **Suggested fix:** broaden `effect.causes_damage` to recognize the `Then it deals damage equal to its power` anaphoric form when an earlier clause established `target creature you control` as the subject. Or add the bare-pronoun shape with a "previous sentence references your creature" pre-check.
+
+---
+
+## Thunder Salvo  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {1}{R}
+
+**Oracle text:**
+
+```
+Thunder Salvo deals X damage to target creature, where X is 2 plus the number of other spells you've cast this turn.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.deals_damage`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `condition.cares_spells_cast_this_turn` (no such tag exists — coverage gap)
+  - **What's wrong:** Spell-count-this-turn payoffs (Storm-lite / spellslinger scaling) have no catalog tag. Real family includes Thunder Salvo, Galvanic Iteration, Witty Roastmaster, Improvise/Magecraft adjacent cards.
+  - **Evidence vs reality:** oracle `"X is 2 plus the number of other spells you've cast this turn"` is the canonical spell-count scaling clause.
+  - **Suggested fix:** add `condition.cares_spells_cast_this_turn` mirroring `condition.cares_cards_drawn_this_turn`. Anchors: `spells you've cast this turn`, `spells cast this turn`, `for each other spell you've cast`. Pair with `trigger.spell_cast` and `effect.cast_noncreature_spell`.
+
+---
+
+## Tinybones Joins Up  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Enchantment
+**Mana cost:** {B}
+
+**Oracle text:**
+
+```
+When Tinybones Joins Up enters, any number of target players each discard a card.
+Whenever a legendary creature you control enters, any number of target players each mill a card and lose 1 life.
+```
+
+**Current tags:** `effect.life_changed`, `effect.mill`, `trigger.another_creature_etb`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.targeted_discard`
+  - **What's wrong:** "Any number of target players each discard a card" is targeted discard. Likely the rule scopes to `target opponent` / `each opponent` and misses `any number of target players`.
+  - **Evidence vs reality:** oracle `"any number of target players each discard a card"` — disjunctive-quantifier-over-players framing for the same discard-attack family as Mind Rot.
+  - **Suggested fix:** broaden `effect.targeted_discard` to include `any number of target players each discard` (and `target player ... discards` generally).
+- **missing**: `condition.cares_legendary` (no such tag exists — coverage gap)
+  - **What's wrong:** "Whenever a legendary creature you control enters" is a legendary-tribal ETB trigger. Real family — Tinybones Joins Up, Plargg and Nassari, Captain Sisay-style, every "legendary matters" payoff. No catalog tag flags it.
+  - **Evidence vs reality:** oracle clause `"a legendary creature you control"` is the canonical legendary-care signal.
+  - **Suggested fix:** add `condition.cares_legendary` parallel to `condition.cares_tribe.*` (legendary is a supertype, not a tribe — separate tag). Anchors: `legendary creature you control`, `legendary spell`, `for each legendary`.
+
+---
+
+## Tinybones, the Pickpocket  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Skeleton Rogue
+**Mana cost:** {B}
+
+**Oracle text:**
+
+```
+Deathtouch
+Whenever Tinybones deals combat damage to a player, you may cast target nonland permanent card from that player's graveyard, and mana of any type can be spent to cast that spell.
+```
+
+**Current tags:** `effect.has_deathtouch`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.cast_from_graveyard` (no such tag exists — coverage gap)
+  - **What's wrong:** Card grants permission to cast a card from a graveyard — the graveyard parallel to `effect.cast_from_exile` (which exists) and `effect.cast_from_library_top` (which exists). Family includes Tinybones (opponent's GY), Anje Falkenrath, Sevinne's Reclamation. Distinct from `condition.cast_from_graveyard` (which flags Flashback/Embalm/Escape/etc. *keywords* on the card itself).
+  - **Evidence vs reality:** oracle `"you may cast target nonland permanent card from that player's graveyard"` is the grant-permission shape, not a keyword.
+  - **Suggested fix:** add `effect.cast_from_graveyard` matching `effect.cast_from_exile`/`effect.cast_from_library_top` shape. Pair with `condition.cares_graveyard` and possibly with `effect.reanimate` (alternative shape for putting GY cards into play).
+- **missing**: `effect.targeted_discard` may be relevant via "and mana of any type can be spent" semantics — no, that's not discard. Skipping.
+
+---
+
+## Trained Arynx  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Cat Beast Mount
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Whenever this creature attacks while saddled, it gains first strike until end of turn. Scry 1.
+Saddle 2 (Tap any number of other creatures you control with total power 2 or more: This Mount becomes saddled until end of turn. Saddle only as a sorcery.)
+```
+
+**Current tags:** `effect.scry`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.grants_first_strike`
+  - **What's wrong:** "It gains first strike until end of turn" is a conditional self-grant of first strike. Rule likely scopes to `target creature gains` / `<noun> gains` patterns and misses the bare-pronoun `it gains` form.
+  - **Evidence vs reality:** oracle `"Whenever this creature attacks while saddled, it gains first strike until end of turn"` — "it" anaphorically refers to "this creature".
+  - **Suggested fix:** broaden `effect.grants_first_strike` to recognize bare-pronoun `it gains first strike` when the preceding clause established a creature subject. Same shape as the `it gains menace` leak noted under recurring patterns (Vito's Inquisitor) — but for the inverse direction (granting, not failing-to-grant).
+
+---
+
+## Vadmir, New Blood  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Vampire Rogue
+**Mana cost:** {1}{B}
+
+**Oracle text:**
+
+```
+Whenever you commit a crime, put a +1/+1 counter on Vadmir. This ability triggers only once each turn.
+As long as Vadmir has four or more +1/+1 counters on it, it has menace and lifelink.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.gains_keyword_self_conditional`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `effect.has_lifelink` (conditional-intrinsic form)
+  - **What's wrong:** `effect.gains_keyword_self_conditional` covers conditional menace/flying/intimidate but explicitly scopes to evasion. Vadmir's conditional ability is `it has menace AND lifelink` — lifelink isn't flagged anywhere.
+  - **Evidence vs reality:** oracle `"As long as __SELF__ has four or more +1/+1 counters on it, it has menace and lifelink"` — `it has lifelink` is a conditional-intrinsic shape that should populate `effect.has_lifelink`.
+  - **Suggested fix:** broaden `effect.has_lifelink` to accept `it has lifelink` / `__SELF__ has lifelink` (and `as long as` conditional gates). Same fix shape as Stoic Sphinx hexproof and Take for a Ride flash — looks like the conditional-intrinsic axis is a cross-cutting gap across `has_<kw>` rules.
+- **missing**: `condition.cares_plus_one_counter`
+  - **What's wrong:** "As long as Vadmir has four or more +1/+1 counters on it" is the canonical +1/+1 counter gate (the modal-style payoff). Rule should fire.
+  - **Evidence vs reality:** oracle clause `"four or more +1/+1 counters on it"` — direct count-gating on +1/+1 counters. The tagDef description says "Has an effect or trigger that checks whether a creature has a +1/+1 counter" — matches exactly.
+  - **Suggested fix:** broaden `condition.cares_plus_one_counter` to recognize `N or more +1/+1 counters on it` (and `four or more`, `three or more`, etc., spelled forms). If the rule already handles digit forms (`4 or more`), the gap is spelled-cardinal matching.
+- **missing**: `condition.cares_crime` (no such tag — coverage gap, already logged under Take for a Ride)
+
+---
+
+## Vraska, the Silencer  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Gorgon Assassin
+**Mana cost:** {1}{B}{G}
+
+**Oracle text:**
+
+```
+Deathtouch
+Whenever a nontoken creature an opponent controls dies, you may pay {1}. If you do, return that card to the battlefield tapped under your control. It's a Treasure artifact with "{T}, Sacrifice this artifact: Add one mana of any color," and it loses all other card types.
+```
+
+**Current tags:** `condition.cares_subtype.treasure`, `effect.has_deathtouch`, `trigger.creature_dies`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** "return that card to the battlefield tapped under your control" is the canonical reanimation shape — graveyard → battlefield. The transformation-to-Treasure side effect doesn't change the underlying zone move.
+  - **Evidence vs reality:** oracle `"return that card to the battlefield"` after a `creature ... dies` trigger — every component of the reanimate shape.
+  - **Suggested fix:** broaden `effect.reanimate` if it requires `from your graveyard` (Vraska doesn't include this — the graveyard zone is implicit from the death trigger). Anchor on `return that card to the battlefield` when chained from a death/graveyard antecedent.
+- **missing**: `effect.control_change`
+  - **What's wrong:** "under your control" applied to an opponent's card is a control change. Steals the dead creature card from opponent's graveyard.
+  - **Evidence vs reality:** oracle `"return that card to the battlefield tapped under your control"` (preceded by `nontoken creature an opponent controls dies`) — same shape as Animate Dead-style steal.
+  - **Suggested fix:** broaden `effect.control_change` to recognize the cross-zone shape ("under your control" applied to a card from opponent's graveyard or other zone). Currently likely scopes to "gain control of target" on the battlefield.
+- **false-positive** (weak): `condition.cares_subtype.treasure`
+  - **What's wrong:** Card outputs a Treasure as the dead creature's new identity; it doesn't *care about* (scale on / trigger off / payoff for) treasures. Semantic test: a Treasure-matters deck wouldn't include Vraska *because of* the treasure clause — they'd include it for the steal/reanimate.
+  - **Evidence vs reality:** evidence `"treasure"` matches the literal type word, but the rule signal is "card references Treasure as a payoff axis", which Vraska doesn't (it produces, transformatively).
+  - **Suggested fix:** narrow `condition.cares_subtype.<X>` to exclude `it's a <X> [artifact|creature]` transformation clauses (the producer form). Borderline; the producer/consumer distinction is fuzzy here.
+
+---
+
+## Ancient Cornucopia  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Artifact
+**Mana cost:** {2}{G}
+
+**Oracle text:**
+
+```
+Whenever you cast a spell that's one or more colors, you may gain 1 life for each of that spell's colors. Do this only once each turn.
+{T}: Add one mana of any color.
+```
+
+**Current tags:** `effect.add_mana`, `effect.has_activated_ability`, `effect.life_changed`, `effect.ramp_nonland`, `trigger.spell_cast`
+
+### Issues
+
+- **missing**: `condition.cares_colors` / `condition.cares_spell_colors` (no such tag exists — coverage gap)
+  - **What's wrong:** Color-count scaling payoffs ("for each of that spell's colors", "for each color among permanents you control") have no catalog tag. Real family: domain decks, Painter's Servant interactions, Bring to Light scaling, Coalition Victory shape. Standard-rotating but recurring.
+  - **Evidence vs reality:** oracle `"for each of that spell's colors"` is a per-color scaling clause; no condition tag flags it.
+  - **Suggested fix:** add `condition.cares_colors` (or split into `condition.cares_color_count` for scaling and `condition.cares_multicolor` for binary "is multicolor" payoffs). Anchors: `for each color`, `multicolored spell`, `colored mana symbols`, `domain`.
+- **missing**: `effect.has_mana_activated_ability`
+  - **What's wrong:** `{T}: Add one mana of any color.` is a tap-activated mana ability — qualifies as a mana-cost activated ability per the tagDef. Currently absent.
+  - **Evidence vs reality:** evidence-equivalent to `{t}:` for the activated ability — but cost is just a tap, not a mana cost. Wait — tap-only cost might not qualify for "mana-cost" per the tagDef ("activated ability whose cost includes mana"). A tap symbol is not mana. So this is NOT a mana-activated ability. Self-correcting; skip.
+
+---
+
+## Collector's Cage  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Artifact
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Hideaway 5 (When this artifact enters, look at the top five cards of your library, exile one face down, then put the rest on the bottom in a random order.)
+{1}, {T}: Put a +1/+1 counter on target creature you control. Then if you control three or more creatures with different powers, you may play the exiled card without paying its mana cost.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `effect.look_at_top_n`
+  - **What's wrong:** Reminder text for Hideaway includes "look at the top five cards of your library" — but reminder text is in `(...)` and stripped pre-tag. So actually this miss is correct behavior. **Self-correcting** — skip. (Verifying the Hideaway keyword's printed line `Hideaway 5` does NOT itself reference looking-at-top; that lives in reminder text only.)
+- **missing**: `effect.exile_from_library`
+  - **What's wrong:** Same — the "exile one face down" lives in Hideaway reminder text, stripped pre-tag. Skip.
+- **missing**: `effect.cast_for_free`
+  - **What's wrong:** "you may play the exiled card without paying its mana cost" is the canonical cast-for-free shape. NOT in reminder text — lives on the activated ability's body.
+  - **Evidence vs reality:** oracle `"you may play the exiled card without paying its mana cost"` — direct cast-for-free.
+  - **Suggested fix:** broaden `effect.cast_for_free` to accept `you may play the exiled card without paying its mana cost` (currently likely scopes to `cast` not `play`).
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** Same — plays the exiled card. Lives on activated ability body, not reminder text.
+  - **Evidence vs reality:** oracle `"you may play the exiled card"` references an exile-zone card. Should fire.
+  - **Suggested fix:** broaden `effect.cast_from_exile` to accept `you may play the exiled card` (and the `the exiled card` anaphor referring to an earlier exile).
+- **missing**: `effect.has_hideaway` (no such tag exists — coverage gap)
+  - **What's wrong:** Hideaway is a small but real keyword family (MOM/OTJ Collector's Cage, Cradle of Safety, etc.). No tag.
+  - **Suggested fix:** add `effect.has_hideaway` mirroring `effect.has_plot` / `effect.has_warp` shape.
+- **missing**: `condition.cares_different_powers` (no such tag exists — narrow coverage gap)
+  - **What's wrong:** "Three or more creatures with different powers" is a specific power-variance payoff. Probably not its own family (only 2-3 cards), but could fit under a broader "cares about creature stats" axis.
+  - **Suggested fix:** skip standalone tag; consider whether `condition.cares_high_power` semantics could be broadened to "cares about creature power stats" generally. Borderline.
+
+---
+
+## Esoteric Duplicator  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Artifact — Clue
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+Whenever you sacrifice this artifact or another artifact, you may pay {2}. If you do, at the beginning of the next end step, create a token that's a copy of that artifact.
+{2}, Sacrifice this artifact: Draw a card.
+```
+
+**Current tags:** `effect.copy_permanent_token`, `effect.create_token`, `effect.draws_or_discards`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.sacrifice_artifact`, `trigger.beginning_of_end_step`
+
+### Issues
+
+- **missing**: `trigger.permanent_sacrificed`
+  - **What's wrong:** "Whenever you sacrifice this artifact or another artifact" is a sacrifice-observation trigger (artifact-aristocrats). The tagDef explicitly includes artifacts: "Has an ability that triggers when you sacrifice a creature, artifact, enchantment, land, token, or permanent (the aristocrats axis)". Rule may scope to `creature` and miss `artifact`.
+  - **Evidence vs reality:** oracle `"Whenever you sacrifice this artifact or another artifact, you may pay {2}"` — direct artifact-sac trigger.
+  - **Suggested fix:** broaden `trigger.permanent_sacrificed` to include `artifact or another <type>` and `this artifact or another artifact` shapes. Aristocrats-payoff axis.
+
+---
+
+## Generous Plunderer  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Human Rogue
+**Mana cost:** {1}{R}
+
+**Oracle text:**
+
+```
+Menace
+At the beginning of your upkeep, you may create a Treasure token. When you do, target opponent creates a tapped Treasure token.
+Whenever this creature attacks, it deals damage to defending player equal to the number of artifacts they control.
+```
+
+**Current tags:** `effect.create_token`, `effect.create_treasure`, `effect.deals_damage`, `effect.has_menace`, `trigger.attack_or_block`, `trigger.upkeep`
+
+### Issues
+
+- **missing** (partial): `condition.cares_artifacts`
+  - **What's wrong:** "Equal to the number of artifacts they control" is artifact-count scaling — but the rule likely scopes to "artifacts you control" (the standard payoff frame). Generous Plunderer scales on OPPONENT's artifact count (an anti-artifact-deck punisher). Real but edge family (Manic Vandal-style + artifacts-they-control payoffs).
+  - **Evidence vs reality:** oracle `"equal to the number of artifacts they control"` — same scaling structure as `artifacts you control`, just other-player-scoped.
+  - **Suggested fix:** broaden `condition.cares_artifacts` to include `artifacts they control` and `artifacts your opponents control`. Pair-wise this is mostly with other artifact-producers/destroyers; semantically belongs in the same payoff category.

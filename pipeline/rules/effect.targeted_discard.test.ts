@@ -24,6 +24,12 @@ describe('effect.targeted_discard', () => {
     // discard a card or sacrifice a permanent" — punisher edicts force the
     // opponent into one of two options; discard is one of them.
     ['each opponent may discard a card or sacrifice a permanent of their choice'],
+    // Regression (Binding Negotiation): modern oracle templating uses the
+    // bound pronoun "they discard it" after an earlier "target opponent
+    // reveals their hand" anchor. Functionally identical to Thoughtseize's
+    // "that player discards that card" but with pronouns substituted.
+    ['target opponent reveals their hand. you may choose a nonland card from it. if you do, they discard it. otherwise, you may put a face-up exiled card they own into their graveyard.'],
+    ['target opponent reveals their hand. choose a card from it. they discard that card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

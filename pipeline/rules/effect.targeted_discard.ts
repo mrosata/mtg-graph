@@ -40,6 +40,12 @@ const PATTERNS = [
   // equivalent to discard for graph-edge purposes: an opponent's hand loses
   // a card.
   /\btarget opponent exiles (?:a|an|one|two|three|x|\d+) cards? from their hand\b/,
+  // v0.14.39 — modern Thoughtseize templating uses the bound pronoun "they
+  // discard it" after a "target opponent reveals their hand" antecedent
+  // (Binding Negotiation, plus future cards adopting the pattern). Span-aware
+  // anchor: require both clauses in the same effect block (≤200 chars
+  // between them) so "they" can't bind to something unrelated.
+  /\btarget opponent reveals their hand\b[\s\S]{0,200}?\bthey discards?\s+(?:it|that card|those cards|the chosen card)\b/,
 ];
 
 export const rule: Rule = {
