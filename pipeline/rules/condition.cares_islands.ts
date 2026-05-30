@@ -3,8 +3,10 @@
 // "Islands matter" condition — counts or triggers on Islands you control.
 // Touches Eluge, Tempest Djinn, Waterlogged Hulk / Watertight Gondola, and
 // Waterbending Scroll. Pairs with effect.land_becomes_island (the flood-counter
-// axis that creates new Islands mid-game) and with effect.add_mana for the
-// basic Island fodder side.
+// axis that creates new Islands mid-game). Does NOT pair with effect.add_mana —
+// Islands-matter payoffs care about the Island land type, not mana production,
+// so basic Forest / Plains / Swamp / Mountain (and every Treasure or rock) are
+// not legitimate fodder for them.
 import type { Rule } from './types';
 import type { TagDef } from '../../shared/types';
 
@@ -15,7 +17,6 @@ export const tagDef: TagDef = {
   description: 'Counts or triggers off Islands you control — mono-blue/Islands-matter payoffs.',
   pairsWith: [
     'effect.land_becomes_island',
-    'effect.add_mana',
   ],
 };
 
