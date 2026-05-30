@@ -53,10 +53,6 @@ Whenever an opponent attacks with creatures, if two or more of those creatures a
 
 ### Issues
 
-- **missing**: `effect.life_changed`
-  - **What's wrong:** "that opponent loses 3 life" is a textbook life-change effect; tag description says "Causes a player to gain or lose life" yet didn't fire.
-  - **Evidence vs reality:** Substring `that opponent loses 3 life` clearly satisfies the rule's intent; check whether the rule requires a leading "lose" verb without the `that opponent loses N life` anaphoric subject frame, or whether the `if … and/or …` conditional preamble breaks the match.
-  - **Suggested fix:** Broaden `effect.life_changed` to admit `<player>(?:\s+)?(loses|gains)\s+\d+\s+life` regardless of preceding `if … then …` clauses. Add Tomik regression case.
 - **missing**: `condition.cares_planeswalkers` (coverage gap — no such tag in catalog)
   - **What's wrong:** Card scales cost via Affinity for planeswalkers AND its combat trigger gates on opponents attacking "planeswalkers you control". Catalog has only `effect.<verb>_planeswalker` tags; no condition axis.
   - **Evidence vs reality:** No tag in catalog flags "cares about planeswalkers you control" — would not show up as a planeswalker-deck payoff in filter queries.
@@ -79,10 +75,6 @@ Torch the Witness deals twice X damage to target creature. If excess damage was 
 
 ### Issues
 
-- **missing**: `effect.deals_damage`
-  - **What's wrong:** Rule patterns in `pipeline/rules/effect.deals_damage.ts` match `<subj> deals \d+ damage`, `<subj> deals x damage`, etc. but not the `<subj> deals twice x damage` multiplier-prefix form.
-  - **Evidence vs reality:** Normalized text is `__self__ deals twice x damage to target creature`. The word `twice` between `deals` and `x` defeats pattern[2] (`${SUBJ} deals x damage`).
-  - **Suggested fix:** Broaden patterns to admit `(?:twice |thrice |\d+ times )?` multiplier between `deals` and the amount. Add Torch the Witness regression case. Also add `\d+\s*\+\s*x` and `x plus \d+` variants while there if not already covered.
 - **missing** (coverage gap): `condition.cares_excess_damage` (no such tag in catalog)
   - **What's wrong:** "If excess damage was dealt to that creature this way" is the excess-damage conditional family (Atraxa, Grand Unifier-adjacent; Tribute to the World Tree; this card). Not currently distinguishable from generic deals_damage payoffs.
   - **Evidence vs reality:** No catalog tag matches `excess damage`.
@@ -106,10 +98,6 @@ At the beginning of your end step, if a face-down creature entered the battlefie
 
 ### Issues
 
-- **false-positive**: `effect.has_mana_activated_ability`
-  - **What's wrong:** Card has only a tap-only activated ability (`{T}: Add {G}`); cost contains zero mana. Training-Grounds-style reducers cannot reduce tap costs, so the rule's intent ("reducible by Training-Grounds-style cost reducers") is violated.
-  - **Evidence vs reality:** Evidence is `{t}:`. The rule's `SYMBOL_ACTIVATED_PATTERN` (`pipeline/rules/effect.has_mana_activated_ability.ts:31`) includes `t` and `q` in the symbol class, so any tap-only or untap-only activation matches. Mana dorks are the canonical FP shape.
-  - **Suggested fix:** Tighten `SYMBOL_ACTIVATED_PATTERN` to require at least one mana symbol in the cost, e.g. `\{[wubrgcx0-9]...\}[^.\n]{0,60}?:\s` (drop `t`/`q`/`s` from the *first* symbol class), or alternate: require the cost portion (before `:`) to contain `[wubrgc0-9]`. Add Tunnel Tipster + Llanowar Elves-clone regression as negatives, and keep `{T}, {G}: ...` / `{G}, {T}: ...` as positives. Note: `effect.has_activated_ability` should still fire (which is fine — that one doesn't claim mana-cost-reducer compatibility).
 - **missing** (coverage gap): `condition.cares_face_down` (no such tag in catalog)
   - **What's wrong:** Card's trigger gates on "if a face-down creature entered the battlefield under your control this turn" — a morph/disguise/cloak/manifest payoff.
   - **Evidence vs reality:** No catalog tag matches `face-down creature` / `face down creature entered`. Closest are `effect.cloak`, `effect.has_disguise`, `trigger.turned_face_up`, none of which capture the consumer/payoff axis.
@@ -1052,3 +1040,235 @@ Whenever you commit a crime during your turn, this creature gains indestructible
   - **Suggested fix:** Audit `pipeline/rules/effect.grants_indestructible.ts`. Verify it admits `this creature gains? indestructible` (self-grant). Add Overzealous Muscle regression. This is a high-severity miss — zero-tag cards leave deckbuilders with no way to find the card via filters.
 
 - **missing**: `trigger.commit_a_crime` — fifth instance of the MKM Crime mechanic coverage gap (see Kaervek entry above). Combined with the grants_indestructible miss, this card produces a zero-tag result — a strong signal that the Crime mechanic family needs catalog coverage.
+
+---
+
+## Quilled Charger  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Porcupine Mount
+**Mana cost:** {3}{R}
+
+**Oracle text:**
+
+```
+Whenever this creature attacks while saddled, it gets +1/+2 and gains menace until end of turn.
+Saddle 2
+```
+
+**Current tags:** `effect.grants_stat_buff`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.grants_evasion`
+  - **What's wrong:** Rule should fire on "it gains menace until end of turn" — anaphoric self-grant of menace. The tagDef explicitly covers "flying, menace, or intimidate" grants. Currently not firing.
+  - **Evidence vs reality:** Substring `it gains menace until end of turn` is the anaphoric grant frame. Recurring patterns note already calls out the bare-pronoun "it" leak for grants_evasion (Pattern[1] / Vito's Inquisitor); Quilled Charger is a fresh instance worth adding to the regression set when that pattern is addressed.
+  - **Suggested fix:** Either accept the deferred single-card scope of the bare-pronoun "it" gap, or include `\bit gains? (?:menace|flying|intimidate)\b` in `effect.grants_evasion`. Add Quilled Charger regression.
+
+---
+
+## Rakdos, the Muscle  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Demon Mercenary
+**Mana cost:** {2}{B}{B}{R}
+
+**Oracle text:**
+
+```
+Flying, trample
+Whenever you sacrifice another creature, exile cards equal to its mana value from the top of target player's library. Until your next end step, you may play those cards, and mana of any type can be spent to cast those spells.
+Sacrifice another creature: Rakdos gains indestructible until end of turn. Tap it. Activate only once each turn.
+```
+
+**Current tags (relevant):** `effect.grants_indestructible`, `effect.has_activated_ability`, `effect.has_flying`, `effect.has_mana_activated_ability`, `effect.has_trample`, `effect.sacrifice_creature`, `trigger.permanent_sacrificed`
+
+### Issues
+
+- **missing**: `effect.exile_from_library`
+  - **What's wrong:** Rule should fire on "exile cards equal to its mana value from the top of target player's library". Currently not firing — same shape as Laughing Jasper Flint (also logged above) where opponent-library theft variants miss.
+  - **Evidence vs reality:** Substring `exile cards equal to its mana value from the top of target player's library` is the canonical library-to-exile form with a variable count. Rule probably anchors on fixed-count `exile the top N cards of target player's library` and misses the `equal to its mana value` quantifier.
+  - **Suggested fix:** Loosen `pipeline/rules/effect.exile_from_library.ts` count slot to admit `equal to (?:its|that creature's|that spell's) mana value` and similar variable quantifiers. Add Rakdos regression.
+
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** Rule should fire on "Until your next end step, you may play those cards, and mana of any type can be spent to cast those spells" — same theft pattern as Laughing Jasper Flint (also logged). The fix proposed there (admit `you may cast (?:[^.]*?)from among those cards` and `play those cards`) should cover Rakdos too.
+  - **Suggested fix:** See Jasper Flint entry; add a `\byou may (?:play|cast) those cards\b` variant. Add Rakdos regression.
+
+- **false-positive**: `effect.has_mana_activated_ability`
+  - Second instance of the recurring sacrifice-as-cost FP (see Magda, the Hoardmaster entry above). Cost `Sacrifice another creature:` has no mana symbol. Same fix.
+
+- **note**: `effect.grants_indestructible` DID fire here on "Rakdos gains indestructible" (__SELF__ name reference), but did NOT fire on Overzealous Muscle's "this creature gains indestructible" (anaphoric self-reference). Confirms the diagnosis: the rule's self-grant pattern handles `__SELF__` but not `this creature`. Same single-rule fix.
+
+---
+
+## Rakish Crew  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+When this enchantment enters, create a 1/1 red Mercenary creature token with "..."
+Whenever an outlaw you control dies, each opponent loses 1 life and you gain 1 life.
+```
+
+**Current tags:** `effect.create_creature_token`, `effect.create_token`, `effect.life_changed`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `trigger.creature_dies`
+  - **What's wrong:** Rule should fire on "Whenever an outlaw you control dies". Outlaws ARE creatures (per the MKM rules text "Assassins, Mercenaries, Pirates, Rogues, and Warlocks are outlaws"), so a creature-dies trigger gated on a creature-type group should still tag the axis. Currently not firing.
+  - **Evidence vs reality:** Substring `whenever an outlaw you control dies` is a typed-creature-dies trigger. Rule probably anchors on `whenever (?:a |another |any )?creature` and misses subject nouns that are creature-type groups (outlaw, dragon, knight, etc.).
+  - **Suggested fix:** Loosen `pipeline/rules/trigger.creature_dies.ts` subject-noun allowlist to admit `outlaw`, common tribal nouns from THEME_TRIBES, and the `outlaw` type-group. This recurring pattern affects every typed-creature-dies trigger on tribal cards (likely 10+ Standard cards). Add Rakish Crew regression.
+
+- **missing**: `condition.cares_outlaws` — second instance of the MKM Outlaws coverage gap (see Jasper Flint entry above).
+
+---
+
+## Rattleback Apothecary  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Gorgon Warlock
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Deathtouch
+Whenever you commit a crime, target creature you control gains your choice of menace or lifelink until end of turn.
+```
+
+**Current tags:** `effect.grants_lifelink`, `effect.has_deathtouch`
+
+### Issues
+
+- **missing**: `effect.grants_evasion`
+  - **What's wrong:** Rule should fire on "gains your choice of menace or lifelink" — modal grant where menace is one of two options. `effect.grants_lifelink` correctly fires; the parallel menace grant is missed.
+  - **Evidence vs reality:** Substring `gains your choice of menace or lifelink` has menace as a grant target. Rule probably anchors on `gains? (?:flying|menace|intimidate)` directly and is defeated by the intervening `your choice of` modal frame.
+  - **Suggested fix:** Add a modal-grant pattern to `pipeline/rules/effect.grants_evasion.ts` that admits `gains? your choice of [^.]*?(?:menace|flying|intimidate)\b`. The parallel issue likely affects `effect.grants_lifelink`-adjacent modal grants too (a single regex add covers both axes). Add Rattleback regression.
+
+- **missing**: `trigger.commit_a_crime` — 6th instance of the Crime mechanic coverage gap.
+
+---
+
+## Resilient Roadrunner  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Bird
+**Mana cost:** {1}{R}
+
+**Oracle text:**
+
+```
+Haste, protection from Coyotes
+{3}: This creature can't be blocked this turn except by creatures with haste.
+```
+
+**Current tags:** `effect.has_activated_ability`, `effect.has_haste`, `effect.has_mana_activated_ability`, `effect.unblockable`
+
+### Issues
+
+- **false-positive**: `effect.unblockable`
+  - **What's wrong:** Card text is `"can't be blocked this turn except by creatures with haste"` — partial unblockability ("except by X"). The tagDef explicitly excludes this: "Distinct from partial unblockability (Protection / "can't be blocked by X" / "except by X") and from blocker-restriction gates (Delney)." Yet the rule fires anyway.
+  - **Evidence vs reality:** evidence was `"can't be blocked"`. The rule probably anchors on the bare `can't be blocked` substring without checking for a following `except by` / `by` partial-block clause.
+  - **Suggested fix:** Add a negative-lookahead exclusion to `pipeline/rules/effect.unblockable.ts` matching `can't be blocked\b(?![^.]*\b(?:except\s+by|by)\b)`. Note: Resilient Roadrunner's clause restricts blockers to haste creatures (so by extension it's USUALLY unblockable in practice), but per the tagDef's explicit guidance, partial-block clauses fall outside the tag's scope. Add Resilient Roadrunner regression.
+
+---
+
+## Rush of Dread  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {1}{B}{B}
+
+**Oracle text:**
+
+```
+Spree (Choose one or more additional costs.)
++ {1} — Target opponent sacrifices half the creatures they control of their choice, rounded up.
++ {2} — Target opponent discards half the cards in their hand, rounded up.
++ {2} — Target opponent loses half their life, rounded up.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.edict`, `effect.is_instant_or_sorcery`, `effect.targeted_discard`
+
+### Issues
+
+- **missing**: `effect.life_changed`
+  - **What's wrong:** Rule should fire on "Target opponent loses half their life, rounded up". Currently not firing. The rule fires on simple numeric forms ("loses N life"); this card uses fractional/proportional life-loss ("loses half their life").
+  - **Evidence vs reality:** Substring `target opponent loses half their life` is a life-loss effect. Rule likely anchors on `loses? \d+ life` and misses the fractional `loses half their life` / `loses X life` forms.
+  - **Suggested fix:** Loosen `pipeline/rules/effect.life_changed.ts` life-loss pattern to admit `loses? (?:half|a third of|x|all) (?:of )?(?:their|its|your) life` and similar variable quantifiers. Add Rush of Dread regression.
+
+---
+
+## Satoru, the Infiltrator  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Human Ninja Rogue
+**Mana cost:** {U}{B}
+
+**Oracle text:**
+
+```
+Menace
+Whenever Satoru and/or one or more other nontoken creatures you control enter, if none of them were cast or no mana was spent to cast them, draw a card.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.has_menace`
+
+### Issues
+
+- **missing**: `trigger.self_etb` AND `trigger.another_creature_etb`
+  - **What's wrong:** Card has a compound trigger ("Whenever __SELF__ and/or one or more other nontoken creatures you control enter") that fires on BOTH self-ETB and other-creature-ETB. Neither trigger axis is currently tagged. The compound "and/or" subject is what defeats both rules.
+  - **Evidence vs reality:** Substring `whenever __SELF__ and/or one or more other nontoken creatures you control enter` — Satoru itself is one of the subjects, AND "other nontoken creatures you control" is the another-creature subject.
+  - **Suggested fix:** Either:
+    1. Loosen both `pipeline/rules/trigger.self_etb.ts` and `trigger.another_creature_etb.ts` to admit compound `and/or` subjects where one branch is the canonical anchor; OR
+    2. Add a `trigger.creatures_etb_batch` umbrella tag for cards with this Ninjutsu-batch-trigger shape (Satoru, Yuriko-pattern, ETB-batch triggers from Bloomburrow).
+  - Add Satoru regression to whichever rule(s) get the fix.
+
+- **missing**: Ninjutsu / cheat-into-play axis — "no mana was spent to cast them" is a condition gate on Ninjutsu-style alternate-cost casting (cards put into play without being cast). Coverage gap; cards with this gate are likely few in Standard. Defer.
+
+---
+
+## Shepherd of the Clouds  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Pegasus
+**Mana cost:** {4}{W}
+
+**Oracle text:**
+
+```
+Flying, vigilance
+When this creature enters, return target permanent card with mana value 3 or less from your graveyard to your hand. Return that card to the battlefield instead if you control a Mount.
+```
+
+**Current tags:** `condition.cares_low_mana_value`, `effect.has_flying`, `effect.has_vigilance`, `effect.return_from_graveyard_to_hand`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** Rule should fire on "Return that card to the battlefield instead if you control a Mount" — conditional reanimation upgrade. The previous sentence sets up the "that card" referent as a graveyard card; the second sentence is a graveyard-to-battlefield return. Currently not firing.
+  - **Evidence vs reality:** Substring `return that card to the battlefield instead` is a graveyard-to-battlefield return (the antecedent of "that card" is the graveyard card from the prior sentence). Rule probably requires a literal `from your graveyard` adjacent to the `to the battlefield` clause and misses the cross-sentence anaphoric reference.
+  - **Suggested fix:** Loosen `pipeline/rules/effect.reanimate.ts` to recognize an anaphoric `return that card to the battlefield` when a preceding clause sets up a `from your graveyard` referent. Or accept the gap — this is a rare modal-graveyard-upgrade pattern (mainly OTJ Mount cards). Add Shepherd regression.
+
+- **missing**: `condition.cares_subtype.mount` — third instance of the Mount coverage gap (see Miriam entry above).
+
+---
+
+## Smuggler's Surprise  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {G}
+
+**Oracle text:**
+
+```
+Spree (Choose one or more additional costs.)
++ {2} — Mill four cards. You may put up to two creature and/or land cards from among the milled cards into your hand.
++ {4}{G} — You may put up to two creature cards from your hand onto the battlefield.
++ {1} — Creatures you control with power 4 or greater gain hexproof and indestructible until end of turn.
+```
+
+**Current tags:** `condition.cares_high_power`, `effect.cast_noncreature_spell`, `effect.grants_hexproof`, `effect.grants_indestructible`, `effect.is_instant_or_sorcery`, `effect.mill`
+
+### Issues
+
+- **missing**: `effect.cheat_into_play`
+  - **What's wrong:** Rule should fire on "You may put up to two creature cards from your hand onto the battlefield" — canonical Show-and-Tell / Elvish Piper hand-to-battlefield cheat. The tagDef explicitly covers "Puts a card from a zone OTHER than the graveyard directly onto the battlefield — skipping the casting process." Currently not firing.
+  - **Evidence vs reality:** Substring `put up to two creature cards from your hand onto the battlefield` is exactly the hand-cheat form. Rule likely anchors on a tighter "put target creature card from your hand onto the battlefield" template and misses the multi-target / "up to N" quantifier.
+  - **Suggested fix:** Loosen `pipeline/rules/effect.cheat_into_play.ts` to admit `put (?:up to \w+ |a |an )?(?:target )?(?:creature|permanent|nonland) cards? from your hand onto the battlefield`. Add Smuggler's Surprise regression.

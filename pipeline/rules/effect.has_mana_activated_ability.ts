@@ -33,6 +33,13 @@ const SYMBOL_ACTIVATED_PATTERN = /\{[wubrgcxstq0-9](?:\/[wubrgcps])?\}[^.\n]{0,6
 const PROSE_ACTIVATED_PATTERN =
   /(?:^|\.\s|\n|—\s)(?:sacrifice|discard|exile|pay|tap|untap|reveal|remove|return) [^.\n]{0,80}?:\s/i;
 
+// A cost segment qualifies as mana-bearing only if it contains a W/U/B/R/G/C
+// or X symbol, or a generic-mana digit symbol. Tap ({T}), untap ({Q}), and
+// snow ({S}) symbols do NOT count — Training Grounds and other activated-
+// mana-cost reducers cannot reduce them. Hybrid / Phyrexian / 2-or-mana
+// pip variants ({W/U}, {W/P}, {2/W}) all begin with a qualifying char.
+const MANA_BEARING_SYMBOL = /\{[wubrgcx0-9]/;
+
 const PERMANENT_TYPES = ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'];
 
 // Only Equip — Crew is deliberately excluded; see header comment.
@@ -46,7 +53,17 @@ export const rule: Rule = {
     const kw = card.keywords.find((k) => BATTLEFIELD_MANA_ACTIVATED_KEYWORDS.has(k));
     if (kw) return { evidence: kw.toLowerCase() };
     const normalized = normalizeOracleText(card.oracleText, card.name);
-    const m = normalized.match(SYMBOL_ACTIVATED_PATTERN) ?? normalized.match(PROSE_ACTIVATED_PATTERN);
-    return m ? { evidence: m[0].trim() } : false;
+    // Walk every match of the activation patterns (not just the first) — a
+    // card can have a tap-only mana ability followed later by a mana-bearing
+    // ability, and we need to fire on the latter even if the former precedes.
+    const symbolMatches = normalized.matchAll(new RegExp(SYMBOL_ACTIVATED_PATTERN, 'g'));
+    for (const m of symbolMatches) {
+      if (MANA_BEARING_SYMBOL.test(m[0])) return { evidence: m[0].trim() };
+    }
+    const proseMatches = normalized.matchAll(new RegExp(PROSE_ACTIVATED_PATTERN, 'gi'));
+    for (const m of proseMatches) {
+      if (MANA_BEARING_SYMBOL.test(m[0])) return { evidence: m[0].trim() };
+    }
+    return false;
   },
 };

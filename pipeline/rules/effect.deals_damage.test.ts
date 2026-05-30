@@ -83,6 +83,18 @@ describe('effect.deals_damage', () => {
     expect(rule.match!(text)).toBeTruthy();
   });
 
+  // Regression (Torch the Witness): multiplier prefix between `deals` and the
+  // amount — "deals twice X damage", "deals thrice X damage", "deals N times
+  // X damage" forms. The literal/variable-amount patterns didn't admit a
+  // multiplier word.
+  it.each([
+    ['__self__ deals twice x damage to target creature'],
+    ['__self__ deals thrice x damage to any target'],
+    ['this creature deals twice 2 damage to target creature'],
+  ])('matches __self__ + multiplier-prefixed damage: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
   // v0.14.6 — Regression (Zoyowa Lava-Tongue): multi-word legendary card
   // name with no comma/of/the separators doesn't get __SELF__-substituted
   // for its short-name self-reference. The matchCard branch recognizes the

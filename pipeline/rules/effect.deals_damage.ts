@@ -35,9 +35,14 @@ const SELF = '(?:__self__|this (?:room|creature|artifact|enchantment|land|perman
 const IT = '(?<=: |, )it';
 const SUBJ = `(?:${SELF}|${IT})`;
 
+// Multiplier-prefix slot: "twice", "thrice", or "N times" between `deals`
+// and the amount (Torch the Witness — "deals twice X damage"). Optional so
+// existing positives ("deals 2 damage", "deals X damage") still match.
+const MULT = '(?:twice |thrice |\\d+ times )?';
+
 const PATTERNS = [
-  new RegExp(`\\b${SUBJ} deals \\d+ (?:combat )?damage\\b`),
-  new RegExp(`\\b${SUBJ} deals x (?:combat )?damage\\b`),
+  new RegExp(`\\b${SUBJ} deals ${MULT}\\d+ (?:combat )?damage\\b`),
+  new RegExp(`\\b${SUBJ} deals ${MULT}x (?:combat )?damage\\b`),
   // Optional `(?: to [^.]*?)?` accepts a target phrase between "damage" and
   // "equal to" — Food Fight phrasing "deals damage to any target equal to
   // 1 plus the number of...". Existing positives ("deals damage equal to its
@@ -75,8 +80,8 @@ export const rule: Rule = {
     const lower = firstWord.toLowerCase();
     const escaped = lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const dyn = [
-      new RegExp(`\\b${escaped}\\s+deals \\d+ (?:combat )?damage\\b`),
-      new RegExp(`\\b${escaped}\\s+deals x (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deals ${MULT}\\d+ (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deals ${MULT}x (?:combat )?damage\\b`),
       new RegExp(`\\b${escaped}\\s+deals (?:combat )?damage(?: to [^.]*?)? equal to\\b`),
       new RegExp(`\\b${escaped}\\s+deals that (?:much|many) (?:combat )?damage\\b`),
     ];

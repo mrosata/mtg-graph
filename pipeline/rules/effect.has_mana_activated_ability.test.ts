@@ -15,18 +15,20 @@ function card(overrides: Partial<Card>): Card {
 }
 
 describe('effect.has_mana_activated_ability', () => {
-  // Same positives as effect.has_activated_ability for the symbol/prose paths —
-  // a "mana activated ability" is one whose cost can actually be reduced by
-  // Training Grounds / Heartstone / Agatha. Symbol-bearing costs always
-  // include mana; prose costs (sacrifice/discard/pay-life/tap-creatures) are
-  // also reducible only when they have a mana component, but we include them
-  // here to mirror the broad rule for now — the false-positive we're solving
-  // is specifically Crew, not prose costs. Refine later if needed.
+  // A "mana activated ability" is one whose cost can actually be reduced by
+  // Training Grounds / Heartstone / Agatha. The cost segment (everything from
+  // the leading symbol/verb up to the `:`) must contain a mana-bearing symbol
+  // (W/U/B/R/G/C/X or a digit). Tap-only / untap-only / snow-only activations
+  // do NOT match — Training Grounds cannot reduce them. Prose costs (pure
+  // Sacrifice / Discard / Pay life) also fail unless they include a mana
+  // symbol.
   it.each([
-    ['{T}: Add {G}.'],
     ['{2}{G}: Add {G}{G}.'],
     ['{X}, {T}: __SELF__ deals X damage to any target.'],
     ['{1}, {T}, Sacrifice this creature: Search your library for an Equipment card.'],
+    // Tap-paired-with-mana — first symbol is {T}, but the cost segment also
+    // contains {1}, so the ability IS reducible by Training Grounds.
+    ['{T}, {1}: Draw a card.'],
   ])('matches symbol-cost activations: %s', (oracleText) => {
     expect(rule.matchCard!(card({ oracleText }))).toBeTruthy();
   });
@@ -37,6 +39,30 @@ describe('effect.has_mana_activated_ability', () => {
     ['Whenever this creature attacks, it gets +1/+1 until end of turn.'],
     ['Other creatures you control get +1/+1.'],
   ])('does not match non-activated text: %s', (oracleText) => {
+    expect(rule.matchCard!(card({ oracleText }))).toBe(false);
+  });
+
+  // Regression (Tunnel Tipster, Lonely Arroyo, Oasis Gardener, Mirage Mesa,
+  // Sandstorm Verge, Soured Springs, Lush Oasis, and every basic land):
+  // tap-only mana activations are NOT mana-cost-reducible. The cost segment
+  // contains only {T} (or {Q}/{S}), no W/U/B/R/G/C/X/digit.
+  it.each([
+    ['{T}: Add {G}.'],
+    ['{T}: Add {W} or {U}.'],
+    ['{T}: Add one mana of any color.'],
+    ['{Q}: Add {U}.'],
+  ])('does not match tap-only or untap-only mana activations: %s', (oracleText) => {
+    expect(rule.matchCard!(card({ oracleText }))).toBe(false);
+  });
+
+  // Regression (Magda, the Hoardmaster; Rakdos, the Muscle): sacrifice-as-cost
+  // activations have no mana component. Training Grounds cannot reduce them.
+  it.each([
+    ['Sacrifice three Treasures: Create a 4/4 red Scorpion Dragon creature token with flying and haste. Activate only as a sorcery.'],
+    ['Sacrifice another creature: __SELF__ gains indestructible until end of turn. Tap it. Activate only once each turn.'],
+    ['Discard a card: Draw a card.'],
+    ['Pay 2 life: Add {B}.'],
+  ])('does not match prose-cost activations with no mana: %s', (oracleText) => {
     expect(rule.matchCard!(card({ oracleText }))).toBe(false);
   });
 
@@ -67,18 +93,31 @@ describe('effect.has_mana_activated_ability', () => {
     expect(rule.matchCard!(c)).toBe(false);
   });
 
-  // A Vehicle that ALSO has a symbol/prose activation (e.g. Cultivator's
-  // Caravan-shaped "{T}: Add one mana of any color") should still match —
-  // the symbol-cost activation is mana-reducible. Crew alone is not the
+  // A Vehicle that ALSO has a real mana-bearing activation should match —
+  // the cost segment includes a mana symbol. Crew alone is not the
   // disqualifier; the test is whether ANY mana-bearing activation exists.
-  it('matches a Vehicle with Crew AND a symbol-cost activation', () => {
+  it('matches a Vehicle with Crew AND a mana-bearing symbol-cost activation', () => {
+    const c = card({
+      types: ['Artifact'],
+      typeLine: 'Artifact — Vehicle',
+      keywords: ['Crew'],
+      oracleText: '{1}, {T}: Add one mana of any color.\nCrew 3',
+    });
+    expect(rule.matchCard!(c)).toBeTruthy();
+  });
+
+  // Cultivator's-Caravan-shaped: Crew + a TAP-ONLY mana activation. Per the
+  // strict definition, neither cost is reducible by Training Grounds (Crew
+  // costs creatures; {T} alone has no mana). The rule must NOT fire — even
+  // though the card visibly has two activated abilities.
+  it('does not match a Vehicle with Crew AND a tap-only mana activation', () => {
     const c = card({
       types: ['Artifact'],
       typeLine: 'Artifact — Vehicle',
       keywords: ['Crew'],
       oracleText: '{T}: Add one mana of any color.\nCrew 3',
     });
-    expect(rule.matchCard!(c)).toBeTruthy();
+    expect(rule.matchCard!(c)).toBe(false);
   });
 
   it('does not match instants or sorceries', () => {

@@ -31,8 +31,8 @@ export const rule: Rule = {
     //       from matching.
     // v0.14.1 — digit slot relaxed to `[\d,]+` so comma-separated amounts
     // like "1,000 life" (The Millennium Calendar) match.
-    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player) (?:may )?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
-    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player) (?:may )?)?(?:gains?|loses?) life equal to /;
+    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent) (?:may )?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
+    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent) (?:may )?)?(?:gains?|loses?) life equal to /;
     const m = t.match(QUANT) ?? t.match(VARIABLE);
     return m ? { evidence: m[0] } : false;
   },

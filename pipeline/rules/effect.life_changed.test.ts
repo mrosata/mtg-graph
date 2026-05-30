@@ -35,6 +35,11 @@ describe('effect.life_changed', () => {
     // Calendar: "each opponent loses 1,000 life".
     ['when there are 1,000 or more time counters on __self__, sacrifice it and each opponent loses 1,000 life'],
     ['you gain 1,000 life'],
+    // Regression (Tomik, Wielder of Law): anaphoric "that opponent" subject —
+    // the conditional preamble re-introduces the attacker as "that opponent",
+    // which wasn't in the allowlist.
+    ['whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, that opponent loses 3 life and you draw a card'],
+    ['that opponent loses 2 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
