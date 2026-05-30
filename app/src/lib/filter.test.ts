@@ -78,6 +78,35 @@ describe('applyFilter', () => {
       .toEqual(['b', 'c']);
   });
 
+  describe('scope', () => {
+    const cards = [
+      card({ oracleId: 'std', printings: ['blb'] }),
+      card({ oracleId: 'preview', printings: ['hob'] }),
+      card({ oracleId: 'reprint', printings: ['blb', 'hob'] }),
+      card({ oracleId: 'unknown', printings: ['xyz'] }),
+    ];
+
+    it('scope undefined → no scope filtering', () => {
+      expect(applyFilter(cards, {}).map((c) => c.oracleId))
+        .toEqual(['std', 'preview', 'reprint', 'unknown']);
+    });
+
+    it("scope 'standard' keeps cards with any printing in a Standard set", () => {
+      expect(applyFilter(cards, { scope: 'standard' }).map((c) => c.oracleId))
+        .toEqual(['std', 'reprint']);
+    });
+
+    it("scope 'unreleased' keeps cards with any printing in an upcoming set", () => {
+      expect(applyFilter(cards, { scope: 'unreleased' }).map((c) => c.oracleId))
+        .toEqual(['preview', 'reprint']);
+    });
+
+    it("scope 'all' applies no scope filter", () => {
+      expect(applyFilter(cards, { scope: 'all' }).map((c) => c.oracleId))
+        .toEqual(['std', 'preview', 'reprint', 'unknown']);
+    });
+  });
+
   it('returns all cards when sets filter is empty array', () => {
     const cards = [
       card({ oracleId: 'a', set: 'blb', printings: ['blb'] }),

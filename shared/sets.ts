@@ -25,3 +25,16 @@ export const STANDARD_SETS: StandardSet[] = [
 ];
 
 export const STANDARD_SET_CODES: string[] = STANDARD_SETS.map((s) => s.code);
+
+// Previewed-but-unreleased sets. Scryfall returns whatever cards are spoiled so
+// far for `set:<code>`; 0-card sets are tolerated by fetch (404 → []). Move
+// entries into STANDARD_SETS once they release and rotate into Standard.
+export const UPCOMING_SETS: StandardSet[] = [
+  { code: 'msh', name: 'Marvel Super Heroes' },
+  { code: 'om2', name: 'Through the Omenpaths 2' },
+  { code: 'hob', name: 'The Hobbit' },
+  { code: 'fra', name: 'Reality Fracture' },
+  { code: 'trk', name: 'Star Trek' },
+];
+
+export const UPCOMING_SET_CODES: string[] = UPCOMING_SETS.map((s) => s.code);

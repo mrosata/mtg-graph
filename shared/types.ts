@@ -101,4 +101,8 @@ export type Artifact = {
   sourceSet: string;
   sourceSets: string[];
   ruleVersion: string;
+  // Subset of `sourceSets` that are previewed-but-unreleased. Drives the
+  // FilterPanel scope toggle ("Standard" / "Unreleased" / "All"). Absent on
+  // legacy single-set artifacts.
+  upcomingSets?: string[];
 };

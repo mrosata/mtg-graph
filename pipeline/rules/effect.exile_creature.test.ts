@@ -64,4 +64,18 @@ describe('effect.exile_creature', () => {
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
+
+  // Regression (Unyielding Gatekeeper): "exile another target nonland
+  // permanent. if you controlled it, return it to the battlefield tapped.
+  // otherwise, ..." — split-mode punisher, NOT a flicker. The "if you
+  // controlled it" preamble gates the return on ownership; for opponent-
+  // controlled targets the card is removal-with-replacement. The FLICKER_TAIL
+  // suppressor must not fire when the return is conditioned on "if you
+  // controlled it".
+  it.each([
+    ['when this creature is turned face up, exile another target nonland permanent. if you controlled it, return it to the battlefield tapped. otherwise, its controller creates a 2/2 white and blue detective creature token.'],
+    ['exile target creature. if you controlled it, return it to the battlefield at the beginning of the next end step.'],
+  ])('matches conditional split-mode exile (if-you-controlled-it preamble): %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
 });

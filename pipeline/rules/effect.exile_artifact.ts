@@ -28,6 +28,14 @@ const PATTERN_VEHICLE =
 // contains a "return … to the battlefield" clause.
 const FLICKER_TAIL = /\breturn (?:it|them|that artifact|target artifact|those (?:artifacts|permanents)|each of those cards)\b[^.]*?\bto the battlefield\b/;
 
+// Split-mode punisher: "exile X. if you controlled it, return it to the
+// battlefield ..." gates the return on ownership. For opponent-controlled
+// targets the card is removal-with-replacement, not flicker — Unyielding
+// Gatekeeper is the canonical case. When the return is conditioned on this
+// preamble we must NOT suppress the exile tag.
+const CONDITIONAL_RETURN_PREAMBLE =
+  /\bif you controlled (?:it|them|that (?:creature|artifact|permanent|nonland permanent))\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_artifact',
   axis: 'effect',
@@ -35,7 +43,11 @@ export const rule: Rule = {
     const m = t.match(PATTERN_OWN) ?? t.match(PATTERN_BROAD) ?? t.match(PATTERN_VEHICLE);
     if (!m || m.index === undefined) return false;
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);
-    if (FLICKER_TAIL.test(tail)) return false;
+    const flicker = FLICKER_TAIL.exec(tail);
+    if (flicker && flicker.index !== undefined) {
+      const beforeReturn = tail.slice(0, flicker.index);
+      if (!CONDITIONAL_RETURN_PREAMBLE.test(beforeReturn)) return false;
+    }
     return { evidence: m[0] };
   },
   nearMiss: { anchors: ['exile'], proximity: ['artifact', 'permanent'], window: 8 },

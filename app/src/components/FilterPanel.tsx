@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import type { Filter } from '../lib/filter';
+import type { Filter, Scope } from '../lib/filter';
 import { applyFilter } from '../lib/filter';
 import type { Card, Color, Rarity, TagDef } from '@shared/types';
-import { STANDARD_SETS } from '@shared/sets';
+import { STANDARD_SETS, UPCOMING_SETS } from '@shared/sets';
 import { useActiveDeck } from '../stores/deckStore';
 import { useGraphStore } from '../stores/graphStore';
 import { deckThemes } from '../lib/deckThemes';
@@ -104,8 +104,67 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   const selectedTags = value.tags ?? [];
   const [setsCollapsed, setSetsCollapsed] = useFilterSectionCollapsed(SETS_STORAGE_KEY, true);
 
+  const scope: Scope = value.scope ?? 'standard';
+  const setsForScope = useMemo(() => {
+    if (scope === 'unreleased') return UPCOMING_SETS;
+    if (scope === 'all') return [...STANDARD_SETS, ...UPCOMING_SETS];
+    return STANDARD_SETS;
+  }, [scope]);
+  const changeScope = (next: Scope) => {
+    // Drop any set-checkbox selections that fall outside the new scope so the
+    // count badge doesn't lie about hidden filters.
+    const allowedCodes = new Set(
+      (next === 'unreleased'
+        ? UPCOMING_SETS
+        : next === 'all'
+          ? [...STANDARD_SETS, ...UPCOMING_SETS]
+          : STANDARD_SETS
+      ).map((s) => s.code),
+    );
+    const trimmedSets = (value.sets ?? []).filter((c) => allowedCodes.has(c));
+    onChange({
+      ...value,
+      scope: next,
+      sets: trimmedSets.length ? trimmedSets : undefined,
+    });
+  };
+
+  const scopeOptions: { value: Scope; label: string }[] = [
+    { value: 'standard', label: 'Standard' },
+    { value: 'unreleased', label: 'Unreleased' },
+    { value: 'all', label: 'All' },
+  ];
+
   return (
     <div className="scrollbar-slim flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4" data-tour-id={TOUR_IDS.filterPanel}>
+      <section>
+        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+          Scope
+        </label>
+        <div className="mt-2 flex rounded-lg border border-neutral-800 bg-neutral-900 p-0.5" role="radiogroup" aria-label="Scope">
+          {scopeOptions.map((opt) => {
+            const active = scope === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => changeScope(opt.value)}
+                className={
+                  'flex-1 rounded-md px-2 py-1 text-xs transition-colors ' +
+                  (active
+                    ? 'bg-neutral-700 text-neutral-50'
+                    : 'text-neutral-400 hover:text-neutral-200')
+                }
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <section>
         <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
           Search
@@ -294,7 +353,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
         </div>
         {!setsCollapsed && (
           <ul className="scrollbar-slim mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
-            {STANDARD_SETS.map((s) => {
+            {setsForScope.map((s) => {
               const checked = value.sets?.includes(s.code) ?? false;
               return (
                 <li key={s.code}>

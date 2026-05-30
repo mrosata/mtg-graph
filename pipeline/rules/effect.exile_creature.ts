@@ -43,6 +43,14 @@ const PATTERN_ANAPHORIC_SAME_SENTENCE =
 // suppress the exile-as-removal interpretation.
 const FLICKER_TAIL = /\breturn (?:it|them|that creature|target creature|those creatures|each of those cards)\b[^.]*?\bto the battlefield\b/;
 
+// Split-mode punisher: "exile X. if you controlled it, return it to the
+// battlefield ..." gates the return on ownership. For opponent-controlled
+// targets the card is removal-with-replacement, not flicker — Unyielding
+// Gatekeeper is the canonical case. When the return is conditioned on this
+// preamble we must NOT suppress the exile tag.
+const CONDITIONAL_RETURN_PREAMBLE =
+  /\bif you controlled (?:it|them|that (?:creature|artifact|permanent|nonland permanent))\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_creature',
   axis: 'effect',
@@ -55,9 +63,16 @@ export const rule: Rule = {
       t.match(PATTERN_ANAPHORIC) ??
       t.match(PATTERN_ANAPHORIC_SAME_SENTENCE);
     if (!m || m.index === undefined) return false;
-    // Check the next ~160 chars after the match for a flicker tail.
+    // Check the next ~200 chars after the match for a flicker tail.
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);
-    if (FLICKER_TAIL.test(tail)) return false;
+    const flicker = FLICKER_TAIL.exec(tail);
+    if (flicker && flicker.index !== undefined) {
+      // Suppress only when the return isn't conditioned on "if you controlled
+      // it" (split-mode punisher). Check the slice of tail before the return
+      // clause for the conditional preamble.
+      const beforeReturn = tail.slice(0, flicker.index);
+      if (!CONDITIONAL_RETURN_PREAMBLE.test(beforeReturn)) return false;
+    }
     return { evidence: m[0] };
   },
   nearMiss: { anchors: ['exile'], proximity: ['creature', 'permanent', 'die'], window: 10 },

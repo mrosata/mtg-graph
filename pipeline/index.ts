@@ -1,7 +1,8 @@
 // pipeline/index.ts
 import { resolve } from 'node:path';
 import type { Artifact, Card, TagDef } from '../shared/types';
-import { STANDARD_SET_CODES } from '../shared/sets';
+import { STANDARD_SET_CODES, UPCOMING_SET_CODES } from '../shared/sets';
+const UPCOMING_SET_SET = new Set(UPCOMING_SET_CODES);
 import { fetchSetFromScryfall } from './fetch';
 import { DEFAULT_CACHE_DIR } from './cache';
 import { existsSync } from 'node:fs';
@@ -23,6 +24,7 @@ type Args = { sets: string[]; out?: string; outName: string; refresh: boolean };
 
 function parseArgs(argv: string[]): Args {
   const standardIdx = argv.indexOf('--standard');
+  const upcomingIdx = argv.indexOf('--upcoming');
   const setsIdx = argv.indexOf('--sets');
   const setIdx = argv.indexOf('--set');
   const outIdx = argv.indexOf('--out');
@@ -30,7 +32,13 @@ function parseArgs(argv: string[]): Args {
   const refresh = argv.includes('--refresh');
 
   if (standardIdx !== -1) {
-    return { sets: STANDARD_SET_CODES, out, outName: 'standard', refresh };
+    // Standard ∪ Upcoming: the app shows Standard by default and lets users
+    // switch to Unreleased / All via the FilterPanel scope toggle.
+    const sets = [...STANDARD_SET_CODES, ...UPCOMING_SET_CODES];
+    return { sets, out, outName: 'standard', refresh };
+  }
+  if (upcomingIdx !== -1) {
+    return { sets: UPCOMING_SET_CODES, out, outName: 'upcoming', refresh };
   }
   if (setsIdx !== -1) {
     const raw = argv[setsIdx + 1];
@@ -45,7 +53,9 @@ function parseArgs(argv: string[]): Args {
     const set = code.toLowerCase();
     return { sets: [set], out, outName: set, refresh };
   }
-  throw new Error('Missing required argument: --set <code>, --sets <a,b,c>, or --standard');
+  throw new Error(
+    'Missing required argument: --set <code>, --sets <a,b,c>, --standard, or --upcoming',
+  );
 }
 
 function tagCards(cards: Card[]): Card[] {
@@ -94,6 +104,7 @@ async function main() {
   const edges = buildEdges(taggedCards, catalog);
   console.log(`  → ${edges.length} edges`);
 
+  const upcomingSets = args.sets.filter((s) => UPCOMING_SET_SET.has(s));
   const artifact: Artifact = {
     cards: taggedCards,
     edges,
@@ -102,6 +113,7 @@ async function main() {
     sourceSet: args.outName,
     sourceSets: args.sets,
     ruleVersion: RULE_VERSION,
+    ...(upcomingSets.length > 0 ? { upcomingSets } : {}),
   };
 
   const outPath = args.out ?? resolve(process.cwd(), `app/public/data/cards-${args.outName}.json`);

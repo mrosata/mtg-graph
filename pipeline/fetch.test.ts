@@ -64,6 +64,16 @@ describe('fetchSetFromScryfall', () => {
     expect(cards[0].name).toBe('Token Maker');
   });
 
+  it('returns empty array on 404 (unreleased set with no spoilers)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    }));
+    const cards = await fetchSetFromScryfall('om2', { cacheDir: null });
+    expect(cards).toEqual([]);
+  });
+
   it('throws on non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: false,

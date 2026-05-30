@@ -136,6 +136,11 @@ async function fetchRawSet(setCode: string): Promise<ScryfallCard[]> {
     if (!firstRequest) await new Promise((r) => setTimeout(r, 150));
     firstRequest = false;
     const resp = await fetchWithBackoff(url);
+    if (resp.status === 404) {
+      // Unreleased sets with no spoiled cards return 404 from /cards/search.
+      // Treat as empty so the batch keeps going for the other sets.
+      return [];
+    }
     if (!resp.ok) {
       throw new Error(`Scryfall fetch failed: ${resp.status} ${resp.statusText}`);
     }

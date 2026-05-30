@@ -12,7 +12,7 @@ import { TOUR_IDS } from '../wizard/selectors';
 import type { Filter } from '../lib/filter';
 
 export default function WorkspacePage() {
-  const [filter, setFilter] = useState<Filter>({});
+  const [filter, setFilter] = useState<Filter>({ scope: 'standard' });
   const activeDeckId = useDeckStore((s) => s.activeDeckId);
   const hasActiveDeck = activeDeckId !== null;
 
