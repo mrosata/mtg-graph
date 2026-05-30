@@ -33,11 +33,24 @@ const PATTERN_SELF = new RegExp(
   `\\bwhen(?:ever)?\\s+(?:this\\s+\\w+\\s+|__self__\\s+)${LTB_VERB}\\b`,
 );
 
+// Active-voice sacrifice frame: "Whenever {opponent|player|each opponent}
+// sacrifices a/an {artifact-or-subtype}". Sacrificing IS a LtB event, so
+// the punisher axis (Vengeful Tracker, Goblin Bombardment-adjacent) wants
+// this trigger to pair with effect.sacrifice_artifact producers. The
+// subject is deliberately scoped to "opponent" / "player" / "each opponent"
+// / "each player" / "any opponent" / "another player" — controller-self
+// sacrifice ("whenever you sacrifice X") belongs to trigger.permanent_sacrificed
+// (aristocrats axis) and is excluded here so the two trigger axes stay
+// disjoint.
+const PATTERN_OPPONENT_SACRIFICE = new RegExp(
+  `\\bwhen(?:ever)?\\s+(?:an?\\s+|each\\s+(?:other\\s+)?|any\\s+|another\\s+|target\\s+)?(?:opponent|player)\\s+sacrifices?\\s+(?:a|an|another)\\s+${ARTIFACT_OR_SUBTYPE}\\b`,
+);
+
 export const rule: Rule = {
   id: 'trigger.artifact_leaves_battlefield',
   axis: 'trigger',
   match: (t) => {
-    const m = t.match(PATTERN_TEXT);
+    const m = t.match(PATTERN_TEXT) ?? t.match(PATTERN_OPPONENT_SACRIFICE);
     return m ? { evidence: m[0] } : false;
   },
   matchCard: (card: Card, normalizedText: string) => {

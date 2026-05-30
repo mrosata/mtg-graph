@@ -105,55 +105,6 @@ At the beginning of your end step, if a face-down creature entered the battlefie
 
 ---
 
-## Unyielding Gatekeeper  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Elephant Cleric
-**Mana cost:** {1}{W}
-
-**Oracle text:**
-
-```
-Disguise {1}{W}
-When this creature is turned face up, exile another target nonland permanent. If you controlled it, return it to the battlefield tapped. Otherwise, its controller creates a 2/2 white and blue Detective creature token.
-```
-
-**Current tags:** `effect.create_creature_token`, `effect.create_token`, `effect.exile_enchantment`, `effect.exile_planeswalker`, `effect.has_disguise`, `trigger.turned_face_up`
-
-### Issues
-
-- **missing**: `effect.exile_creature` and `effect.exile_artifact`
-  - **What's wrong:** `exile_enchantment` and `exile_planeswalker` correctly fired on "exile another target nonland permanent", but `exile_creature` and `exile_artifact` were suppressed by their `FLICKER_TAIL` guard checking for `\breturn (?:it|them|...) ... to the battlefield\b` in the trailing 200 chars.
-  - **Evidence vs reality:** The trailing text is `If you controlled it, return it to the battlefield tapped. Otherwise, its controller creates a 2/2 ... Detective creature token.` — that's a CONDITIONAL ("If you controlled it") split-mode effect, not a pure flicker. For opponents' permanents the card is removal-with-replacement, not flicker. The FLICKER_TAIL guard fires on the literal `return it to the battlefield` substring without checking for the gating `If you controlled it` preamble.
-  - **Suggested fix:** Narrow `FLICKER_TAIL` in `pipeline/rules/effect.exile_creature.ts:44` and `pipeline/rules/effect.exile_artifact.ts:29` to NOT suppress when preceded (within 60 chars) by `if you controlled (?:it|them|that <noun>)` — that preamble signals split-mode punisher, not flicker. Add Unyielding Gatekeeper regression to both rule test files.
-
----
-
-## Urgent Necropsy  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Instant
-**Mana cost:** {2}{B}{G}
-
-**Oracle text:**
-
-```
-As an additional cost to cast this spell, collect evidence X, where X is the total mana value of the permanents this spell targets.
-Destroy up to one target artifact, up to one target creature, up to one target enchantment, and up to one target planeswalker.
-```
-
-**Current tags:** `effect.cast_noncreature_spell`, `effect.collect_evidence`, `effect.destroy_artifact`, `effect.destroy_creature`, `effect.exile_from_graveyard`, `effect.is_instant_or_sorcery`
-
-### Issues
-
-- **missing**: `effect.destroy_enchantment` and `effect.destroy_planeswalker`
-  - **What's wrong:** Vindicate-style multi-target "destroy up to one target X, up to one target Y, up to one target Z, and up to one target W" exceeds the `{0,6}` filler-word quantifier in `PATTERN_OWN` (`pipeline/rules/effect.destroy_enchantment.ts:14`, `pipeline/rules/effect.destroy_planeswalker.ts:13`). Words between leading `target` and `enchantments?` are `artifact, up to one target creature, up to one target` = 11 word-tokens; rule allows max 6. Artifact and creature appear earlier in the chain (within the 6-word window) so they fire; enchantment and planeswalker fall outside.
-  - **Evidence vs reality:** Normalized text contains the exact substrings `target enchantment` and `target planeswalker`. The rule could match each independently if it didn't anchor every match through the lead `destroy` verb.
-  - **Suggested fix:** Two options:
-    1. Bump `{0,6}` to `{0,14}` in PATTERN_OWN for `destroy_enchantment` and `destroy_planeswalker` (covers Vindicate-style chains; risk: over-match on long flavor sentences — survey corpus first).
-    2. Better: add a secondary PATTERN_CHAINED matching `\btarget\s+(?:[\w\-]+\s+){0,3}?enchantments?\b` scoped to be within a `\bdestroy\b ... [.\n]` clause boundary. Same for planeswalker.
-  - Add Urgent Necropsy regression to both rule test files. Audit other destroy_<type> rules (artifact/land/permanent) for the same {0,6} limit.
-
----
-
 ## Vannifar, Evolved Enigma  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Elf Ooze Wizard
@@ -199,28 +150,6 @@ Whenever a creature dies, target opponent loses 2 life and you gain 2 life.
   - **What's wrong:** Only sacrifice phrasing on the card is `Ward—Sacrifice a creature`. Ward cost is paid by the OPPONENT targeting this card, not by the controller — Vein Ripper does not itself cause its controller to sacrifice. Pairing with aristocrats `effect.sacrifice_creature` payoffs is therefore misleading (deckbuilder filter "cards that sac your creatures" would surface this card incorrectly).
   - **Evidence vs reality:** Evidence `sacrifice a creature` is part of a Ward action-cost suffix. The skill's "Typed-sacrifice leakage onto edicts and observer triggers" pattern names this exact failure mode for typed-sac rules; generic `sacrifice_creature` has the same blind spot for Ward—Sacrifice frames.
   - **Suggested fix:** Exclude Ward cost suffix in `effect.sacrifice_creature` (and the typed siblings — `sacrifice_artifact`, `sacrifice_enchantment` etc.) — negative lookbehind for `\bward\s*[—\-]\s*$` before the sacrifice clause, OR scope by sentence boundary and skip sentences starting with `ward[—\-]`. Add Vein Ripper regression as negative.
-
----
-
-## Vengeful Tracker  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Human Detective
-**Mana cost:** {1}{R}
-
-**Oracle text:**
-
-```
-Whenever an opponent sacrifices an artifact, this creature deals 2 damage to them.
-```
-
-**Current tags:** `effect.deals_damage`
-
-### Issues
-
-- **missing**: `trigger.artifact_leaves_battlefield`
-  - **What's wrong:** Rule's `PATTERN_TEXT` (`pipeline/rules/trigger.artifact_leaves_battlefield.ts:28`) anchors on `leaves the battlefield` / `is put into a graveyard from the battlefield` verbs. It does NOT match the alternative active-voice "Whenever {player} sacrifices a/an artifact" frame, even though sacrifice semantically causes LtB.
-  - **Evidence vs reality:** Card text `Whenever an opponent sacrifices an artifact` — no LTB verb. The aristocrats-counterpart rule `trigger.permanent_sacrificed` deliberately only matches "YOU sacrifice", leaving the punisher / anti-sacrifice axis ("opponent sacrifices") uncovered.
-  - **Suggested fix:** Broaden `trigger.artifact_leaves_battlefield` PATTERN_TEXT to also match `\bwhen(?:ever)? (?:a|an|each|any|target) (?:opponent|player|each player) sacrifices? (?:a |an |another )?(?:artifact|clue|treasure|food|equipment|vehicle)\b`. Apply the same broadening to the other typed `*_leaves_battlefield` rules. Add Vengeful Tracker regression. Note: graph edges then form between Vengeful Tracker and `effect.sacrifice_artifact` cards via the existing pairsWith.
 
 ---
 

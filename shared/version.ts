@@ -1,2 +1,2 @@
 // shared/version.ts
-export const RULE_VERSION = 'v0.14.34';
+export const RULE_VERSION = 'v0.14.35';

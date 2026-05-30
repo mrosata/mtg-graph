@@ -27,4 +27,16 @@ describe('effect.destroy_enchantment', () => {
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
+
+  // Regression (Urgent Necropsy): Vindicate-style multi-target chain. The
+  // PATTERN_OWN filler quantifier ({0,6}) can't span past two prior
+  // "up to one target X," segments. A chained pattern anchored on a leading
+  // `destroy` verb plus a later `target enchantment` within the same
+  // sentence catches the missed case.
+  it.each([
+    ['destroy up to one target artifact, up to one target creature, up to one target enchantment, and up to one target planeswalker.'],
+    ['destroy target artifact and target enchantment.'],
+  ])('matches chained multi-target destroy: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
 });

@@ -37,6 +37,33 @@ describe('trigger.artifact_leaves_battlefield', () => {
     expect(rule.match!(text)).toBe(false);
   });
 
+  // Regression (Vengeful Tracker): active-voice "X sacrifices an artifact"
+  // is semantically an artifact-LtB event (the artifact moves from
+  // battlefield to graveyard) but the LTB_VERB anchor only matched the
+  // passive "leaves the battlefield" / "is put into a graveyard from the
+  // battlefield" frames. The punisher axis ("Whenever an opponent sacrifices
+  // a/an artifact/Clue/Treasure/...") needs to pair with effect.sacrifice_*
+  // producers via this trigger axis.
+  it.each([
+    ['whenever an opponent sacrifices an artifact, this creature deals 2 damage to them'],
+    ['whenever a player sacrifices an artifact'],
+    ['whenever an opponent sacrifices a treasure'],
+    ['whenever each opponent sacrifices an artifact'],
+    ['whenever any opponent sacrifices a clue'],
+  ])('text-matches active-voice sacrifice frame: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
+  // Negative: "you sacrifice" is the controller's own sacrifice — handled
+  // by trigger.permanent_sacrificed (aristocrats axis), not the LtB punisher
+  // axis. Keeping these out prevents the two trigger axes from collapsing.
+  it.each([
+    ['whenever you sacrifice an artifact'],
+    ['whenever you sacrifice a treasure'],
+  ])('text does not match controller-self sacrifice (aristocrats axis): %s', (text) => {
+    expect(rule.match!(text)).toBe(false);
+  });
+
   it('matchCard: SELF trigger on an artifact card', () => {
     const card = makeCard({ types: ['Artifact'] });
     const normalizedText = 'when __self__ leaves the battlefield, draw a card';
