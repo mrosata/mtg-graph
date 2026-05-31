@@ -62,7 +62,6 @@ export type InteractionEdge = {
   };
 };
 
-
 export type TagCategory = 'interaction' | 'theme';
 
 export type PairingRequirement = {
