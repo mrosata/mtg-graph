@@ -6,7 +6,7 @@ import type { WriteStream } from 'node:fs';
 import { dirname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createGzip, createBrotliCompress, constants as zlib } from 'node:zlib';
-import type { Artifact, Card, InteractionEdge } from '../shared/types';
+import type { Artifact, Card } from '../shared/types';
 
 export async function writeArtifact(path: string, artifact: Artifact): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
@@ -20,8 +20,6 @@ export async function writeArtifact(path: string, artifact: Artifact): Promise<v
     await write(stream, '{');
     await write(stream, '"cards":');
     await writeArray(stream, artifact.cards);
-    await write(stream, ',"edges":');
-    await writeArray(stream, artifact.edges);
     await write(stream, ',"tagCatalog":');
     await write(stream, JSON.stringify(artifact.tagCatalog));
     await write(stream, `,"generatedAt":${JSON.stringify(artifact.generatedAt)}`);
@@ -47,7 +45,7 @@ export async function writeArtifact(path: string, artifact: Artifact): Promise<v
 const BATCH_SIZE = 5000;
 async function writeArray(
   stream: WriteStream,
-  items: readonly (Card | InteractionEdge)[],
+  items: readonly Card[],
 ): Promise<void> {
   await write(stream, '[');
   for (let i = 0; i < items.length; i += BATCH_SIZE) {

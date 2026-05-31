@@ -29,7 +29,6 @@ const makeArtifact = (overrides: Partial<Artifact> = {}): Artifact => ({
       rarity: 'common', imageUrl: '', tags: [],
     },
   ],
-  edges: [],
   tagCatalog: [],
   generatedAt: '2026-01-01T00:00:00Z',
   sourceSet: 't',
@@ -158,7 +157,7 @@ describe('graphStore.hydrate', () => {
           typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
           oracleText: '', keywords: [], power: '1', toughness: '1',
           rarity: 'common', imageUrl: '',
-          tags: [{ tagId: 'effect.create_token', evidence: 'token' }],
+          tags: [{ tagId: 'effect.create_token', axis: 'effect' as const, evidence: 'token' }],
         },
         {
           oracleId: 'b', name: 'B', set: 't', printings: ['t'], collectorNumber: '2',
@@ -166,7 +165,7 @@ describe('graphStore.hydrate', () => {
           typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
           oracleText: '', keywords: [], power: '1', toughness: '1',
           rarity: 'common', imageUrl: '',
-          tags: [{ tagId: 'trigger.token_created', evidence: 'token created' }],
+          tags: [{ tagId: 'trigger.token_created', axis: 'trigger' as const, evidence: 'token created' }],
         },
       ],
       tagCatalog: [

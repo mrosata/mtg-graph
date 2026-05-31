@@ -1,6 +1,6 @@
 // pipeline/index.ts
 import { resolve } from 'node:path';
-import type { Artifact, Card, InteractionEdge, TagDef, WireEdge } from '../shared/types';
+import type { Artifact, Card, TagDef } from '../shared/types';
 import { STANDARD_SET_CODES, UPCOMING_SET_CODES, COMMANDER_SET_CODES } from '../shared/sets';
 const UPCOMING_SET_SET = new Set(UPCOMING_SET_CODES);
 const COMMANDER_SET_SET = new Set(COMMANDER_SET_CODES);
@@ -13,7 +13,6 @@ import { applyRules } from './rules/runner';
 import { getAllRules } from './rules';
 import { getTagCatalog, RULE_VERSION } from './catalog';
 import { expandChildren } from './tag-expansion';
-import { buildEdges } from './graph';
 import { mergeCardsAcrossSets } from './merge';
 import { writeArtifact } from './emit';
 
@@ -104,30 +103,11 @@ async function main() {
   const taggedCount = taggedCards.filter((c) => c.tags.length > 0).length;
   console.log(`  → ${taggedCount} of ${taggedCards.length} cards have at least one tag`);
 
-  console.log('Building interaction graph...');
   const catalog = getTagCatalog();
-  const richEdges = buildEdges(taggedCards, catalog);
-  console.log(`  → ${richEdges.length} edges`);
-
-  // Wire-format compaction: replace each rich `InteractionEdge` with a 4-tuple
-  // `[source, target, sourceTagIdx, targetTagIdx]` where the tag indices are
-  // positions in `catalog`. The artifact JSON for Standard+Upcoming+Commander
-  // crossed V8's 512 MB string-length cap as object-form edges (~263 chars
-  // each × 4.2M edges ≈ 1 GB); the tuple form runs ~85 chars each ≈ 360 MB.
-  // The app's `graphStore.applyArtifact` decodes back to `InteractionEdge`.
-  const tagIdxByTagId = new Map(catalog.map((t, i) => [t.tagId, i]));
-  const edges: WireEdge[] = richEdges.map((e: InteractionEdge): WireEdge => [
-    e.source,
-    e.target,
-    tagIdxByTagId.get(e.reason.sourceTagId)!,
-    tagIdxByTagId.get(e.reason.targetTagId)!,
-  ]);
-
   const upcomingSets = args.sets.filter((s) => UPCOMING_SET_SET.has(s));
   const commanderSets = args.sets.filter((s) => COMMANDER_SET_SET.has(s));
   const artifact: Artifact = {
     cards: taggedCards,
-    edges,
     tagCatalog: catalog,
     generatedAt: new Date().toISOString(),
     sourceSet: args.outName,
