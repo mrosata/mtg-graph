@@ -95,7 +95,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   },
 
   setEnabled: async (b) => {
-    await db.prefs.put({ id: 'main', libraryEnabled: b });
     set({ enabled: b });
+    await db.prefs.put({ id: 'main', libraryEnabled: b });
   },
 }));

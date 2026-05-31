@@ -10,6 +10,7 @@ import { deckThemes } from '../lib/deckThemes';
 import { useFilterSectionCollapsed } from '../lib/useFilterSectionCollapsed';
 import { TOUR_IDS } from '../wizard/selectors';
 import TagFilterSection from './filters/TagFilterSection';
+import LibrarySection from './LibrarySection';
 
 const SETS_STORAGE_KEY = 'mtg-graph:filter-sets-collapsed';
 const INTERACTIONS_STORAGE_KEY = 'mtg-graph:filter-interactions-collapsed';
@@ -149,6 +150,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
 
   return (
     <div className="scrollbar-slim flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4" data-tour-id={TOUR_IDS.filterPanel}>
+      <LibrarySection />
       <section>
         <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
           Scope
