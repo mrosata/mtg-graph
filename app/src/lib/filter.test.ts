@@ -216,3 +216,34 @@ describe('applyFilter', () => {
       .toEqual(['three']);
   });
 });
+
+describe('applyFilter with libraryFilter', () => {
+  it('drops cards not present in the library set', () => {
+    const cards = [
+      card({ oracleId: 'a' }),
+      card({ oracleId: 'b' }),
+      card({ oracleId: 'c' }),
+    ];
+
+    const library = new Set(['a', 'c']);
+    const out = applyFilter(cards, {}, library);
+
+    expect(out.map((c) => c.oracleId).sort()).toEqual(['a', 'c']);
+  });
+
+  it('returns all cards when libraryFilter is undefined', () => {
+    const cards = [card({ oracleId: 'a' }), card({ oracleId: 'b' })];
+    const out = applyFilter(cards, {});
+    expect(out).toHaveLength(2);
+  });
+
+  it('intersects with other filter criteria (AND semantics)', () => {
+    const cards = [
+      card({ oracleId: 'a', rarity: 'common' }),
+      card({ oracleId: 'b', rarity: 'rare' }),
+      card({ oracleId: 'c', rarity: 'common' }),
+    ];
+    const out = applyFilter(cards, { rarities: ['common'] }, new Set(['a', 'b']));
+    expect(out.map((c) => c.oracleId)).toEqual(['a']);
+  });
+});

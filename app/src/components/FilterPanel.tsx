@@ -5,6 +5,7 @@ import type { Card, Color, Rarity, TagDef } from '@shared/types';
 import { STANDARD_SETS, UPCOMING_SETS } from '@shared/sets';
 import { useActiveDeck } from '../stores/deckStore';
 import { useGraphStore } from '../stores/graphStore';
+import { useLibraryStore } from '../stores/libraryStore';
 import { deckThemes } from '../lib/deckThemes';
 import { useFilterSectionCollapsed } from '../lib/useFilterSectionCollapsed';
 import { TOUR_IDS } from '../wizard/selectors';
@@ -89,7 +90,18 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
     [activeDeck, graphCards, tagCatalog],
   );
 
-  const baseFiltered = useMemo(() => applyFilter(cards, value), [cards, value]);
+  const libraryEnabled = useLibraryStore((s) => s.enabled);
+  const libraryOwned = useLibraryStore((s) => s.owned);
+
+  const libraryFilter = useMemo(() => {
+    if (!libraryEnabled || !libraryOwned) return undefined;
+    return new Set(libraryOwned.keys());
+  }, [libraryEnabled, libraryOwned]);
+
+  const baseFiltered = useMemo(
+    () => applyFilter(cards, value, libraryFilter),
+    [cards, value, libraryFilter],
+  );
   const themeZeroResult = useMemo(() => {
     const cache = new Map<string, boolean>();
     return (tagId: string) => {
