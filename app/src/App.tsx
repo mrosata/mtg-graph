@@ -5,8 +5,10 @@ import DecksPage from './pages/DecksPage';
 import DeckGraphPage from './pages/DeckGraphPage';
 import { useGraphStore } from './stores/graphStore';
 import { useActiveDeck, useDeckStore } from './stores/deckStore';
+import { useLibraryStore } from './stores/libraryStore';
 import WizardProvider from './wizard/WizardProvider';
 import HelpMenu from './wizard/HelpMenu';
+import LibraryStatusBadge from './components/LibraryStatusBadge';
 import { TOUR_IDS } from './wizard/selectors';
 
 const ARTIFACT_URL = (() => {
@@ -21,6 +23,7 @@ export default function App() {
   useEffect(() => {
     useGraphStore.getState().hydrate(ARTIFACT_URL);
     useDeckStore.getState().load();
+    useLibraryStore.getState().hydrate();
   }, []);
 
   return (
@@ -51,6 +54,7 @@ export default function App() {
               {activeDeck.name}
             </span>
           )}
+          <LibraryStatusBadge />
           <HelpMenu />
         </nav>
         <div className="min-h-0 flex-1">
