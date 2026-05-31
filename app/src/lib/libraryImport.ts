@@ -81,3 +81,51 @@ export function parseManaboxCsv(text: string): ParsedLibrary {
 
   return { rows, unparseableLines };
 }
+
+import type { Card } from '@shared/types';
+import { buildCardNameLookup, lookupByName } from './cardNameIndex';
+
+export type ImportRowSummary = {
+  name: string;
+  setCode: string;
+  quantity: number;
+};
+
+export type LibraryImportResult = {
+  owned: Map<string, number>;
+  unknownNames: ImportRowSummary[];
+  unknownSets: ImportRowSummary[];
+  unparseableLines: string[];
+};
+
+export function resolveLibrary(
+  parsed: ParsedLibrary,
+  cards: Map<string, Card>,
+  knownSetCodes: ReadonlySet<string>,
+): LibraryImportResult {
+  const lookup = buildCardNameLookup(cards);
+  const knownLower = new Set<string>();
+  for (const c of knownSetCodes) knownLower.add(c.toLowerCase());
+
+  const owned = new Map<string, number>();
+  const unknownNames: ImportRowSummary[] = [];
+  const unknownSets: ImportRowSummary[] = [];
+
+  for (const row of parsed.rows) {
+    const hit = lookupByName(lookup, row.name);
+    if (hit) {
+      owned.set(hit.oracleId, (owned.get(hit.oracleId) ?? 0) + row.quantity);
+      continue;
+    }
+    const summary: ImportRowSummary = {
+      name: row.name, setCode: row.setCode, quantity: row.quantity,
+    };
+    if (knownLower.has(row.setCode.toLowerCase())) {
+      unknownNames.push(summary);
+    } else {
+      unknownSets.push(summary);
+    }
+  }
+
+  return { owned, unknownNames, unknownSets, unparseableLines: parsed.unparseableLines };
+}
