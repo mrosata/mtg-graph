@@ -4,11 +4,6 @@ import { db } from '../lib/db';
 import { useLibraryStore } from './libraryStore';
 import type { LibraryImportResult } from '../lib/libraryImport';
 
-function reset() {
-  useLibraryStore.setState({ owned: null, enabled: false, meta: null });
-  return Promise.all([db.library.clear(), db.prefs.clear()]);
-}
-
 function fakeResult(overrides: Partial<LibraryImportResult> = {}): LibraryImportResult {
   return {
     owned: new Map([['bolt-id', 4], ['mtn-id', 20]]),
@@ -20,7 +15,10 @@ function fakeResult(overrides: Partial<LibraryImportResult> = {}): LibraryImport
 }
 
 describe('libraryStore', () => {
-  beforeEach(reset);
+  beforeEach(async () => {
+    useLibraryStore.setState({ owned: null, enabled: false, meta: null });
+    await Promise.all([db.library.clear(), db.prefs.clear()]);
+  });
 
   it('hydrate with no Dexie row leaves state empty', async () => {
     await useLibraryStore.getState().hydrate();
