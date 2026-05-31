@@ -8,6 +8,7 @@ import CardDetailDrawer from './CardDetailDrawer';
 import HoverCardPreview from './HoverCardPreview';
 import { applyFilter, type Filter } from '../lib/filter';
 import { useGraphStore } from '../stores/graphStore';
+import { useLibraryStore } from '../stores/libraryStore';
 import { useCardNav } from '../lib/useCardNav';
 import type { Card } from '@shared/types';
 
@@ -124,7 +125,17 @@ export default function BrowserShell({
 
   const cardNav = useCardNav(writeCardParam);
 
-  const filtered = useMemo(() => applyFilter(cards, filterForPanel), [cards, filterForPanel]);
+  const libraryEnabled = useLibraryStore((s) => s.enabled);
+  const libraryOwned = useLibraryStore((s) => s.owned);
+  const libraryFilter = useMemo(() => {
+    if (!libraryEnabled || !libraryOwned) return undefined;
+    return new Set(libraryOwned.keys());
+  }, [libraryEnabled, libraryOwned]);
+
+  const filtered = useMemo(
+    () => applyFilter(cards, filterForPanel, libraryFilter),
+    [cards, filterForPanel, libraryFilter],
+  );
 
   if (status === 'loading') return <div className="p-8 text-neutral-400">Loading card data…</div>;
   if (status === 'error') return <div className="p-8 text-red-400">Failed to load card data.</div>;
