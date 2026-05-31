@@ -77,20 +77,6 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
     });
   };
 
-  const allTags = useMemo(() => Array.from(tagCatalog.values()), [tagCatalog]);
-  const interactionTags = useMemo(
-    () => allTags.filter((t) => (t.category ?? 'interaction') !== 'theme'),
-    [allTags],
-  );
-  const themeTags = useMemo(
-    () => allTags.filter((t) => t.category === 'theme'),
-    [allTags],
-  );
-  const pinnedThemeIds = useMemo(
-    () => (activeDeck ? deckThemes(activeDeck, graphCards, tagCatalog) : []),
-    [activeDeck, graphCards, tagCatalog],
-  );
-
   const libraryEnabled = useLibraryStore((s) => s.enabled);
   const libraryOwned = useLibraryStore((s) => s.owned);
 
@@ -98,6 +84,37 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
     if (!libraryEnabled || !libraryOwned) return undefined;
     return new Set(libraryOwned.keys());
   }, [libraryEnabled, libraryOwned]);
+
+  // When library is active, derive the union of set codes and tag ids present
+  // in the owned subset. Used to narrow Sets/Interactions/Themes filter
+  // options so users only see filters they can actually exercise. Returns null
+  // when library is inactive — callers fall back to the full universe.
+  const libraryAvailable = useMemo<{ sets: Set<string>; tags: Set<string> } | null>(() => {
+    if (!libraryFilter) return null;
+    const sets = new Set<string>();
+    const tags = new Set<string>();
+    for (const oid of libraryFilter) {
+      const card = graphCards.get(oid);
+      if (!card) continue;
+      for (const p of card.printings) sets.add(p);
+      for (const t of card.tags) tags.add(t.tagId);
+    }
+    return { sets, tags };
+  }, [libraryFilter, graphCards]);
+
+  const allTags = useMemo(() => Array.from(tagCatalog.values()), [tagCatalog]);
+  const interactionTags = useMemo(() => {
+    const base = allTags.filter((t) => (t.category ?? 'interaction') !== 'theme');
+    return libraryAvailable ? base.filter((t) => libraryAvailable.tags.has(t.tagId)) : base;
+  }, [allTags, libraryAvailable]);
+  const themeTags = useMemo(() => {
+    const base = allTags.filter((t) => t.category === 'theme');
+    return libraryAvailable ? base.filter((t) => libraryAvailable.tags.has(t.tagId)) : base;
+  }, [allTags, libraryAvailable]);
+  const pinnedThemeIds = useMemo(() => {
+    const base = activeDeck ? deckThemes(activeDeck, graphCards, tagCatalog) : [];
+    return libraryAvailable ? base.filter((id) => libraryAvailable.tags.has(id)) : base;
+  }, [activeDeck, graphCards, tagCatalog, libraryAvailable]);
 
   const baseFiltered = useMemo(
     () => applyFilter(cards, value, libraryFilter),
@@ -119,10 +136,12 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
 
   const scope: Scope = value.scope ?? 'standard';
   const setsForScope = useMemo(() => {
-    if (scope === 'unreleased') return UPCOMING_SETS;
-    if (scope === 'all') return [...STANDARD_SETS, ...UPCOMING_SETS];
-    return STANDARD_SETS;
-  }, [scope]);
+    const base =
+      scope === 'unreleased' ? UPCOMING_SETS
+        : scope === 'all' ? [...STANDARD_SETS, ...UPCOMING_SETS]
+        : STANDARD_SETS;
+    return libraryAvailable ? base.filter((s) => libraryAvailable.sets.has(s.code)) : base;
+  }, [scope, libraryAvailable]);
   const changeScope = (next: Scope) => {
     // Drop any set-checkbox selections that fall outside the new scope so the
     // count badge doesn't lie about hidden filters.

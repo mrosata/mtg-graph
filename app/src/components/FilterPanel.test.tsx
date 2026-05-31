@@ -2,9 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import FilterPanel from './FilterPanel';
 import type { Card, TagDef } from '@shared/types';
+import { useGraphStore } from '../stores/graphStore';
+import { useLibraryStore } from '../stores/libraryStore';
 
 beforeEach(() => {
   window.localStorage.clear();
+  useLibraryStore.setState({ owned: null, enabled: false, meta: null });
+  useGraphStore.setState({ cards: new Map() } as never);
 });
 
 function makeCard(over: Partial<Card> = {}): Card {
@@ -119,5 +123,51 @@ describe('FilterPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /deck themes/i }));
     const tokens = screen.getByLabelText('Tokens matter').closest('label');
     expect(tokens!.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  describe('library-aware filter narrowing', () => {
+    it('hides interaction tags absent from the library when library is enabled', () => {
+      const owned = makeCard({
+        oracleId: 'owned-1',
+        printings: ['woe'],
+        tags: [{ tagId: 'theme.tokens', axis: 'effect', evidence: '' }],
+      });
+      useGraphStore.setState({ cards: new Map([[owned.oracleId, owned]]) } as never);
+      useLibraryStore.setState({ owned: new Map([['owned-1', 1]]), enabled: true, meta: null });
+
+      render(<FilterPanel value={{}} onChange={() => {}} cards={[owned]} tagCatalog={catalog} />);
+      fireEvent.click(screen.getByRole('button', { name: /interactions/i }));
+      // 'effect.draw' is in the catalog but no owned card has it → should be hidden.
+      expect(screen.queryByLabelText('Draw cards')).not.toBeInTheDocument();
+    });
+
+    it('hides theme tags absent from the library when library is enabled', () => {
+      const owned = makeCard({
+        oracleId: 'owned-1',
+        printings: ['woe'],
+        tags: [{ tagId: 'effect.draw', axis: 'effect', evidence: '' }],
+      });
+      useGraphStore.setState({ cards: new Map([[owned.oracleId, owned]]) } as never);
+      useLibraryStore.setState({ owned: new Map([['owned-1', 1]]), enabled: true, meta: null });
+
+      render(<FilterPanel value={{}} onChange={() => {}} cards={[owned]} tagCatalog={catalog} />);
+      fireEvent.click(screen.getByRole('button', { name: /deck themes/i }));
+      expect(screen.queryByLabelText('Tokens matter')).not.toBeInTheDocument();
+    });
+
+    it('shows all tags again when library is loaded but toggle is off', () => {
+      const owned = makeCard({
+        oracleId: 'owned-1',
+        printings: ['woe'],
+        tags: [{ tagId: 'effect.draw', axis: 'effect', evidence: '' }],
+      });
+      useGraphStore.setState({ cards: new Map([[owned.oracleId, owned]]) } as never);
+      useLibraryStore.setState({ owned: new Map([['owned-1', 1]]), enabled: false, meta: null });
+
+      render(<FilterPanel value={{}} onChange={() => {}} cards={[owned]} tagCatalog={catalog} />);
+      fireEvent.click(screen.getByRole('button', { name: /deck themes/i }));
+      // Toggle off → no narrowing → 'Tokens matter' still shown.
+      expect(screen.getByLabelText('Tokens matter')).toBeInTheDocument();
+    });
   });
 });
