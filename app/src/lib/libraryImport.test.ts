@@ -91,6 +91,24 @@ describe('parseManaboxCsv', () => {
     ].join('\n');
     expect(() => parseManaboxCsv(csv)).toThrow(/Quantity/);
   });
+
+  it('parses real Manabox export format (unquoted header, mixed quoting in rows)', () => {
+    const csv = [
+      'Binder Name,Binder Type,Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency,Added',
+      'Lord of the Rings Boosters,binder,Escape from Orthanc,LTR,The Lord of the Rings: Tales of Middle-earth,12,normal,common,2,83644,abc-1,0.15,false,false,near_mint,en,USD,2026-03-22T00:29:16.982Z',
+      'Lord of the Rings Boosters,binder,"Erkenbrand, Lord of Westfold",LTR,The Lord of the Rings: Tales of Middle-earth,123,normal,uncommon,1,82999,abc-2,0.1,false,false,near_mint,en,USD,2026-03-22T00:29:16.979Z',
+      'Lord of the Rings Boosters,binder,"Éowyn, Shieldmaiden",LTC,The Lord of the Rings: Tales of Middle-earth: Commander,1,normal,mythic,1,83001,abc-3,2.50,false,false,near_mint,en,USD,2026-03-22T00:29:16.985Z',
+    ].join('\n');
+
+    const parsed = parseManaboxCsv(csv);
+
+    expect(parsed.unparseableLines).toEqual([]);
+    expect(parsed.rows).toEqual([
+      { name: 'Escape from Orthanc',         setCode: 'LTR', collectorNumber: '12',  quantity: 2 },
+      { name: 'Erkenbrand, Lord of Westfold', setCode: 'LTR', collectorNumber: '123', quantity: 1 },
+      { name: 'Éowyn, Shieldmaiden',          setCode: 'LTC', collectorNumber: '1',   quantity: 1 },
+    ]);
+  });
 });
 
 function makeCard(oracleId: string, name: string, typeLine = ''): Card {
