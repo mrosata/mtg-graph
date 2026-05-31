@@ -4,6 +4,20 @@ import { useGraphStore } from './graphStore';
 import { db } from '../lib/db';
 import { RULE_VERSION } from '@shared/version';
 import type { Artifact } from '@shared/types';
+import { buildEdges } from '../../../pipeline/graph';
+import type { Card, InteractionEdge, TagDef } from '@shared/types';
+
+class FakeWorker {
+  onmessage: ((e: MessageEvent<{ edges: InteractionEdge[] }>) => void) | null = null;
+  onerror: ((e: ErrorEvent) => void) | null = null;
+  postMessage(data: { cards: Card[]; catalog: TagDef[] }) {
+    queueMicrotask(() => {
+      const edges = buildEdges(data.cards, data.catalog);
+      this.onmessage?.({ data: { edges } } as MessageEvent<{ edges: InteractionEdge[] }>);
+    });
+  }
+  terminate() {}
+}
 
 const makeArtifact = (overrides: Partial<Artifact> = {}): Artifact => ({
   cards: [
@@ -15,7 +29,6 @@ const makeArtifact = (overrides: Partial<Artifact> = {}): Artifact => ({
       rarity: 'common', imageUrl: '', tags: [],
     },
   ],
-  edges: [],
   tagCatalog: [],
   generatedAt: '2026-01-01T00:00:00Z',
   sourceSet: 't',
@@ -33,6 +46,7 @@ beforeEach(async () => {
     cards: new Map(), edges: new Map(), edgesInbound: new Map(),
     tagCatalog: new Map(), ruleVersion: '', status: 'loading',
   });
+  vi.stubGlobal('Worker', FakeWorker);
 });
 
 describe('graphStore.hydrate', () => {
@@ -132,12 +146,8 @@ describe('graphStore.hydrate', () => {
     expect(useGraphStore.getState().status).toBe('ready');
   });
 
-  // Wire-format compaction (v0.14.37): artifact.edges is a list of compact
-  // tuples [source, target, sourceTagIdx, targetTagIdx]. The hydrate step
-  // decodes back to the in-memory InteractionEdge shape and populates the
-  // outbound + inbound adjacency maps.
-  it('decodes WireEdge tuples to InteractionEdge using tagCatalog indices', async () => {
-    const wireArtifact = makeArtifact({
+  it('populates adjacency maps from worker-computed edges', async () => {
+    const artifact = makeArtifact({
       sourceSet: 't',
       ruleVersion: RULE_VERSION,
       cards: [
@@ -146,26 +156,28 @@ describe('graphStore.hydrate', () => {
           manaCost: null, cmc: 0, colors: [], colorIdentity: [],
           typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
           oracleText: '', keywords: [], power: '1', toughness: '1',
-          rarity: 'common', imageUrl: '', tags: [],
+          rarity: 'common', imageUrl: '',
+          tags: [{ tagId: 'effect.create_token', axis: 'effect' as const, evidence: 'token' }],
         },
         {
           oracleId: 'b', name: 'B', set: 't', printings: ['t'], collectorNumber: '2',
           manaCost: null, cmc: 0, colors: [], colorIdentity: [],
           typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
           oracleText: '', keywords: [], power: '1', toughness: '1',
-          rarity: 'common', imageUrl: '', tags: [],
+          rarity: 'common', imageUrl: '',
+          tags: [{ tagId: 'trigger.token_created', axis: 'trigger' as const, evidence: 'token created' }],
         },
       ],
       tagCatalog: [
         { tagId: 'effect.create_token', axis: 'effect', label: 'Create token', description: '', pairsWith: ['trigger.token_created'] },
         { tagId: 'trigger.token_created', axis: 'trigger', label: 'Token created', description: '', pairsWith: [] },
       ],
-      edges: [['a', 'b', 0, 1]],
     });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => wireArtifact }));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => artifact }));
 
     await useGraphStore.getState().hydrate('/data/cards-t.json');
 
+    expect(useGraphStore.getState().status).toBe('ready');
     const outbound = useGraphStore.getState().edges.get('a');
     expect(outbound).toHaveLength(1);
     expect(outbound?.[0]).toEqual({
@@ -180,24 +192,5 @@ describe('graphStore.hydrate', () => {
     const inbound = useGraphStore.getState().edgesInbound.get('b');
     expect(inbound).toHaveLength(1);
     expect(inbound?.[0]?.source).toBe('a');
-  });
-
-  it('skips WireEdge tuples whose tag indices fall outside the catalog (defensive)', async () => {
-    const errSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const wireArtifact = makeArtifact({
-      sourceSet: 't',
-      ruleVersion: RULE_VERSION,
-      tagCatalog: [
-        { tagId: 'effect.create_token', axis: 'effect', label: '', description: '', pairsWith: [] },
-      ],
-      edges: [['a', 'b', 0, 99]],
-    });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => wireArtifact }));
-
-    await useGraphStore.getState().hydrate('/data/cards-t.json');
-
-    expect(useGraphStore.getState().status).toBe('ready');
-    expect(useGraphStore.getState().edges.size).toBe(0);
-    expect(errSpy).toHaveBeenCalled();
   });
 });

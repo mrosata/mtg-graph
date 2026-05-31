@@ -6,22 +6,19 @@ import type { WriteStream } from 'node:fs';
 import { dirname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createGzip, createBrotliCompress, constants as zlib } from 'node:zlib';
-import type { Artifact, Card, InteractionEdge } from '../shared/types';
+import type { Artifact, Card } from '../shared/types';
 
 export async function writeArtifact(path: string, artifact: Artifact): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
-  // v0.14.36 — switched from `writeFile(JSON.stringify(artifact))` to a
-  // streaming writer. With Commander sets backfilled, edge count crossed
-  // 4M and the full stringified artifact exceeded V8's max string length
-  // (~512 MB / ~1 GB depending on Node). Streaming serializes per-item so
-  // we never hold the whole document as one string in memory.
+  // Streams the artifact field-by-field so we never hold the entire JSON
+  // document as a single string in memory. Card arrays alone are ~5 MB raw
+  // today; streaming keeps headroom for Commander re-enable (Task 4) and
+  // future growth without bumping into V8's max-string-length cap.
   const stream = createWriteStream(path);
   try {
     await write(stream, '{');
     await write(stream, '"cards":');
     await writeArray(stream, artifact.cards);
-    await write(stream, ',"edges":');
-    await writeArray(stream, artifact.edges);
     await write(stream, ',"tagCatalog":');
     await write(stream, JSON.stringify(artifact.tagCatalog));
     await write(stream, `,"generatedAt":${JSON.stringify(artifact.generatedAt)}`);
@@ -47,7 +44,7 @@ export async function writeArtifact(path: string, artifact: Artifact): Promise<v
 const BATCH_SIZE = 5000;
 async function writeArray(
   stream: WriteStream,
-  items: readonly (Card | InteractionEdge)[],
+  items: readonly Card[],
 ): Promise<void> {
   await write(stream, '[');
   for (let i = 0; i < items.length; i += BATCH_SIZE) {
