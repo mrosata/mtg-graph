@@ -44,13 +44,19 @@ export const UPCOMING_SETS: StandardSet[] = [
 
 export const UPCOMING_SET_CODES: string[] = UPCOMING_SETS.map((s) => s.code);
 
-// Commander companion products. Orthogonal to STANDARD/UPCOMING — a set can
-// be both upcoming AND commander (e.g. hoc). The FilterPanel "Include
+// Non-Standard companion products. Orthogonal to STANDARD/UPCOMING — a set
+// can be both upcoming AND in this list (e.g. hoc). The FilterPanel "Include
 // Commander cards" toggle hides cards whose printings are ALL in this list
-// (default off). Reprints into commander products still surface via their
-// non-commander printing.
+// (default off). Reprints into these products still surface via their
+// Standard-legal printing.
+//
+// Two Scryfall set_types live here:
+//   - `commander` — true Commander deck companion products (woc, otc, etc.)
+//   - `eternal`   — Universes Beyond crossover supplements (spe, tle, tmc).
+//     Not strictly Commander products, but they never rotate into Standard
+//     and are perpetually Commander-legal, so the same gating applies.
 export const COMMANDER_SETS: StandardSet[] = [
-  // Linked to STANDARD_SETS:
+  // Linked to STANDARD_SETS — set_type: commander:
   { code: 'woc', name: 'Wilds of Eldraine Commander' },
   { code: 'lcc', name: 'The Lost Caverns of Ixalan Commander' },
   { code: 'mkc', name: 'Murders at Karlov Manor Commander' },
@@ -64,7 +70,11 @@ export const COMMANDER_SETS: StandardSet[] = [
   { code: 'eoc', name: 'Edge of Eternities Commander' },
   { code: 'ecc', name: 'Lorwyn Eclipsed Commander' },
   { code: 'soc', name: 'Secrets of Strixhaven Commander' },
-  // Linked to UPCOMING_SETS:
+  // Linked to STANDARD_SETS — set_type: eternal (UB crossover supplements):
+  { code: 'spe', name: "Marvel's Spider-Man Eternal" },
+  { code: 'tle', name: 'Avatar: The Last Airbender Eternal' },
+  { code: 'tmc', name: 'Teenage Mutant Ninja Turtles Eternal' },
+  // Linked to UPCOMING_SETS — set_type: commander:
   { code: 'msc', name: 'Marvel Super Heroes Commander' },
   { code: 'hoc', name: 'The Hobbit Commander' },
   { code: 'trc', name: 'Star Trek Commander' },
