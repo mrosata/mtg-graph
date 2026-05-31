@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useGraphStore } from '../stores/graphStore';
 import { useActiveDeck } from '../stores/deckStore';
+import { useLibraryStore } from '../stores/libraryStore';
 import { getNeighbors, type Neighbor } from '../lib/traversal';
 import { applyFilter, type Filter } from '../lib/filter';
 import { useDeckPanelCollapsed } from '../lib/useDeckPanelCollapsed';
@@ -107,7 +108,18 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
   const [filter, setFilter] = useState<Filter>({});
   const [hoverUrl, setHoverUrl] = useState<string | null>(null);
 
-  const neighbors = useMemo(() => getNeighbors(oracleId, outbound, inbound), [oracleId, outbound, inbound]);
+  const enabled = useLibraryStore((s) => s.enabled);
+  const owned = useLibraryStore((s) => s.owned);
+  const libraryFilter = useMemo(
+    () => (enabled && owned ? new Set(owned.keys()) : null),
+    [enabled, owned],
+  );
+
+  const allNeighbors = useMemo(() => getNeighbors(oracleId, outbound, inbound), [oracleId, outbound, inbound]);
+  const neighbors = useMemo(
+    () => (libraryFilter ? allNeighbors.filter((n) => libraryFilter.has(n.oracleId)) : allNeighbors),
+    [allNeighbors, libraryFilter],
+  );
 
   // Split each neighbor's reasons by category; a neighbor with both kinds of reasons
   // appears in both tabs, each list showing only the relevant reasons.

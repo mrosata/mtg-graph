@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import type { Color } from '@shared/types';
 import { useGraphStore } from '../stores/graphStore';
 import { useActiveDeck, useDeckStore } from '../stores/deckStore';
+import { useLibraryStore } from '../stores/libraryStore';
 import { TOUR_IDS } from '../wizard/selectors';
 import {
   buildDeckGraph,
@@ -167,6 +168,25 @@ export default function DeckGraphPage() {
     }
   }, [expandedGraph, selectedOracleId, searchParams, setSearchParams]);
 
+  const libraryEnabled = useLibraryStore((s) => s.enabled);
+  const libraryOwned = useLibraryStore((s) => s.owned);
+  const libraryFilter = useMemo(
+    () => (libraryEnabled && libraryOwned ? new Set(libraryOwned.keys()) : null),
+    [libraryEnabled, libraryOwned],
+  );
+
+  // When the library filter is active, hide edges where either endpoint isn't owned.
+  // Deck-member nodes always render regardless (only edges are filtered).
+  const visibleExpandedGraph = useMemo(() => {
+    if (!libraryFilter) return expandedGraph;
+    return {
+      ...expandedGraph,
+      edges: expandedGraph.edges.filter(
+        (e) => libraryFilter.has(e.source) && libraryFilter.has(e.target),
+      ),
+    };
+  }, [expandedGraph, libraryFilter]);
+
   const { presentFamilies, familyEdgeCounts } = useMemo(() => {
     const present = new Set<FamilyId>();
     const counts = new Map<FamilyId, number>();
@@ -180,21 +200,21 @@ export default function DeckGraphPage() {
   }, [graph]);
 
   const selectedNode = useMemo(
-    () => (selectedOracleId ? expandedGraph.nodes.find((n) => n.id === selectedOracleId) ?? null : null),
-    [selectedOracleId, expandedGraph],
+    () => (selectedOracleId ? visibleExpandedGraph.nodes.find((n) => n.id === selectedOracleId) ?? null : null),
+    [selectedOracleId, visibleExpandedGraph],
   );
   const incidentEdges = useMemo(
     () =>
       selectedOracleId
-        ? expandedGraph.edges.filter((e) => e.source === selectedOracleId || e.target === selectedOracleId)
+        ? visibleExpandedGraph.edges.filter((e) => e.source === selectedOracleId || e.target === selectedOracleId)
         : [],
-    [selectedOracleId, expandedGraph],
+    [selectedOracleId, visibleExpandedGraph],
   );
   const nodesById = useMemo(() => {
     const m = new Map<string, GraphNode>();
-    for (const n of expandedGraph.nodes) m.set(n.id, n);
+    for (const n of visibleExpandedGraph.nodes) m.set(n.id, n);
     return m;
-  }, [expandedGraph]);
+  }, [visibleExpandedGraph]);
 
   const deckCountsByOracleId = useMemo(() => {
     const m = new Map<string, number>();
@@ -350,7 +370,7 @@ export default function DeckGraphPage() {
             onForward={navStack.goForward}
           />
           <GraphCanvas
-            graph={expandedGraph}
+            graph={visibleExpandedGraph}
             selectedId={selectedOracleId}
             hoveredId={hoveredOracleId}
             onSelect={setSelected}
