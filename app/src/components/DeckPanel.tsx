@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useGraphStore } from '../stores/graphStore';
 import { useActiveDeck, useDeckStore } from '../stores/deckStore';
+import { useLibraryStore } from '../stores/libraryStore';
 import { deckLegality } from '../lib/legality';
 import { manaCurveBuckets, TYPE_ORDER, TYPE_PLURAL, type DeckType } from '../lib/deckStats';
 import { useDeckPanelCollapsed } from '../lib/useDeckPanelCollapsed';
@@ -8,15 +9,35 @@ import ManaCurve from './ManaCurve';
 import DeckPanelCollapsed from './DeckPanelCollapsed';
 import HoverCardPreview from './HoverCardPreview';
 import CardListRow, { CountControls } from './CardListRow';
+import NotInLibraryBadge from './NotInLibraryBadge';
 import { deckToArenaText } from '../lib/deckExport';
 import { useToastStore } from '../stores/toastStore';
 import { added, removed, isDirty } from '../lib/deckDiff';
 import { TOUR_IDS } from '../wizard/selectors';
+import { isBasicLand } from '../lib/basics';
+import type { Card } from '@shared/types';
 
 type Props = {
   onCardClick?: (oracleId: string) => void;
   drawerOpen?: boolean;
 };
+
+function rowCountLabel(
+  card: Card | undefined,
+  count: number,
+  owned: Map<string, number> | null,
+): React.JSX.Element {
+  if (!owned || !card || isBasicLand(card)) {
+    return <span className="tabular-nums text-neutral-500">{count}×</span>;
+  }
+  const have = owned.get(card.oracleId) ?? 0;
+  const short = have < count;
+  return (
+    <span className={`tabular-nums ${short ? 'text-amber-300' : 'text-neutral-500'}`}>
+      {count}/{have}
+    </span>
+  );
+}
 
 // Layout constants — keep these in sync with the panel widths in BrowserShell
 // and DeckPanel. The hover preview anchors against the drawer's left edge (or
@@ -30,6 +51,7 @@ const PREVIEW_WIDTH = 280;
 export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {}) {
   const cards = useGraphStore((s) => s.cards);
   const deck = useActiveDeck();
+  const owned = useLibraryStore((s) => s.owned);
   const renameDeck = useDeckStore((s) => s.renameDeck);
   const addCard = useDeckStore((s) => s.addCard);
   const removeCard = useDeckStore((s) => s.removeCard);
@@ -85,6 +107,18 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
   const addedSet = useMemo(() => new Set(deck ? added(deck).map((c) => c.oracleId) : []), [deck]);
   const removedEntries = useMemo(() => (deck ? removed(deck) : []), [deck]);
   const warnings = deck ? deckLegality(deck, cards) : [];
+
+  const missing = useMemo(() => {
+    if (!owned || !deck) return null;
+    let m = 0;
+    for (const r of deck.workingCards) {
+      const card = cards.get(r.oracleId);
+      if (!card || isBasicLand(card)) continue;
+      const have = owned.get(r.oracleId) ?? 0;
+      if (r.count > have) m += r.count - have;
+    }
+    return m;
+  }, [owned, deck, cards]);
 
   const jumpToType = (type: DeckType) => {
     setCollapsed(false);
@@ -190,6 +224,11 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
             ))}
           </ul>
         )}
+        {owned && missing !== null && (
+          missing === 0
+            ? <p aria-label="Library is fully stocked" className="text-xs text-emerald-400">✓ Library covers this deck</p>
+            : <p className="text-xs text-amber-300">Missing: {missing} cards</p>
+        )}
         <div className="space-y-3">
           {TYPE_ORDER.filter((t) => grouped[t]?.length).map((t) => (
             <div key={t}>
@@ -200,31 +239,39 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                 {TYPE_PLURAL[t]}
               </h3>
               <ul className="mt-1 space-y-0.5">
-                {(grouped[t] ?? []).map((e) => (
-                  <CardListRow
-                    key={e.oracleId}
-                    oracleId={e.oracleId}
-                    name={e.name}
-                    count={e.count}
-                    manaCost={cards.get(e.oracleId)?.manaCost ?? null}
-                    onAdd={(qty) => addCard(e.oracleId, qty, cards.get(e.oracleId)?.name)}
-                    onRemove={(qty) => removeCard(e.oracleId, qty)}
-                    className={addedSet.has(e.oracleId) ? 'border-l-2 border-green-500 pl-1' : ''}
-                    onClickName={
-                      onCardClick
-                        ? () => {
-                            setHoverUrl(null);
-                            onCardClick(e.oracleId);
-                          }
-                        : undefined
-                    }
-                    onMouseEnter={() => {
-                      const card = cards.get(e.oracleId);
-                      if (card?.imageUrl) setHoverUrl(card.imageUrl);
-                    }}
-                    onMouseLeave={() => setHoverUrl(null)}
-                  />
-                ))}
+                {(grouped[t] ?? []).map((e) => {
+                  const rowCard = cards.get(e.oracleId);
+                  return (
+                    <CardListRow
+                      key={e.oracleId}
+                      oracleId={e.oracleId}
+                      name={e.name}
+                      count={e.count}
+                      manaCost={rowCard?.manaCost ?? null}
+                      onAdd={(qty) => addCard(e.oracleId, qty, rowCard?.name)}
+                      onRemove={(qty) => removeCard(e.oracleId, qty)}
+                      className={addedSet.has(e.oracleId) ? 'border-l-2 border-green-500 pl-1' : ''}
+                      onClickName={
+                        onCardClick
+                          ? () => {
+                              setHoverUrl(null);
+                              onCardClick(e.oracleId);
+                            }
+                          : undefined
+                      }
+                      onMouseEnter={() => {
+                        if (rowCard?.imageUrl) setHoverUrl(rowCard.imageUrl);
+                      }}
+                      onMouseLeave={() => setHoverUrl(null)}
+                      rightSlot={
+                        <>
+                          {rowCountLabel(rowCard, e.count, owned)}
+                          {rowCard && <NotInLibraryBadge card={rowCard} />}
+                        </>
+                      }
+                    />
+                  );
+                })}
               </ul>
             </div>
           ))}

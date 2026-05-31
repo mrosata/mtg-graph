@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useActiveDeck, useDeckStore } from '../stores/deckStore';
 import { useGraphStore } from '../stores/graphStore';
+import { useLibraryStore } from '../stores/libraryStore';
+import { useToastStore } from '../stores/toastStore';
+import { isBasicLand } from '../lib/basics';
 import ConfirmModal from './ConfirmModal';
 
 type Props = { oracleId: string };
@@ -22,6 +25,21 @@ export default function AddToDeckButton({ oracleId }: Props) {
       return;
     }
     await addCard(oracleId, qty, cardName);
+
+    const ownedMap = useLibraryStore.getState().owned;
+    const card = useGraphStore.getState().cards.get(oracleId);
+    if (ownedMap && card && !isBasicLand(card)) {
+      const have = ownedMap.get(oracleId) ?? 0;
+      const deckState = useDeckStore.getState();
+      const activeDeck = deckState.decks.find((d) => d.id === deckState.activeDeckId);
+      const entry = activeDeck?.workingCards.find((c) => c.oracleId === oracleId);
+      const newCount = entry?.count ?? 0;
+      if (newCount > have) {
+        useToastStore.getState().show(
+          `Your library has ${have}× ${card.name}; deck now wants ${newCount}.`,
+        );
+      }
+    }
   };
 
   const handleRemove = async (e: React.MouseEvent) => {
