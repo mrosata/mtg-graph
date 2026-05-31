@@ -1,5 +1,6 @@
 import type { Card } from '@shared/types';
 import type { Deck } from './db';
+import { isBasicLand } from './basics';
 
 export type LegalityWarning = {
   severity: 'warning' | 'error';
@@ -28,9 +29,7 @@ export function deckLegality(deck: Deck, cards: Map<string, Card>): LegalityWarn
       });
       continue;
     }
-    const isBasicLand =
-      card.types.includes('Land') && card.supertypes.includes('Basic');
-    if (!isBasicLand && entry.count > 4) {
+    if (!isBasicLand(card) && entry.count > 4) {
       warnings.push({
         severity: 'warning',
         message: `Deck contains ${entry.count} copies of ${card.name}; max 4 unless basic land.`,

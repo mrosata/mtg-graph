@@ -1,6 +1,7 @@
 import type { Card, Color } from '@shared/types';
 import type { Deck } from './db';
 import { colorPipDistribution } from './deckStats';
+import { isBasicLand } from './basics';
 
 const WUBRG: readonly Color[] = ['W', 'U', 'B', 'R', 'G'];
 
@@ -27,11 +28,7 @@ export type FillOpts = {
 export function getBasicOracleId(color: Color, cards: Map<string, Card>): string | undefined {
   const subtype = SUBTYPE_FOR_COLOR[color];
   for (const card of cards.values()) {
-    if (
-      card.types.includes('Land') &&
-      card.supertypes.includes('Basic') &&
-      card.subtypes.includes(subtype)
-    ) {
+    if (isBasicLand(card) && card.subtypes.includes(subtype)) {
       return card.oracleId;
     }
   }
@@ -108,7 +105,7 @@ export function computeLandFill(
     const c = cards.get(entry.oracleId);
     if (!c) continue;
     if (!c.types.includes('Land')) continue;
-    if (c.supertypes.includes('Basic')) continue;
+    if (isBasicLand(c)) continue;
     nonBasicLandCount += entry.count;
     for (const col of c.colorIdentity) {
       existingLandContrib[col] += entry.count;
@@ -133,7 +130,7 @@ export function computeLandFill(
     const c = cards.get(entry.oracleId);
     if (!c) continue;
     if (!c.types.includes('Land')) continue;
-    if (!c.supertypes.includes('Basic')) continue;
+    if (!isBasicLand(c)) continue;
     for (const col of WUBRG) {
       if (c.subtypes.includes(SUBTYPE_FOR_COLOR[col])) {
         currentBasicsByColor[col] += entry.count;
