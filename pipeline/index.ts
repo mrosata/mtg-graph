@@ -32,12 +32,12 @@ function parseArgs(argv: string[]): Args {
   const refresh = argv.includes('--refresh');
 
   if (standardIdx !== -1) {
-    // Commander sets are temporarily excluded: adding ~13 Commander products
-    // pushed the artifact past V8's max string length (~512 MB), crashing
-    // hydration in the browser. Re-enable once edges have a compact
-    // representation (or are computed client-side).
+    // Standard ∪ Upcoming ∪ Commander, deduped (msc/hoc/trc appear in both
+    // UPCOMING and COMMANDER). Re-enabled in v0.15.0 once edges moved to a
+    // client-side Web Worker and the artifact wire format stopped scaling
+    // with edge count.
     const sets = Array.from(
-      new Set([...STANDARD_SET_CODES, ...UPCOMING_SET_CODES]),
+      new Set([...STANDARD_SET_CODES, ...UPCOMING_SET_CODES, ...COMMANDER_SET_CODES]),
     );
     return { sets, out, outName: 'standard', refresh };
   }
