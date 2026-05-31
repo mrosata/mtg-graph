@@ -1,6 +1,7 @@
 // app/src/lib/db.ts
 import Dexie, { Table } from 'dexie';
 import type { Artifact } from '@shared/types';
+import type { ImportRowSummary } from './libraryImport';
 
 export type DeckCard = { oracleId: string; count: number; name?: string };
 
@@ -21,9 +22,26 @@ export type ArtifactCacheRow = {
   artifact: Artifact;
 };
 
+export type LibraryRow = {
+  id: 'main';
+  importedAt: number;
+  sourceFilename: string;
+  owned: Record<string, number>;
+  unknownNames: ImportRowSummary[];
+  unknownSets: ImportRowSummary[];
+  unparseableLines: string[];
+};
+
+export type PrefsRow = {
+  id: 'main';
+  libraryEnabled: boolean;
+};
+
 export class MtgDb extends Dexie {
   decks!: Table<Deck, string>;
   artifactCache!: Table<ArtifactCacheRow, string>;
+  library!: Table<LibraryRow, 'main'>;
+  prefs!: Table<PrefsRow, 'main'>;
 
   constructor(name = 'mtg-graph') {
     super(name);
@@ -47,6 +65,12 @@ export class MtgDb extends Dexie {
             delete d.cards;
           }),
       );
+    this.version(3).stores({
+      decks: 'id, name, updatedAt',
+      artifactCache: '&ruleVersion',
+      library: 'id',
+      prefs: 'id',
+    });
   }
 }
 

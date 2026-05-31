@@ -72,3 +72,35 @@ describe('Dexie migration v1 → v2', () => {
     v2.close();
   });
 });
+
+describe('v2 -> v3 migration', () => {
+  it('adds library and prefs tables, preserves existing decks', async () => {
+    const dbName = `mig-v2-to-v3-${Date.now()}`;
+
+    // Seed a v2 database with one deck (mirrors v2 schema from db.ts).
+    const v2 = new Dexie(dbName);
+    v2.version(1).stores({ decks: 'id, name, updatedAt', artifactCache: '&ruleVersion' });
+    v2.version(2).stores({ decks: 'id, name, updatedAt', artifactCache: '&ruleVersion' });
+    await v2.open();
+    await v2.table('decks').put({
+      id: 'd1', name: 'Pre-migration', originalCards: [], workingCards: [],
+      createdAt: Date.now(), updatedAt: Date.now(),
+    });
+    v2.close();
+
+    // Open with the current (v3) schema.
+    const { makeMtgDb } = await import('./db');
+    const v3 = makeMtgDb(dbName);
+    await v3.open();
+
+    const decks = await v3.decks.toArray();
+    expect(decks).toHaveLength(1);
+    expect(decks[0]?.name).toBe('Pre-migration');
+
+    expect(await v3.library.count()).toBe(0);
+    expect(await v3.prefs.count()).toBe(0);
+
+    v3.close();
+    await Dexie.delete(dbName);
+  });
+});
