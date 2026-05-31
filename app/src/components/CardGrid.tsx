@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import type { Card } from '@shared/types';
 import { TOUR_IDS } from '../wizard/selectors';
+import OwnedBadge from './OwnedBadge';
 
 type Props = {
   cards: Card[];
@@ -52,7 +53,7 @@ export default function CardGrid({ cards, onCardClick, onHoverCard, width, heigh
               onClick={() => onCardClick(card)}
               onMouseEnter={() => scheduleHover(card)}
               onMouseLeave={clearHover}
-              className="p-1 text-left"
+              className="relative p-1 text-left"
             >
               <img
                 src={card.imageUrl}
@@ -60,6 +61,7 @@ export default function CardGrid({ cards, onCardClick, onHoverCard, width, heigh
                 loading="lazy"
                 className="h-full w-full rounded object-contain"
               />
+              <OwnedBadge card={card} className="absolute bottom-1 right-1" />
             </button>
           );
         }}
