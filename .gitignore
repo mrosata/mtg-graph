@@ -20,3 +20,4 @@ app/test-results/
 app/tsconfig.tsbuildinfo
 .superpowers/
 .wrangler/
+ManaBox_Collection.csv
