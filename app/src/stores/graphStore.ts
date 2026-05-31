@@ -14,54 +14,51 @@ type GraphState = {
   hydrate: (url: string) => Promise<void>;
 };
 
-function applyArtifact(
+async function applyArtifact(
   artifact: Artifact,
   set: (partial: Partial<GraphState>) => void,
-): void {
+): Promise<void> {
   const cards = new Map(artifact.cards.map((c) => [c.oracleId, c]));
-  // Wire-format decode: each artifact edge is `[source, target, sourceTagIdx,
-  // targetTagIdx]` where the tag indices are positions in `artifact.tagCatalog`.
-  // Re-hydrate into the in-memory `InteractionEdge` shape every other module
-  // consumes. Indices that fall outside the catalog are skipped with a warn —
-  // that signals a wire-format / RULE_VERSION mismatch rather than a runtime
-  // condition the user should see crash.
-  const tagIdByIdx = artifact.tagCatalog.map((t) => t.tagId);
-  const edges = new Map<string, InteractionEdge[]>();
-  const edgesInbound = new Map<string, InteractionEdge[]>();
-  let droppedOutOfRange = 0;
-  for (const wire of artifact.edges) {
-    const sourceTagId = tagIdByIdx[wire[2]];
-    const targetTagId = tagIdByIdx[wire[3]];
-    if (sourceTagId === undefined || targetTagId === undefined) {
-      droppedOutOfRange += 1;
-      continue;
-    }
-    const edge: InteractionEdge = {
-      source: wire[0],
-      target: wire[1],
-      reason: {
-        sourceTagId,
-        targetTagId,
-        direction: 'source_produces_for_target',
-      },
-    };
-    const out = edges.get(edge.source) ?? [];
-    out.push(edge);
-    edges.set(edge.source, out);
-    const inb = edgesInbound.get(edge.target) ?? [];
-    inb.push(edge);
-    edgesInbound.set(edge.target, inb);
-  }
-  if (droppedOutOfRange > 0) {
-    console.warn(
-      `[graphStore] dropped ${droppedOutOfRange} edges with tag indices outside catalog (size ${tagIdByIdx.length}) — likely a wire-format / ruleVersion mismatch`,
-    );
-  }
   const tagCatalog = new Map(artifact.tagCatalog.map((t) => [t.tagId, t]));
+
+  const edges = await computeEdges(artifact.cards, artifact.tagCatalog);
+
+  const outbound = new Map<string, InteractionEdge[]>();
+  const inbound = new Map<string, InteractionEdge[]>();
+  for (const edge of edges) {
+    const o = outbound.get(edge.source) ?? [];
+    o.push(edge);
+    outbound.set(edge.source, o);
+    const i = inbound.get(edge.target) ?? [];
+    i.push(edge);
+    inbound.set(edge.target, i);
+  }
+
   set({
-    cards, edges, edgesInbound, tagCatalog,
+    cards,
+    edges: outbound,
+    edgesInbound: inbound,
+    tagCatalog,
     ruleVersion: artifact.ruleVersion,
     status: 'ready',
+  });
+}
+
+function computeEdges(cards: Card[], catalog: TagDef[]): Promise<InteractionEdge[]> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL('../workers/buildEdges.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    worker.onmessage = (e: MessageEvent<{ edges: InteractionEdge[] }>) => {
+      resolve(e.data.edges);
+      worker.terminate();
+    };
+    worker.onerror = (e) => {
+      reject(new Error(`buildEdges worker failed: ${e.message}`));
+      worker.terminate();
+    };
+    worker.postMessage({ cards, catalog });
   });
 }
 
@@ -95,7 +92,7 @@ export const useGraphStore = create<GraphState>((set) => ({
         (r) => r.ruleVersion === RULE_VERSION && r.sourceSet === expectedSet,
       );
       if (hit) {
-        applyArtifact(hit.artifact, set);
+        await applyArtifact(hit.artifact, set);
         return;
       }
 
@@ -114,7 +111,7 @@ export const useGraphStore = create<GraphState>((set) => ({
         artifact,
       }).catch(() => undefined);
 
-      applyArtifact(artifact, set);
+      await applyArtifact(artifact, set);
     } catch (err) {
       console.error('[graphStore] hydrate failed:', err);
       set({ status: 'error' });
