@@ -51,7 +51,28 @@ export const rule: Rule = {
     // v0.21.0 — Leyline of Hope: replacement-effect lifegain upgrade ("you
     // gain that much life plus N instead"). Functionally a life-change.
     const REPLACEMENT_GAIN = /\byou gain that much life plus\s+\d+\s+instead\b/;
-    const m = t.match(QUANT) ?? t.match(VARIABLE) ?? t.match(PAY) ?? t.match(THAT_MUCH) ?? t.match(FRACTIONAL) ?? t.match(REPLACEMENT_GAIN);
+    // v0.23 — variable PAY ("pay life equal to <X>" alt-cost — Eye of
+    // Duskmantle, Valgavoth Terror Eater, Raubahn, Gwenom, Madame Null,
+    // War Room, Marshland Bloodcaster, Nashi Moon Sage's Scion).
+    const PAY_VARIABLE = /\bpay life equal to /;
+    // v0.23 — causative "have <subject> lose/gain N life" (Blood Seeker,
+    // Gempalm Polluter, Ob Nixilis the Fallen — "have target player lose 1
+    // life"). Mirrors the causative arm in effect.draws_or_discards. Required
+    // `life` terminator prevents FP on "have X lose N cards" style frames.
+    const CAUSATIVE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them)\s+(?:gains?|loses?)\s+(?:[\d,]+|x)\s+life\b/;
+    // Variable causative — "have target player lose life equal to <X>"
+    // (Gempalm Polluter).
+    const CAUSATIVE_VARIABLE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them)\s+(?:gains?|loses?) life equal to /;
+    const m =
+      t.match(QUANT) ??
+      t.match(VARIABLE) ??
+      t.match(PAY) ??
+      t.match(PAY_VARIABLE) ??
+      t.match(THAT_MUCH) ??
+      t.match(FRACTIONAL) ??
+      t.match(REPLACEMENT_GAIN) ??
+      t.match(CAUSATIVE) ??
+      t.match(CAUSATIVE_VARIABLE);
     return m ? { evidence: m[0] } : false;
   },
 };

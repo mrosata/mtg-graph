@@ -54,6 +54,16 @@ export const rule: Rule = {
         return { evidence: itDies[0] };
       }
     }
+    // v0.23 — RAW "is put into <X> graveyard from the battlefield" templating
+    // (Colfenor's Urn). Per CR 700.4, this phrasing is semantically equivalent
+    // to "dies" — both refer to a creature going from battlefield to
+    // graveyard. The leaves_battlefield rule already handles the broader LtB
+    // axis; this arm makes creature_dies fire on cards that use the rules-
+    // speak frame so the dies-payoff graph edge forms.
+    const putGraveyard = t.match(
+      /\bwhen(?:ever)?\s+(?:a |an |another |this |one or more )?(?:[\w\- ]{0,30}?\s+)?creatures?(?:\s+[\w'+\/\-]+){0,10}\s+(?:is|are) put into (?:a|your|an opponent's|its owner's|that player's) graveyard from the battlefield\b/,
+    );
+    if (putGraveyard) return { evidence: putGraveyard[0] };
     return false;
   },
 };

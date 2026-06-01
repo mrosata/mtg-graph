@@ -29,8 +29,12 @@ export const rule: Rule = {
     // qualifier group — handles Lilah Undefeated Slickshot's "a multicolored
     // instant or sorcery spell" (adj + or-pair). The existing single
     // qualifier slot couldn't span an adjective AND a two-token "or" pair.
+    // v0.23 — both qualifier slots admit an "or"-pair so the multi-type
+    // alternation can sit in either position (Lilah: "a multicolored instant
+    // or sorcery spell"; Archmage of Echoes: "a faerie or wizard permanent
+    // spell"). Either slot may also be a bare adjective.
     const m = t.match(
-      /whenever (?:you cast|an opponent casts|a player casts) (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+ )?(?:[\w-]+(?: or [\w-]+)? )?spell\b/,
+      /whenever (?:you cast|an opponent casts|a player casts) (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b/,
     );
     return m ? { evidence: m[0] } : false;
   },

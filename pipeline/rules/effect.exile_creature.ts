@@ -31,11 +31,14 @@ const PATTERN_DIES_EXILE =
 // Requires `target creature` (+ optional modifiers) to appear, then within ~200 chars
 // `exile it` follows. The `[^.]{0,200}` window prevents crossing very long unrelated text.
 // We also require the exile isn't "from your graveyard/hand/library" (zone qualifier).
+// v0.23 — admit `that creature` and `them` in addition to `it`, mirroring the
+// pronoun group already used by PATTERN_DIES_EXILE (Turncoat Kunoichi:
+// "choose target creature an opponent controls. exile that creature until …").
 const PATTERN_ANAPHORIC =
-  /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\.[^.]{0,200}\bexile it(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
+  /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\.[^.]{0,200}\bexile (?:it|that creature|them)(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
 // Also handle single-sentence anaphoric: "whenever target creature attacks, exile it"
 const PATTERN_ANAPHORIC_SAME_SENTENCE =
-  /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\bexile it(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
+  /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\bexile (?:it|that creature|them)(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
 
 // v0.21.0 — Anaphoric "you may exile it" with combat-verb antecedent on a
 // "creature you control" subject. The antecedent isn't an explicit "target

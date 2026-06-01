@@ -33,6 +33,9 @@ describe('effect.deals_damage', () => {
     ['this room deals damage equal to the number of cards in your hand to target creature an opponent controls'],
     ['this creature deals x damage to each creature and planeswalker'],
     ['this creature deals damage equal to its power to any other target'],
+    // v0.23 — subjunctive "may have <SELF> deal N damage" (Requiem Monolith,
+    // Kederekt Parasite).
+    ["that creature's controller may have this artifact deal 1 damage to it."],
   ])('matches "this <type>" self-references: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

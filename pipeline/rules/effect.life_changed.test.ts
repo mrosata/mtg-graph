@@ -66,6 +66,13 @@ describe('effect.life_changed', () => {
     // replacement; semantically still life_changed.
     ['if you would gain life, you gain that much life plus 1 instead'],
     ['you gain that much life plus 2 instead'],
+    // v0.23 — variable "pay life equal to X" (Eye of Duskmantle, War Room).
+    ['you pay life equal to its mana value rather than paying its mana cost.'],
+    ['{t}, pay life equal to the number of cards in your hand: draw a card.'],
+    // v0.23 — causative "have <X> lose N life" (Blood Seeker shape).
+    ['whenever another creature enters under an opponent\'s control, you may have that player lose 1 life.'],
+    // Causative variable "have <X> lose life equal to" (Gempalm Polluter).
+    ['when you cycle this card, you may have target player lose life equal to the number of zombies on the battlefield.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

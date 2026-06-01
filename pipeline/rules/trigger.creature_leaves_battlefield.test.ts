@@ -31,6 +31,10 @@ describe('trigger.creature_leaves_battlefield', () => {
     // creatures you control leave the battlefield without dying" register.
     ['whenever one or more other creatures you control leave the battlefield without dying, draw a card'],
     ['whenever two or more creatures leave the battlefield this turn'],
+    // v0.23 — Colfenor's Urn: RAW "is put into your graveyard from the
+    // battlefield" templating. Possessive graveyard qualifier (was previously
+    // limited to "a graveyard").
+    ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],
   ])('text-matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

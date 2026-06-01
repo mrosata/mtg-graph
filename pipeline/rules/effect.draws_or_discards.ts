@@ -33,7 +33,7 @@ export const rule: Rule = {
     // the clause boundary and the regex falls off.
     // v0.21.0 — Miasma Demon: "any number of cards" added to count slot.
     const m = t.match(
-      /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player)\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|any number of cards|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
+      /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player|each of (?:\w+(?:'s)?\s+){1,3}(?:opponents?|controllers?|players?))\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|any number of cards|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
     );
     if (m) return { evidence: m[0] };
     // v0.15 — causative "have <opponent> draw/discard" frame (Alania,

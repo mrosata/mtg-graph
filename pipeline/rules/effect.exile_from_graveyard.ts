@@ -59,6 +59,13 @@ const IN_GRAVEYARD = /exile (?:up to [\w-]+ |any number of )?target [^.]{0,60}? 
 // Renew-style cost suppression (those use a colon/em-dash terminator).
 const OWN_NUMBER_QUANTIFIED = /\bexile (?:\d+|two|three|four|five|six|seven|eight|nine|ten) cards? from your graveyard(?!\s*[:—])/;
 
+// v0.23 — anaphoric "exile that card / that creature / those cards" from
+// your graveyard (Containment Construct, Currency Converter — "you may exile
+// that card from your graveyard"). The colon/em-dash exclusion preserves
+// Renew-style cost suppression. Bare `it`/`them` excluded to avoid FP on
+// flicker tails; `that card` requires an explicit antecedent in a prior clause.
+const OWN_ANAPHORIC = /\bexile (?:that card|that creature|those cards) from your graveyard(?!s*\s*[:—])/;
+
 export const rule: Rule = {
   id: 'effect.exile_from_graveyard',
   axis: 'effect',
@@ -69,7 +76,8 @@ export const rule: Rule = {
       t.match(OWN_QUANTIFIED) ??
       t.match(MASS_WIPE) ??
       t.match(IN_GRAVEYARD) ??
-      t.match(OWN_NUMBER_QUANTIFIED);
+      t.match(OWN_NUMBER_QUANTIFIED) ??
+      t.match(OWN_ANAPHORIC);
     return m ? { evidence: m[0] } : false;
   },
 };

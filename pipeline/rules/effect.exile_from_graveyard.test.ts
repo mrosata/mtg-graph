@@ -41,6 +41,9 @@ describe('effect.exile_from_graveyard', () => {
     // exile __self__ from graveyard); here the controller's whole graveyard
     // pays a constant N-card price.
     ['as an additional cost to cast this spell, exile six cards from your graveyard. flying at the beginning of each opponent\'s upkeep, manifest dread.'],
+    // v0.23 — Containment Construct: anaphoric "exile that card from your
+    // graveyard" after a "whenever you discard a card" antecedent.
+    ['whenever you discard a card, you may exile that card from your graveyard. if you do, you may play that card this turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

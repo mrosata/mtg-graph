@@ -57,6 +57,12 @@ const PATTERNS = [
   // ability ("...deals damage to that creature, __self__ deals that much
   // damage to each opponent"). Imodane the Pyrohammer is the canonical case.
   new RegExp(`\\b${SUBJ} deals that (?:much|many) (?:combat )?damage\\b`),
+  // v0.23 — subjunctive "may have <SUBJ> deal N damage" (Requiem Monolith:
+  // "may have this artifact deal 1 damage to it"; Kederekt Parasite has the
+  // same frame). Verb is `deal` without the -s — same axis as the active
+  // form. The MULT slot also admits multi-deal trickery if it surfaces later.
+  new RegExp(`\\bmay have ${SUBJ} deal ${MULT}\\d+ (?:combat )?damage\\b`),
+  new RegExp(`\\bmay have ${SUBJ} deal ${MULT}x (?:combat )?damage\\b`),
 ];
 
 // v0.20.0 — G26: mask the damage-replacement frame "would deal damage ...

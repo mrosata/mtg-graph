@@ -28,7 +28,11 @@ export const tagDef: TagDef = {
 //   - the next / the next player's   (delayed-trigger frames on spells)
 // v0.14.9 — added "your next" (Harried Dronesmith: "sacrifice it at the
 // beginning of your next end step" — common token-creator delayed sacrifice).
-const PATTERN = /\bat the beginning of (?:your(?: next)?|each(?: player's| opponent's)?|the next(?: player's)?) end step\b/;
+// v0.23 — bare "the end step" admitted alongside "the next end step" /
+// "the next player's end step". 10 Standard cards use the lazy templating
+// "at the beginning of the end step" (no qualifier) — Ball Lightning,
+// Chandra Flameshaper, Electroduplicate, Colfenor's Urn, etc.
+const PATTERN = /\bat the beginning of (?:your(?: next)?|each(?: player's| opponent's)?|the(?: next(?: player's)?)?) end step\b/;
 
 export const rule: Rule = {
   id: 'trigger.beginning_of_end_step',

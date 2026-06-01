@@ -38,6 +38,11 @@ describe('trigger.creature_dies', () => {
     ['target creature gets +3/+0 until end of turn. when it dies this turn, manifest dread.'],
     ['target creature gets +2/+2 until end of turn. when it dies this turn, draw a card.'],
     ['target creature gets +1/+0. when that creature dies this turn, create a 2/2 zombie.'],
+    // v0.23 — Colfenor's Urn: RAW "is put into your graveyard from the
+    // battlefield" templating. Per CR 700.4, semantically a dies trigger.
+    ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],
+    // Variant — RAW with "an opponent's graveyard" qualifier.
+    ["whenever a creature is put into an opponent's graveyard from the battlefield, draw a card."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

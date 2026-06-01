@@ -27,6 +27,11 @@ describe('trigger.spell_cast', () => {
     ['prowess whenever you cast a multicolored instant or sorcery spell from your hand, exile that spell instead of putting it into your graveyard as it resolves'],
     ['whenever you cast a multicolored instant or sorcery spell, draw a card'],
     ['whenever you cast a multicolored noncreature spell, copy it'],
+    // v0.23 — Archmage of Echoes: tribe-or-tribe + permanent + spell. Both
+    // qualifier slots admit "or"-pairs so the multi-tribe + type qualifier
+    // fits ("a faerie or wizard permanent spell").
+    ['whenever you cast a faerie or wizard permanent spell, copy it.'],
+    ['whenever you cast a dragon permanent spell, draw a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

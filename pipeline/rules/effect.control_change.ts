@@ -21,11 +21,21 @@ const EXCHANGE = /\bexchange control of\b/;
 // Coerced to Kill (Aura), and Equipment analogs.
 const AURA_CONTROL = /\byou control (?:enchanted|attached|equipped) (?:creature|permanent|artifact|planeswalker|land)\b/;
 
+// v0.23 — donation suppressor. "Target opponent gains control of <X>" / "an
+// opponent gains control of <X>" is a *gift*, not a steal — the tagDef
+// reserves this tag for "Gains control of an opponent's permanent". Scrub
+// these spans before matching so Humble Defector / Harmless Offering /
+// Wishclaw Talisman / Stiltzkin / Iroh stop FP'ing. Coveted Falcon / Zidane
+// each have a legitimate steal clause earlier in the text; that clause survives
+// the scrub and still matches GAIN_CONTROL.
+const DONATION_SCRUB = /\b(?:target opponent|an opponent|each opponent|that opponent|they|that player) gains? control of [^.]+\.?/g;
+
 export const rule: Rule = {
   id: 'effect.control_change',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(GAIN_CONTROL) ?? t.match(EXCHANGE) ?? t.match(AURA_CONTROL);
+    const scrubbed = t.replace(DONATION_SCRUB, '');
+    const m = scrubbed.match(GAIN_CONTROL) ?? scrubbed.match(EXCHANGE) ?? scrubbed.match(AURA_CONTROL);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['gain', 'control', 'exchange'], proximity: ['creature', 'permanent', 'target'], window: 8 },

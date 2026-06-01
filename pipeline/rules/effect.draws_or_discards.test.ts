@@ -56,6 +56,8 @@ describe('effect.draws_or_discards', () => {
     ['reveal the top card of your library. put it into your hand.'],
     // v0.20 — third-party draw without leadin punctuation (Mind Spiral).
     ['target player draws three cards'],
+    // Bounty Board — possessive-plural subject "each of its controller's opponents".
+    ["whenever a creature with a bounty counter on it dies, each of its controller's opponents draws a card and gains 2 life."],
     // v0.20 — "its controller draws a card" (Season of the Burrow).
     ['its controller draws a card'],
     // v0.20 — alt-cost discard (The Infamous Cruelclaw).

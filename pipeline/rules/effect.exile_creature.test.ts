@@ -33,6 +33,9 @@ describe('effect.exile_creature', () => {
     ['choose a target creature. if it has flying, exile it.'],
     // Attacking creature conditional exile
     ['whenever target creature attacks, exile it'],
+    // v0.23 — Turncoat Kunoichi: anaphoric "exile that creature" referring to
+    // a prior "target creature" antecedent.
+    ['when this creature enters, choose target creature an opponent controls. exile that creature until this creature leaves the battlefield.'],
     // v0.14.9 — Regression (Illicit Masquerade): "dies, exile it" trigger-
     // effect frame. The creature has just died; the trigger exiles it from
     // the graveyard, permanently removing it from the game. Functionally a

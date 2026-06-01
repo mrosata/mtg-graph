@@ -27,7 +27,11 @@ export const tagDef: TagDef = {
 // v0.19 — `leaves?` allows the plural-verb form ("creatures ... leave the
 // battlefield") for plural-subject triggers (Dour Port-Mage: "whenever one or
 // more other creatures you control leave the battlefield without dying").
-const LTB_VERB = '(?:leaves? the battlefield|(?:is|are) put into a graveyard from the battlefield|(?:is|are) exiled from the battlefield|(?:is|are) put into exile)';
+// v0.23 — broaden the graveyard-zone slot to admit possessive variants
+// ("your graveyard", "an opponent's graveyard", "its owner's graveyard").
+// Colfenor's Urn: "whenever a creature with toughness 4 or greater is put
+// into your graveyard from the battlefield".
+const LTB_VERB = "(?:leaves? the battlefield|(?:is|are) put into (?:a|your|an opponent's|its owner's|that player's) graveyard from the battlefield|(?:is|are) exiled from the battlefield|(?:is|are) put into exile)";
 
 // Non-SELF: "whenever/when [a/an/another] creature [adjectives ...] leaves the battlefield".
 // v0.14.9 — added "one or more" determiner and plural-noun support

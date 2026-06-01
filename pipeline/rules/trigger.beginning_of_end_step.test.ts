@@ -23,6 +23,10 @@ describe('trigger.beginning_of_end_step', () => {
     // trigger frame. Combat-trigger spells / Thopter creators commonly use
     // "Sacrifice it at the beginning of your next end step" idiom.
     ['sacrifice it at the beginning of your next end step'],
+    // v0.23 — Colfenor's Urn + 9 others: lazy "the end step" templating
+    // (no qualifier). Semantically equivalent to "your end step" on the
+    // controller's turn; many older delayed-trigger cards use this form.
+    ['at the beginning of the end step, if three or more cards have been exiled with this artifact, sacrifice it.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

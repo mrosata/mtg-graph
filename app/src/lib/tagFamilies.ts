@@ -234,6 +234,29 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   // OTJ Spree / Outlaw mechanics.
   'effect.has_spree': 'set-mechanics',
   'condition.cares_outlaws': 'set-mechanics',
+  // Khans-era ability words.
+  'condition.converge': 'set-mechanics',
+  // Strixhaven / DSK ability words.
+  'condition.repartee': 'set-mechanics',
+  // FIN / EOE ability words and mechanics.
+  'condition.opus': 'set-mechanics',
+  'condition.infusion': 'set-mechanics',
+  'condition.void': 'set-mechanics',
+  'effect.has_exhaust': 'set-mechanics',
+  'effect.has_sneak': 'set-mechanics',
+  'effect.has_renew': 'set-mechanics',
+  'effect.has_job_select': 'set-mechanics',
+  // DSK Endure keyword action.
+  'effect.endure': 'set-mechanics',
+  // Energy counter mechanic.
+  'effect.produces_energy': 'set-mechanics',
+  'condition.cares_energy': 'set-mechanics',
+  // Theros devotion (parametric parent).
+  'condition.devotion': 'set-mechanics',
+  // Warp-cares payoff axis.
+  'condition.cares_warped': 'set-mechanics',
+  // Legendary-matters payoff.
+  'condition.cares_legendary': 'tribes',
 
   // keywords
   'condition.cares_deathtouch': 'keywords',

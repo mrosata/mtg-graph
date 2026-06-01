@@ -24,6 +24,9 @@ describe('condition.cast_from_graveyard', () => {
     [['Jump-start']],
     [['Unearth']],
     [['Flashback', 'Madness']],
+    // v0.23 — Mayhem added (Marvel's Spider-Man set).
+    [['Mayhem']],
+    [['Mayhem', 'Menace']],
   ])('matches: %j', (kw) => {
     expect(rule.matchCard!(mk(kw), '')).toBeTruthy();
   });

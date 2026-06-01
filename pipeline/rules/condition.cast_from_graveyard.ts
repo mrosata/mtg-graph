@@ -24,14 +24,18 @@ const CAST_FROM_GRAVEYARD_KEYWORDS = new Set([
   'Escape',
   'Jump-start',
   'Unearth',
+  // v0.23 — Mayhem (Marvel's Spider-Man): alt-cost cast from graveyard
+  // gated on having discarded the card this turn. Same archetype as
+  // Flashback / Jump-start — the graveyard is the casting zone.
+  'Mayhem',
 ]);
 
 export const tagDef: TagDef = {
   tagId: 'condition.cast_from_graveyard',
   axis: 'condition',
   label: 'Castable from graveyard',
-  description: 'Has a keyword (Harmonize, Flashback, Disturb, Embalm, Eternalize, Encore, Escape, Jump-start, Unearth) that lets the card be cast or activated from its owner\'s graveyard.',
-  pairsWith: ['effect.mill'],
+  description: 'Has a keyword (Harmonize, Flashback, Disturb, Embalm, Eternalize, Encore, Escape, Jump-start, Unearth, Mayhem) that lets the card be cast or activated from its owner\'s graveyard.',
+  pairsWith: ['effect.mill', 'trigger.card_drawn_discarded'],
 };
 
 export const rule: Rule = {

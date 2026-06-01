@@ -26,6 +26,11 @@ describe('effect.destroy_creature', () => {
     // v0.20.0 — "target creature ... . destroy it" sentence-bounded
     // antecedent shape.
     ['target creature gets -2/-2 until end of turn. destroy it.'],
+    // v0.23 — Cryoshatter: interleaved tap/damage trigger before destroy.
+    ['enchanted creature gets -5/-0. when enchanted creature becomes tapped or is dealt damage, destroy it.'],
+    // v0.23 — bare numeric determiner (Curtains' Call, Hex).
+    ['destroy two target creatures.'],
+    ['destroy three target creatures.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
