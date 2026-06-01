@@ -30,6 +30,9 @@ const PATTERNS = [
   // join. The boundary tightens this so two unrelated halves on the same
   // card can't accidentally merge.
   new RegExp(`\\byou\\s+gain\\s+${AMOUNT}\\s+life\\.\\s+${SUBJECT}\\s+loses?\\s+${AMOUNT}\\s+life\\b`),
+  // Forward split-sentence drain: "Each opponent loses N life. You gain life equal to..."
+  // Exsanguinate, Crackling Doom (subset), various X-drain spells.
+  new RegExp(`\\b${SUBJECT}\\s+loses?\\s+${AMOUNT}\\s+life\\.\\s+you\\s+gain\\s+(?:${AMOUNT}\\s+life|life\\s+equal\\s+to\\s+(?:the\\s+life\\s+lost|that\\s+much))\\b`),
 ];
 
 export const rule: Rule = {

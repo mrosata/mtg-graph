@@ -28,6 +28,11 @@ export const rule: Rule = {
       // "look at top two, put one into your hand and the other into your graveyard"
       // (Faerie Snoop).
       `|\\bthe other into (?:your|their|its owner's) graveyard\\b` +
+      // v0.27.x — reveal-and-cheat residue mill (Genesis Wave): the cards
+      // revealed but not put onto the battlefield go to graveyard. Parallel
+      // to the "the rest into ... graveyard" arm, but with a more explicit
+      // residue clause naming the reveal-and-skip excess.
+      `|\\bcards? revealed this way that weren't put onto the battlefield into (?:your|their|each opponent's|target player's|an opponent's) graveyard\\b` +
       // v0.14.1 — variable-N mill via "equal to". The Ancient One: "target
       // player mills cards equal to its mana value".
       `|\\bmills? cards? equal to\\b` +

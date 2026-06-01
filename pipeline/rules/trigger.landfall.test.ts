@@ -12,6 +12,14 @@ describe('trigger.landfall', () => {
     ['landfall — whenever a land you control enters, you gain 1 life'],
     // "When another land you control enters" — sibling shape.
     ['when another land you control enters, draw a card'],
+    // v0.27.x — typed-land ETB. Gate Colossus / Gateway Sneak: "whenever a
+    // Gate you control enters". Gate is a LAND subtype, so the trigger is
+    // landfall-axis even though the noun isn't the literal word "land".
+    ["whenever a gate you control enters, this creature can't be blocked this turn."],
+    ['whenever a gate you control enters, you may put this card from your graveyard on top of your library.'],
+    ['whenever a cave you control enters, draw a card'],
+    ['whenever a desert you control enters, scry 1'],
+    ['whenever a plains you control enters, gain 1 life'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

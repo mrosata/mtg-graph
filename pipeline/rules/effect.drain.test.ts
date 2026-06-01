@@ -14,6 +14,9 @@ describe('effect.drain', () => {
     ['each opponent loses that many life and you gain that much life'],
     // Reversed order — "you gain N life. Each opponent loses N life."
     ['you gain 3 life. each opponent loses 3 life'],
+    // Forward split-sentence drain: "Each opponent loses N life. You gain life equal to..."
+    // Exsanguinate, various X-drain spells.
+    ['each opponent loses x life. you gain life equal to the life lost this way.'],
     // Inside conditional / triggered ability.
     ['when this creature enters, target opponent loses 3 life and you gain 3 life'],
     ['{t}, sacrifice another creature: each opponent loses 1 life and you gain 1 life'],

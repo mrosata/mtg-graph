@@ -42,6 +42,12 @@ const SEARCH_PUT =
 const LOOK_PUT =
   /\blook at the top (?:\w+ )?cards? of your library\b[\s\S]{0,300}\bput (?:(?:it|them|that card|those cards)|(?:a |an |one |any number of )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|card)s?\s+(?:with [^.]{0,60}?)?from among them) onto the battlefield\b/;
 
+// v0.27.x — "Reveal the top X cards of your library ... put a <type> card
+// from among them onto the battlefield" (Genesis Wave). Parallel to LOOK_PUT
+// but anchored on "reveal the top ... cards" instead of "look at the top".
+const REVEAL_PUT =
+  /\breveal the top (?:\w+ )?cards? of your library\b[\s\S]{0,300}\bput (?:any number of |a |an |one )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:with [^.]{0,60}?)?from among them onto the battlefield\b/;
+
 // Pattern C: exiled cards → battlefield. Anchors on the
 // "exiled cards"/"cards exiled"/"exiled creature card" reference.
 const EXILED_PUT =
@@ -57,7 +63,7 @@ const EXILED_PUT =
 const HAND_PUT =
   /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
 
-const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, EXILED_PUT, HAND_PUT];
+const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, EXILED_PUT, HAND_PUT];
 
 // Post-match filter: any of these substrings inside the matched span
 // indicate this is effect.cloak territory (face-down creation), not

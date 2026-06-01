@@ -14,6 +14,13 @@ describe('effect.exile_artifact', () => {
     // Vehicle, or nonbasic land" should fire exile_artifact.
     ['exile target creature, vehicle, or nonbasic land'],
     ['exile target vehicle'],
+    // Artifact subtypes are always artifacts (CR 301.5b). Equipment/Food/
+    // Treasure/Clue/Map/Powerstone are all unambiguously artifact subtypes.
+    // Fiery Annihilation: "Exile up to one target Equipment attached to that creature."
+    ['exile up to one target equipment attached to that creature'],
+    ['exile target treasure'],
+    ['exile target food you control'],
+    ['exile target clue'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

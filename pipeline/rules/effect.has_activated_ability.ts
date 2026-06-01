@@ -71,16 +71,38 @@ const BATTLEFIELD_ACTIVATED_KEYWORDS = new Set(['Equip', 'Crew']);
 // the first prose-cost activation that follows. The PROSE pattern anchors
 // on a sentence-like boundary which a collapsed keyword line doesn't
 // provide. Pre-stripping the keyword block restores the `^` anchor.
+//
+// v0.27.x (Goblin Smuggler) — gate the optional `{cost}` suffix to
+// cost-bearing keywords only. Bare evergreens (Haste, Flying, Reach, etc.)
+// never take a cost; if we allow `(?:\s*\{[^}]+\})?` for them, the stripper
+// will happily eat the FIRST symbol of the activated ability that follows
+// (e.g. for "Haste\n{T}: ..." the stripper consumed `Haste {T}`, leaving
+// `: another...` — no anchor for SYMBOL_ACTIVATED_PATTERN). Cost-bearing
+// keywords (Equip, Ward, Cycling, ...) really do carry a `{cost}` suffix.
+const COST_BEARING_KEYWORDS = new Set([
+  'equip', 'ward', 'cycling', 'kicker', 'crew', 'reconfigure', 'channel',
+  'flashback', 'unearth', 'embalm', 'eternalize', 'transmute', 'suspend',
+  'aftermath', 'prowl', 'overload', 'retrace', 'spectacle', 'disturb',
+  'encore', 'escape', 'jump-start', 'madness', 'morph', 'ninjutsu',
+  'recover', 'replicate', 'scavenge', 'transfigure', 'transmogrify',
+  'disguise', 'plot', 'craft', 'prototype', 'impending', 'offspring',
+  'mobilize', 'harmonize',
+]);
+
 function stripLeadingKeywords(text: string, keywords: string[]): string {
   if (keywords.length === 0) return text;
-  const escaped = keywords
-    .map((k) => k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .join('|');
-  // Each keyword token may carry an optional `{mana-cost}` suffix
-  // (Ward {1}, Equip {2}) and an optional trailing comma before the next
-  // keyword. The block ends at the first non-keyword token.
+  // Build a single alternation where each branch is `<kw>(?:\s*\{...\})?`
+  // for cost-bearing keywords and `<kw>` (no cost suffix) for bare ones.
+  const branches = keywords.map((k) => {
+    const lower = k.toLowerCase();
+    const escaped = lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return COST_BEARING_KEYWORDS.has(lower)
+      ? `${escaped}(?:\\s*\\{[^}]+\\})?`
+      : escaped;
+  });
+  const alternation = branches.join('|');
   const leading = new RegExp(
-    `^(?:(?:${escaped})(?:\\s*\\{[^}]+\\})?(?:\\s*,\\s*)?\\s*)+`,
+    `^(?:(?:${alternation})(?:\\s*,\\s*)?\\s*)+`,
     'i',
   );
   return text.replace(leading, '');

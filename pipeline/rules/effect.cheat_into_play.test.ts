@@ -22,6 +22,9 @@ describe('effect.cheat_into_play', () => {
     ['whenever this creature attacks, you may put a creature card with mana value x or less from your hand onto the battlefield tapped and attacking, where x is the number of attacking creatures you control.'],
     // Aang, at the Crossroads — Pattern B (look at top + put onto battlefield).
     ['when aang enters, look at the top five cards of your library. you may put a creature card with mana value 4 or less from among them onto the battlefield. put the rest on the bottom of your library in a random order.'],
+    // Genesis Wave — "Reveal the top X cards..." is parallel to "Look at top".
+    // The reveal-put arm anchors on the same "from among them onto the battlefield" templating.
+    ['reveal the top x cards of your library. you may put any number of permanent cards with mana value x or less from among them onto the battlefield. then put all cards revealed this way that weren\'t put onto the battlefield into your graveyard.'],
     // FIX 10 (BR-5) — Wickerfolk Thresher: singular "look at the top card of
     // your library. ... if it's a land card, you may put it onto the
     // battlefield." The previous LOOK_PUT required a word-quantifier before

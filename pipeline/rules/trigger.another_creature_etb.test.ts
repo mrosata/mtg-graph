@@ -85,6 +85,14 @@ describe('trigger.another_creature_etb', () => {
     // bridge an unrelated clause with a stray "enters" later in the text.
     // Hypothetical but plausible attack/etb crosstalk.
     ['whenever another creature attacks, the next creature that enters does so tapped'],
+    // v0.27.x — Gateway Sneak / Gate Colossus: "Gate" is a LAND subtype, not
+    // a creature type. The tribal arm must exclude land subtypes so these
+    // landfall-shaped triggers don't poach the creature-ETB axis. Landfall
+    // / typed-land ETB is covered by trigger.landfall instead.
+    ["whenever a gate you control enters, this creature can't be blocked this turn."],
+    ['whenever a gate you control enters, you may put this card from your graveyard on top of your library.'],
+    ['whenever a cave you control enters, scry 1'],
+    ['whenever a desert you control enters, draw a card'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

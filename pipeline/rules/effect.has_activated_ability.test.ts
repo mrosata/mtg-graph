@@ -164,6 +164,14 @@ describe('effect.has_activated_ability', () => {
     [['Creature'], 'Legendary Creature — Zombie Cat Warrior', ['Surveil', 'Max speed', 'Start your engines!'], 'Start your engines! (If you have no speed, it starts at 1. It increases once on each of your turns when an opponent loses life. Max speed is 4.)\nSacrifice another creature: Surveil 1. Activate only once each turn.\nMax speed — Whenever a nontoken creature you control dies, create a tapped 2/2 black Zombie creature token.'],
     // Multi-keyword leading block (flying + vigilance, then prose cost)
     [['Creature'], 'Creature — Angel', ['Flying', 'Vigilance'], 'Flying, vigilance\nDiscard a card: this creature gains indestructible until end of turn.'],
+    // v0.27.x — Goblin Smuggler: bare-keyword leading ("Haste") followed by
+    // a {T}: symbol-cost activation. The previous stripLeadingKeywords
+    // unconditionally allowed an optional `{...}` cost suffix per keyword,
+    // so it ate Haste plus the immediately-following `{T}` (treating {T} as
+    // Haste's "cost"), leaving `: another target creature ...` with no
+    // mana/tap anchor for SYMBOL_ACTIVATED_PATTERN. Fix gates the cost
+    // suffix to cost-bearing keywords only.
+    [['Creature'], 'Creature — Goblin Rogue', ['Haste'], "Haste\n{T}: Another target creature with power 2 or less can't be blocked this turn."],
   ])('strips leading keyword tokens before prose-cost match: keywords=%s', (types, typeLine, keywords, oracleText) => {
     expect(rule.matchCard!(card({ types: types as string[], typeLine, keywords: keywords as string[], oracleText }))).toBeTruthy();
   });

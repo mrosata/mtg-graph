@@ -47,6 +47,12 @@ describe('effect.mill', () => {
     // then puts the revealed cards into their graveyard. Same axis as
     // "mill N cards" — net effect is graveyard fill.
     ["__self__'s power and toughness are each equal to the number of cards in your opponents' graveyards.\nwhenever you cast a spell, each opponent reveals cards from the top of their library until they reveal a land card, then puts those cards into their graveyard."],
+    // Genesis Wave — reveal-and-cheat residue mill. "Then put all cards
+    // revealed this way that weren't put onto the battlefield into your
+    // graveyard." Parallel to the existing "the rest into your graveyard"
+    // arm but worded as "revealed this way that weren't put onto the
+    // battlefield".
+    ['reveal the top x cards of your library. you may put any number of permanent cards with mana value x or less from among them onto the battlefield. then put all cards revealed this way that weren\'t put onto the battlefield into your graveyard.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

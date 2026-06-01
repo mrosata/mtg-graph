@@ -20,12 +20,17 @@ export const tagDef: TagDef = {
   ],
 };
 
-// Two frames cover modern landfall templating:
+// Three frames cover modern landfall templating:
 //   1. Ability-word: "landfall —" header.
 //   2. Trigger form: "when(ever) a land [adjectives] enters".
+//   3. Typed-land trigger form: "when(ever) a <land subtype> [adjectives]
+//      enters" — Gate Colossus / Gateway Sneak ("a Gate you control
+//      enters"). Land subtypes are still lands, so triggers anchored on
+//      them belong on the landfall axis.
 const PATTERNS = [
   /\blandfall\s*—/,
   /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+lands?(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
+  /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+(?:plains|islands?|swamps?|mountains?|forests?|gates?|caves?|spheres?|deserts?|towns?|locus|locuses|lairs?)(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
 ];
 
 export const rule: Rule = {

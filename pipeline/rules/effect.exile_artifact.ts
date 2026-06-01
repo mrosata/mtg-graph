@@ -22,6 +22,13 @@ const PATTERN_BROAD =
 const PATTERN_VEHICLE =
   /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?vehicles?(?! cards?)\b/;
 
+// v0.27.x — Artifact subtypes (CR 301.5b). Equipment / Food / Treasure /
+// Clue / Map / Powerstone are unambiguously artifacts, so "exile target
+// equipment", "exile target treasure", etc. should fire effect.exile_artifact.
+// Fiery Annihilation: "Exile up to one target Equipment attached to that creature."
+const PATTERN_ARTIFACT_SUBTYPE =
+  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?(?:equipments?|foods?|treasures?|clues?|maps?|powerstones?)(?! cards?)\b/;
+
 // Flicker frame: "exile … Return [it|them|that artifact|target artifact] to the
 // battlefield". This is bounce/blink (covered by `effect.bounce_artifact`), not
 // removal. Suppress the exile-as-removal interpretation when the local tail
@@ -40,7 +47,11 @@ export const rule: Rule = {
   id: 'effect.exile_artifact',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN_OWN) ?? t.match(PATTERN_BROAD) ?? t.match(PATTERN_VEHICLE);
+    const m =
+      t.match(PATTERN_OWN) ??
+      t.match(PATTERN_BROAD) ??
+      t.match(PATTERN_VEHICLE) ??
+      t.match(PATTERN_ARTIFACT_SUBTYPE);
     if (!m || m.index === undefined) return false;
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);
     const flicker = FLICKER_TAIL.exec(tail);

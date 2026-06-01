@@ -44,8 +44,13 @@ export const rule: Rule = {
     // Knightfisher) and an optional disjunctive partner ("Squirrel or Food":
     // Honored Dreyleader). The negative lookahead still gates the head tribe
     // slot so dedicated trigger.another_<type>_etb tags aren't poached.
+    // v0.27.x — exclude land subtypes (Gate, Cave, Desert, basic-land types,
+    // Locus, Lair, Town, Mine, Tower, Power-Plant, Urza) so landfall-shaped
+    // triggers like Gate Colossus / Gateway Sneak ("whenever a gate you
+    // control enters") don't poach the creature-ETB axis. Those are handled
+    // by trigger.landfall instead.
     const tribal = t.match(
-      /whenever (?:a|another|one or more (?:other )?)\s*(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature)\b)[\w\-]+s?(?:,\s+[\w\-]+s?){0,4}(?:,?\s+(?:or|and|and\/or)\s+[\w\-]+s?)?\s+(?:you control\s+)?(?:enters?|enter\b|enters or is turned face up)/,
+      /whenever (?:a|another|one or more (?:other )?)\s*(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature|gate|cave|sphere|plains|island|swamp|mountain|forest|locus|desert|lair|town|mine|tower|power-plant|urza)s?\b)[\w\-]+s?(?:,\s+[\w\-]+s?){0,4}(?:,?\s+(?:or|and|and\/or)\s+[\w\-]+s?)?\s+(?:you control\s+)?(?:enters?|enter\b|enters or is turned face up)/,
     );
     if (tribal) return { evidence: tribal[0] };
     // v0.14.20 — compound subject "this <type> or another <subject>"
