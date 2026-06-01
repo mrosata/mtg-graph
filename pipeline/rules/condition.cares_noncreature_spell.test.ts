@@ -37,6 +37,14 @@ describe('condition.cares_noncreature_spell', () => {
     ['the first instant or sorcery spell you cast each turn costs {3} less to cast.'],
     ["the second noncreature spell you cast each turn doesn't cost {1} more"],
     ['each instant or sorcery spell you cast costs {1} less to cast'],
+    // Harnesser of Storms — disjunctive "noncreature or <tribe>" descriptor
+    // ("whenever you cast a noncreature or Otter spell"). The intercalated
+    // "or Otter" between "noncreature" and "spell" breaks the existing
+    // anchor; the trigger fires on both halves (noncreature-spell AND tribal
+    // creature-spell), but the noncreature-spell axis should at least
+    // register from the noncreature half.
+    ['whenever you cast a noncreature or otter spell, you may exile the top card of your library'],
+    ['whenever you cast a noncreature or rat spell, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

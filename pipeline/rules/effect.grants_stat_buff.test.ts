@@ -21,6 +21,17 @@ describe('effect.grants_stat_buff', () => {
     ['dragons you control get +1/+0 until end of turn'],
     ['knights you control get +1/+1 until end of turn'],
     ['merfolk you control get +1/+1'],
+    // Flowerfoot Swordmaster / Mabel, Heir to Cragflame — Mice tribal anthem.
+    // "Mice" is an irregular plural (no -s/-en suffix); the v0.12.9 tribal
+    // pattern only admitted -s/-en plurals plus the literal "merfolk".
+    ['mice you control get +1/+0 until end of turn'],
+    ['other mice you control get +1/+1'],
+    // Other Bloomburrow-era irregular plurals.
+    ['geese you control get +1/+1 until end of turn'],
+    // Might of the Meek — "it" subject as anaphoric reference to a previously-
+    // mentioned target creature. The current PATTERN's subject alternation
+    // excludes pure pronoun subjects.
+    ['target creature gains trample until end of turn. it also gets +1/+0 until end of turn if you control a mouse'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

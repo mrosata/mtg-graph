@@ -56,6 +56,12 @@ describe('effect.ramp_nonland', () => {
     [['Sorcery'], 'put up to two land cards from your hand onto the battlefield tapped.'],
     [['Sorcery'], 'put up to three land cards from your graveyard onto the battlefield tapped.'],
     [['Sorcery'], 'put up to five land cards from your hand or graveyard onto the battlefield tapped.'],
+    // Clifftop Lookout — reveal-until-land then put into play. Functionally
+    // identical to Cultivate (non-land card surfaces a land into play) but
+    // without the "search your library" anchor.
+    [['Creature'], 'when this creature enters, reveal cards from the top of your library until you reveal a land card. put that card onto the battlefield tapped and the rest on the bottom of your library in a random order.'],
+    // Variant: "until you reveal a basic land card" (more restrictive printing).
+    [['Sorcery'], 'reveal cards from the top of your library until you reveal a basic land card. put it onto the battlefield tapped.'],
   ])('matches non-land cards that tutor a basic land into play: %j', (types, oracle) => {
     expect(rule.matchCard!(card(types, oracle), oracle)).toBeTruthy();
   });

@@ -17,14 +17,20 @@ export const tagDef: TagDef = {
   pairsWith: [],
 };
 
+// v0.19 — accept single colored mana symbols and hybrid in the cost slot
+// (Eluge, the Shoreless Sea: "costs {U} less"). The original `[\dx]+` slot
+// only admitted numeric/X. Colored cost reduction is a distinct design class
+// (Beseech the Mirror-adjacent designs) and structurally the same as numeric.
+const COST_SLOT = '\\{(?:[\\dx]+|[wubrg]|[wubrg]\\/[wubrg]|[\\dx]\\/[wubrg]|2\\/[wubrg])\\}';
+
 const PATTERNS = [
   // Standard cost line: "cost(s) {N} less to cast/activate".
-  /\bcosts?\s+\{[\dx]+\}\s+less\b/,
+  new RegExp(`\\bcosts?\\s+${COST_SLOT}\\s+less\\b`),
   // "cost(s) up to {N} less" — bounded reducers (Training Grounds template).
-  /\bcosts?\s+up to\s+\{[\dx]+\}\s+less\b/,
+  new RegExp(`\\bcosts?\\s+up to\\s+${COST_SLOT}\\s+less\\b`),
   // v0.14.7 — passive-voice "(this|that) cost is reduced by {N}" template
   // (Fugitive Codebreaker, scaling Disguise/Cloak/keyword reducers).
-  /\b(?:this|that)\s+cost\s+is\s+reduced\s+by\s+\{[\dx]+\}/,
+  new RegExp(`\\b(?:this|that)\\s+cost\\s+is\\s+reduced\\s+by\\s+${COST_SLOT}`),
 ];
 
 export const rule: Rule = {

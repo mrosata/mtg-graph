@@ -92,4 +92,20 @@ describe('trigger.artifact_leaves_battlefield', () => {
     const normalizedText = 'when this equipment is put into a graveyard from the battlefield, you may pay {1}{w}';
     expect(rule.matchCard!(card, normalizedText)).toBeTruthy();
   });
+
+  // Carrot Cake — "when you sacrifice it" is a self-LtB event in active voice.
+  // The active-voice "you sacrifice it/this/__self__" frame must scope via
+  // matchCard to artifact-typed cards so it doesn't leak onto creatures (where
+  // the trigger.permanent_sacrificed aristocrats axis is the correct home).
+  it('matchCard: "when you sacrifice it" on an artifact DOES match (Carrot Cake shape)', () => {
+    const card = makeCard({ types: ['Artifact'], subtypes: ['Food'] });
+    const normalizedText = 'when this artifact enters and when you sacrifice it, create a 1/1 white rabbit creature token and scry 1';
+    expect(rule.matchCard!(card, normalizedText)).toBeTruthy();
+  });
+
+  it('matchCard: "when you sacrifice it" on a non-artifact does NOT match', () => {
+    const card = makeCard({ types: ['Creature'] });
+    const normalizedText = 'when you sacrifice it, draw a card';
+    expect(rule.matchCard!(card, normalizedText)).toBe(false);
+  });
 });

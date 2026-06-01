@@ -40,8 +40,12 @@ export const rule: Rule = {
     // "creature" itself. We exclude the other permanent-type words so we
     // don't poach edges from the dedicated trigger.another_<type>_etb tags.
     // v0.14.6 — accept "a" determiner alongside "another" (Pilfered Proof).
+    // v0.19 — admits an optional pre-tribe adjective ("nontoken Bird":
+    // Knightfisher) and an optional disjunctive partner ("Squirrel or Food":
+    // Honored Dreyleader). The negative lookahead still gates the head tribe
+    // slot so dedicated trigger.another_<type>_etb tags aren't poached.
     const tribal = t.match(
-      /whenever (?:a|another)\s+(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature)\b)[\w\-]+\s+(?:you control\s+)?(?:enters?|enters or is turned face up)/,
+      /whenever (?:a|another)\s+(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature)\b)[\w\-]+(?:\s+(?:or|and)\s+[\w\-]+)?\s+(?:you control\s+)?(?:enters?|enters or is turned face up)/,
     );
     if (tribal) return { evidence: tribal[0] };
     // v0.14.20 — compound subject "this <type> or another <subject>"
@@ -50,8 +54,10 @@ export const rule: Rule = {
     // half. Accepts both generic "creature" and tribal sub-subjects.
     // v0.15 — other-half slot widened from 40 → 80 chars to admit
     // "with <stat-filter>" qualifier tails (Vaultborn Tyrant).
+    // v0.19 — leading subject also admits the bare `__self__` placeholder
+    // (Clement, the Worrywort — legendary-name rewritten subject).
     const compound = t.match(
-      /whenever this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker) or (?:a|another|one or more) [\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
+      /whenever (?:__self__|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)) or (?:a|another|one or more) [\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
     );
     return compound ? { evidence: compound[0] } : false;
   },

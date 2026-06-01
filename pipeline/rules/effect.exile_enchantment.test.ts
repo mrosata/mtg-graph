@@ -9,6 +9,13 @@ describe('effect.exile_enchantment', () => {
     ['exile target permanent'],
     ['exile target nonland permanent'],
     ['exile target noncreature permanent'],
+    // Early Winter — opponent-edict-exile. "Target opponent exiles an
+    // enchantment they control" is the edict frame (controller doesn't pick
+    // the target; opponent chooses one to exile). Same removal class as
+    // direct "exile target enchantment".
+    ['target opponent exiles an enchantment they control'],
+    ['target player exiles an enchantment'],
+    ['target opponent exiles a creature, an artifact, or an enchantment they control'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

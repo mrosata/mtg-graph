@@ -49,6 +49,14 @@ const PATTERN_BROAD =
 const PATTERN_DELAYED_BLINKBACK =
   /\breturn (?:it|them)\s+to (?:your|its owner's|their owners')\s+hands?\s+at the beginning of (?:the next|the next player's|your|each)?\s*end step\b/;
 
+// v0.19 — pronoun-anchored flicker (Gossip's Talent level 3): "whenever a
+// creature ... deals combat damage ..., you may exile it, then return it to
+// the battlefield". The "it" antecedent is the creature in the trigger
+// clause. Gated on "creature" appearing earlier in the same sentence so
+// artifact/enchantment flickers (which have their own axes) don't leak.
+const PATTERN_BLINK_PRONOUN =
+  /\bcreature[^.]{1,160}?\bexile (?:it|them)[,.]\s*(?:then\s+)?return\s+(?:it|them)\s+to the battlefield\b/;
+
 export const rule: Rule = {
   id: 'effect.bounce_creature',
   axis: 'effect',
@@ -57,7 +65,8 @@ export const rule: Rule = {
       t.match(PATTERN_RETURN_OWN) ??
       t.match(PATTERN_BLINK_OWN) ??
       t.match(PATTERN_BROAD) ??
-      t.match(PATTERN_DELAYED_BLINKBACK);
+      t.match(PATTERN_DELAYED_BLINKBACK) ??
+      t.match(PATTERN_BLINK_PRONOUN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['return', 'exile'], proximity: ['creature', 'permanent', 'hand'], window: 12 },

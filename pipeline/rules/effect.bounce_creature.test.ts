@@ -24,6 +24,16 @@ describe('effect.bounce_creature', () => {
     // hand — semantically a bounce (re-triggers ETB on recast).
     ["{1}{g}, {t}, discard a card: return this creature to its owner's hand"],
     ["at the beginning of your end step, return this creature to its owner's hand"],
+    // Gossip's Talent (level 3) — pronoun-anchored flicker via combat-damage
+    // trigger. "You may exile it, then return it to the battlefield" — the
+    // antecedent of "it" is the creature dealing combat damage; structurally
+    // a flicker. Distinct from the existing PATTERN_BLINK_OWN which requires
+    // the literal "creature" noun between "exile" and "return". Gated on a
+    // "creature" antecedent in the same sentence to avoid false positives
+    // on artifact/enchantment flickers.
+    ['whenever a creature you control deals combat damage to a player, you may exile it, then return it to the battlefield under its owner\'s control'],
+    // Variant with period-bridge in the same sentence (after "creature").
+    ['target creature you control: exile it. return it to the battlefield under its owner\'s control at the beginning of the next end step'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -33,6 +43,10 @@ describe('effect.bounce_creature', () => {
     ['return target artifact to its owner\'s hand'],
     ['return target creature card from your graveyard'],
     ['destroy target creature'],
+    // Negative for the v0.19 pronoun arm: without a "creature" antecedent in
+    // the same sentence, "exile it ... return it" should NOT fire (could be
+    // an artifact flicker, which has its own axis).
+    ['target artifact: exile it, then return it to the battlefield under its owner\'s control'],
     // Regression (Neva, Stalked by Nightmares): "creature or enchantment card
     // from your graveyard to your hand" is graveyard recursion, not a bounce.
     ['return target creature or enchantment card from your graveyard to your hand'],

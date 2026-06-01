@@ -15,7 +15,7 @@ export const tagDef: TagDef = {
   ],
 };
 
-const LTB_VERB = '(?:leaves the battlefield|is put into a graveyard from the battlefield)';
+const LTB_VERB = '(?:leaves? the battlefield|(?:is|are) put into a graveyard from the battlefield)';
 
 const PATTERN_TEXT = new RegExp(
   `\\bwhen(?:ever)?\\s+(?:a\\s+|an\\s+|another\\s+|the\\s+|each\\s+|each\\s+other\\s+|an?\\s+aura\\s+)?(?:[\\w\\-]+\\s+){0,3}?(?:enchantment|aura)(?:\\s+[\\w\\-]+){0,4}?\\s+${LTB_VERB}\\b`,

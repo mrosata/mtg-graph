@@ -20,11 +20,21 @@ const PATTERN_OWN =
 const PATTERN_BROAD =
   /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}nonenchantment\s+)(?:(?!\buntil\b)[\w\-]+\s+){0,5}?permanents?(?! cards?)\b/;
 
+// v0.19 — opponent-edict-exile (Early Winter): "target opponent exiles an
+// enchantment they control". The opponent picks which of their enchantments
+// to exile; semantically the same removal class as direct exile (the
+// enchantment leaves the battlefield via exile). Determiner slot admits
+// "a / an / one / two / N" and tolerates a short adjective/noun bridge
+// before "enchantments?" (e.g. modal "creature, an artifact, or an
+// enchantment").
+const PATTERN_EDICT =
+  /\btarget (?:opponent|player) exiles? (?:a |an |one |two |three |\d+ )(?:[\w\-]+[,\s]+){0,6}?enchantments?\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_enchantment',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN_OWN) ?? t.match(PATTERN_BROAD);
+    const m = t.match(PATTERN_OWN) ?? t.match(PATTERN_BROAD) ?? t.match(PATTERN_EDICT);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['exile'], proximity: ['enchantment', 'permanent'], window: 8 },

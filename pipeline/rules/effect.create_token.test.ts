@@ -14,6 +14,13 @@ describe('effect.create_token', () => {
     // Regression: Auspicious Arrival — "target creature gets +2/+2 until end of turn. investigate."
     ['target creature gets +2/+2 until end of turn. investigate.'],
     ['investigate'],
+    // Mabel, Heir to Cragflame — named-token frame "create <Name>, a legendary
+    // colorless Equipment artifact token". The comma between the token name
+    // and its descriptor is the canonical templating for named legendary
+    // tokens (LOTR, Bloomburrow, recent commander legends).
+    ['create cragflame, a legendary colorless equipment artifact token with "equipped creature gets +1/+1 and has vigilance, trample, and haste" and equip {2}'],
+    ['create the ring tempts you, a legendary colorless artifact token'],
+    ['create wedding announcement, a legendary white enchantment token'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

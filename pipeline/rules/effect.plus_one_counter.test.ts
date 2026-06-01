@@ -29,6 +29,12 @@ describe('effect.plus_one_counter', () => {
     // "Return … with X additional +1/+1 counters on it" or "with N additional".
     ['return target artifact or non-aura enchantment card from your graveyard to the battlefield with x additional +1/+1 counters on it'],
     ['return target creature card from your graveyard to the battlefield with two additional +1/+1 counters on it'],
+    // Gev, Scaled Scorch — Hardened Scales-style ETB modifier "with an
+    // additional +1/+1 counter". The "additional" qualifier between the
+    // determiner and "+1/+1" was previously only accepted in the reanimate
+    // (return-with) arm.
+    ['other creatures you control enter with an additional +1/+1 counter on them for each opponent who lost life this turn'],
+    ['this creature enters with an additional +1/+1 counter on it'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -27,8 +27,12 @@ export const tagDef: TagDef = {
 // that don't include this prefix arm).
 const ORD = '(?:your|the)\\s+(?:first|second|third|fourth|fifth|next)\\s+';
 
+// v0.19 — "noncreature or <tribe>" disjunctive descriptor (Harnesser of
+// Storms: "Whenever you cast a noncreature or Otter spell"). The intercalated
+// tribe partner between "noncreature" and "spell" breaks the contiguous
+// anchor; admit a single `or <word>` bridge.
 const PATTERNS = [
-  new RegExp(`\\bwhenever [\\w\\s']+? cast(?:s|ed)?\\s+(?:a|an|one|another|${ORD})\\s*noncreature\\s+spell\\b`),
+  new RegExp(`\\bwhenever [\\w\\s']+? cast(?:s|ed)?\\s+(?:a|an|one|another|${ORD})\\s*noncreature(?:\\s+or\\s+\\w+)?\\s+spell\\b`),
   new RegExp(`\\bwhenever [\\w\\s']+? cast(?:s|ed)?\\s+(?:a|an|one|another|${ORD})\\s*instant\\s+(?:spell\\s+)?or\\s+sorcery\\b`),
   new RegExp(`\\bwhenever [\\w\\s']+? cast(?:s|ed)?\\s+(?:a|an|one|another|${ORD})\\s*sorcery\\s+(?:spell\\s+)?or\\s+instant\\b`),
   // v0.14.1 — instant-only / sorcery-only triggers. Ojer Pakpatiq:

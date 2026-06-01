@@ -11,8 +11,12 @@ export const tagDef: TagDef = {
 };
 
 const PATTERNS = [
-  // "for each card in [a/your/all] graveyard(s)" — graveyard-size scaling
-  /\bfor each (?:[\w\s\-]+? )?cards? in [\w\s]+?graveyards?\b/,
+  // "for each card in [a/your/all] graveyard(s)" — graveyard-size scaling.
+  // v0.19 — optional possessive between "cards?" and "in" (Huskburster
+  // Swarm: "for each creature card you own in exile and in your graveyard").
+  // The Cosmogoyf / Slime Against Humanity-style "you own / you control /
+  // owned by you" qualifier is a common Bloomburrow / OTJ templating.
+  /\bfor each (?:[\w\s\-]+? )?cards? (?:you own |you control |owned by you )?in [\w\s]+?graveyards?\b/,
   // "number of [type] cards in [a/your/all] graveyard(s)"
   /\bnumber of (?:[\w\s\-]+? )?cards? in [\w\s]+?graveyards?\b/,
   // "cards in your graveyard" / "cards in graveyards" / "cards in all graveyards"

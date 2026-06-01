@@ -31,7 +31,7 @@ export const tagDef: TagDef = {
 // "you sacrifice" anchor is precise: it distinguishes the controller's
 // sacrifice (this axis) from "whenever {permanent} is sacrificed" (passive)
 // or "sacrifice X: do Y" (cost).
-const PATTERN = /\b(?:when|whenever) you sacrifice (?:a |an |another )?(?:permanent|creature|artifact|enchantment|land|token|food|treasure|clue|blood|map|powerstone|incubator|role)\b/;
+const PATTERN = /\b(?:when|whenever) you sacrifice (?:a |an |another |one or more |two or more |three or more |\d+ |x )?(?:permanents?|creatures?|artifacts?|enchantments?|lands?|tokens?|foods?|treasures?|clues?|bloods?|maps?|powerstones?|incubators?|roles?)\b/;
 
 export const rule: Rule = {
   id: 'trigger.permanent_sacrificed',

@@ -20,7 +20,12 @@ export const tagDef: TagDef = {
 // never gains the tokens. Mirror of the typed-sacrifice NEGATIVE_EDICT.
 const OPPONENT_CREATES = '(?<!\\b(?:target|each|an?)\\s+opponents?\\s+)';
 const PATTERNS: RegExp[] = [
-  new RegExp(`${OPPONENT_CREATES}creates? (?:a |an |\\d+ )?(?:[a-z0-9\\/+\\- ]+? )?token`),
+  // v0.19 — filler character class now admits `,` so the named-token frame
+  // ("create Cragflame, a legendary colorless Equipment artifact token":
+  // Mabel, Heir to Cragflame) reaches the trailing "token" anchor. The
+  // non-greedy filler still requires "token" to terminate the match, so
+  // unrelated comma-separated clauses won't extend the match arbitrarily.
+  new RegExp(`${OPPONENT_CREATES}creates? (?:a |an |the |\\d+ )?(?:[a-z0-9\\/+\\-, ]+? )?token`),
   /\binvestigates?\b/,
 ];
 

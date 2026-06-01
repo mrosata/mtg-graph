@@ -37,8 +37,12 @@ const PATTERNS = [
   /\bnumber of instant (?:and|or) sorcery cards? in (?:your |an opponent's |all |a )?graveyards?\b/,
   // "two or more instant and/or sorcery cards in your graveyard" (Ghitu Lavarunner)
   /\b(?:\d+ or more )?instant and(?:\/| )?or sorcery cards? in (?:your |an opponent's |all |a )?graveyards?\b/,
-  // Targeted recasting / flashback grant — target instant or sorcery card in/from a graveyard
-  /\btarget instant or sorcery cards?\s+(?:in|from) (?:your |their |an opponent's |any |a |each player's )?graveyards?\b/,
+  // Targeted recasting / flashback grant — target instant or sorcery card in/from a graveyard.
+  // v0.19 — optional "with <qualifier>" slot admits the mana-value gate
+  // (Daring Waverider: "target instant or sorcery card with mana value 4 or
+  // less from your graveyard"). Bridges between the card noun and the
+  // in/from zone anchor.
+  /\btarget instant or sorcery cards?(?:\s+with [^.]+?)?\s+(?:in|from) (?:your |their |an opponent's |any |a |each player's )?graveyards?\b/,
   // "X target instant and/or sorcery cards from your graveyard" (Divergent Equation)
   /\b(?:up to )?(?:\w+ )?target instant and(?:\/| )?or sorcery cards? from (?:your |their |an opponent's |any |a )?graveyards?\b/,
   // "an instant or sorcery card from your graveyard" / "an instant or sorcery card with mana value..."

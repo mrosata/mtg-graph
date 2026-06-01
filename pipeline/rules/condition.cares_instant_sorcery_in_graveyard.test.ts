@@ -20,6 +20,13 @@ describe('condition.cares_instant_sorcery_in_graveyard', () => {
     // Frantic Firebolt / Hearth Elemental — "cards in graveyard that are instant cards, sorcery cards"
     ['x is 2 plus the number of cards in your graveyard that are instant cards, sorcery cards, and/or have an adventure'],
     ['this spell costs {x} less to cast, where x is the number of cards in your graveyard that are instant cards, sorcery cards, and/or have an adventure'],
+    // Daring Waverider — "target instant or sorcery card WITH mana value 4
+    // or less FROM your graveyard". The "with <qualifier>" slot between the
+    // card noun and the "from <zone>" anchor breaks pattern 4 of the original
+    // rule; pattern 6 admits the qualifier but requires "an/any/each", not
+    // "target".
+    ['cast target instant or sorcery card with mana value 4 or less from your graveyard without paying its mana cost'],
+    ['target instant or sorcery card with mana value 3 or less in your graveyard'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

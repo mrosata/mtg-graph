@@ -41,6 +41,12 @@ describe('condition.cares_graveyard', () => {
     ["you may cast a spell from each opponent's graveyard without paying its mana cost"],
     ['you may cast this card from your graveyard'],
     ['cast a creature spell from your graveyard this turn'],
+    // Huskburster Swarm — "for each creature card YOU OWN in <zone> and in
+    // your graveyard". The "you own" possessive between "card" and "in"
+    // broke the contiguous "cards? in <zone>?graveyards?" anchor of
+    // pattern 1.
+    ['this spell costs {1} less to cast for each creature card you own in exile and in your graveyard'],
+    ['for each card you own in your graveyard, this creature gets +1/+0'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

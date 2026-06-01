@@ -24,6 +24,11 @@ describe('effect.cast_for_free', () => {
     // accept "their" + plural "mana costs".
     ['you may cast any number of instant and/or sorcery spells from among the exiled cards without paying their mana costs'],
     ['cast those spells without paying their mana costs'],
+    // Daring Waverider — long determiner chain "target instant or sorcery
+    // card with mana value 4 or less from your graveyard" (14 tokens between
+    // "cast" and "without paying"). Filler ceiling needed to bump from 12 to
+    // ~16 to accept the extended qualifier.
+    ['you may cast target instant or sorcery card with mana value 4 or less from your graveyard without paying its mana cost'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

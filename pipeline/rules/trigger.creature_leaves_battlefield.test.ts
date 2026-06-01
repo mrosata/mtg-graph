@@ -25,6 +25,12 @@ describe('trigger.creature_leaves_battlefield', () => {
     // graveyard-cards are put into exile — the battlefield-side branch.
     ['whenever one or more creatures you control are put into exile, draw a card'],
     ['whenever a creature you control is put into exile'],
+    // Dour Port-Mage — plural subject takes plural verb "leave the battlefield"
+    // (without the singular -s). The flicker-payoff LtB axis must admit both
+    // singular and plural verb forms so cards like "whenever one or more other
+    // creatures you control leave the battlefield without dying" register.
+    ['whenever one or more other creatures you control leave the battlefield without dying, draw a card'],
+    ['whenever two or more creatures leave the battlefield this turn'],
   ])('text-matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

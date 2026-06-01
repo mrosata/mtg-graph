@@ -46,6 +46,14 @@ describe('trigger.another_creature_etb', () => {
     // v0.15 — compound subject with intervening "with <stat-filter>" qualifier
     // (Vaultborn Tyrant). Other-half slot widened from 40 to 80 chars.
     ['whenever this creature or another creature you control with power 4 or greater enters, you gain 3 life and draw a card'],
+    // Clement, the Worrywort — compound leading subject is __self__ (legendary
+    // name rewritten to __self__ during normalization) rather than "this creature".
+    ['whenever __self__ or another creature you control enters, return up to one target creature you control with lesser mana value to its owner\'s hand'],
+    // Honored Dreyleader — tribal arm disjunctive subject "<tribe> or <subtype>".
+    // Both halves trigger an ETB payoff (Squirrel half is tribal-ETB).
+    ['whenever another squirrel or food you control enters, put a +1/+1 counter on this creature'],
+    // Knightfisher — tribal arm with pre-tribe adjective ("nontoken Bird").
+    ['whenever another nontoken bird you control enters, create a 1/1 blue fish creature token'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

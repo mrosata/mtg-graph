@@ -26,6 +26,16 @@ describe('condition.cares_tokens', () => {
     // token-as-resource cost.
     ['sacrifice three artifact tokens with different names: search your library'],
     ['sacrifice two creature tokens: draw a card'],
+    // Druid of the Spade — "as long as you control a token" gating condition.
+    // The token-anthem axis: singular "a/an/N token(s)" determiner, not the
+    // plural-with-noun-before-verb shape pattern 3 admits ("tokens you
+    // control"). "as long as" / "while" framings are common for token
+    // conditional anthems.
+    ['as long as you control a token, this creature gets +2/+0 and has trample'],
+    ['while you control a token, this creature has flying'],
+    // Quantifier variants.
+    ['as long as you control two tokens, draw a card'],
+    ['whenever you control a creature token, gain 1 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

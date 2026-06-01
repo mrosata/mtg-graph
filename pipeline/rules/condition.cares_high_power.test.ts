@@ -11,6 +11,13 @@ describe('condition.cares_high_power', () => {
     ['target creature with the greatest power'],
     // v0.14.1 — "is the greatest power" predicate form (Skullspore Nexus).
     ['this spell costs {x} less to cast, where x is the greatest power among creatures you control'],
+    // Kitsa, Otterball Elite — possessive copula "<name>'s power is N or
+    // greater" (with the noun "power" before the copula and the numeric).
+    // The existing arms required "power N or greater" contiguous (no
+    // intervening copula), or the literal "greatest power" idiom.
+    ["activate only if __self__'s power is 3 or greater"],
+    ['if its power is 4 or greater, draw a card'],
+    ['this ability triggers only if your commander\'s power is 5 or greater'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

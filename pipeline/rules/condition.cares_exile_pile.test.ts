@@ -52,6 +52,14 @@ describe('condition.cares_exile_pile', () => {
     // survives but the slot between card and exiled needs to admit
     // adverbial qualifiers.
     ['choose a card at random exiled with this enchantment and put it onto the battlefield tapped'],
+    // Dragonhawk, Fate's Tempest — "for each of those cards that are still
+    // exiled". Anaphoric back-reference to the impulse-draw pile this card
+    // created; scales damage off the still-in-exile subset of that pile.
+    ['for each of those cards that are still exiled'],
+    ['__self__ deals 2 damage to each opponent for each of those cards that are still exiled'],
+    // Huskburster Swarm — singular "card" in "cards you own in exile" frame.
+    // The original pattern required plural "cards".
+    ['this spell costs {1} less to cast for each creature card you own in exile and in your graveyard'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

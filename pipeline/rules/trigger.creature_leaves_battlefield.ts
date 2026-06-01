@@ -24,7 +24,10 @@ export const tagDef: TagDef = {
 // Justice: "whenever one or more creatures you control ... are put into
 // exile" — the subject context ("creatures you control") confirms the
 // origin is the battlefield, even without explicit "from the battlefield".
-const LTB_VERB = '(?:leaves the battlefield|is put into a graveyard from the battlefield|is exiled from the battlefield|(?:is|are) put into exile)';
+// v0.19 — `leaves?` allows the plural-verb form ("creatures ... leave the
+// battlefield") for plural-subject triggers (Dour Port-Mage: "whenever one or
+// more other creatures you control leave the battlefield without dying").
+const LTB_VERB = '(?:leaves? the battlefield|(?:is|are) put into a graveyard from the battlefield|(?:is|are) exiled from the battlefield|(?:is|are) put into exile)';
 
 // Non-SELF: "whenever/when [a/an/another] creature [adjectives ...] leaves the battlefield".
 // v0.14.9 — added "one or more" determiner and plural-noun support

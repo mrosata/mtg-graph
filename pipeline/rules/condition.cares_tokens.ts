@@ -36,6 +36,13 @@ const PATTERNS = [
   // (Transmutation Font: "sacrifice three artifact tokens with different
   // names"). Up to 2 adjective tokens; still token-as-resource.
   /\bsacrifice (?:a|an|one|two|three|four|five|six|seven|x|\d+)(?:\s+[\w\-]+){0,2}\s+tokens?\b/,
+  // v0.19 — conditional-anthem gating: "as long as / while / whenever you
+  // control a/an/N token(s)" (Druid of the Spade: "As long as you control a
+  // token, this creature gets +2/+0 and has trample"). Distinct from
+  // pattern 3 ("tokens you control") which requires the noun-before-verb
+  // order. Singular-determiner conditional anthems are common for token-
+  // payoff modal designs.
+  /\b(?:as long as|while|whenever) you control (?:a|an|one|two|three|four|five|six|seven|\d+)(?:\s+[\w\-]+){0,2}\s+tokens?\b/,
 ];
 
 export const rule: Rule = {

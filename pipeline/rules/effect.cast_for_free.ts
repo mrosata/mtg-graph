@@ -24,8 +24,14 @@ export const tagDef: TagDef = {
 // determiner alt and `costs?` for the plural noun. Bumped filler ceiling
 // 9 → 12 to span "any number of instant and/or sorcery spells from among
 // the exiled cards" (~12 tokens).
+//
+// v0.19 — filler ceiling bumped 12 → 16 to admit graveyard-source casts with
+// an interposed "with mana value N or less" qualifier (Daring Waverider:
+// "cast target instant or sorcery card with mana value 4 or less from your
+// graveyard without paying its mana cost" — 14 word tokens between "cast"
+// and "without paying").
 const PATTERN =
-  /\bcast (?:[\w\-/']+\s+){1,12}?without paying (?:its|the|that spell's|their) mana costs?\b/;
+  /\bcast (?:[\w\-/']+\s+){1,16}?without paying (?:its|the|that spell's|their) mana costs?\b/;
 
 export const rule: Rule = {
   id: 'effect.cast_for_free',

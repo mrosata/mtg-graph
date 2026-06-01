@@ -23,8 +23,13 @@ export const tagDef: TagDef = {
 };
 
 const PATTERNS = [
-  // (1) "cards you own in exile" / "the cards owned by you in exile"
-  /\bcards (?:you own|owned by you) in exile\b/,
+  // (1) "cards you own in exile" / "the cards owned by you in exile".
+  // v0.19 — singular "card" admitted (Huskburster Swarm: "for each creature
+  // card you own in exile and in your graveyard" — scaling cost reduction
+  // counts each individual card, so singular framing in oracle templating
+  // is increasingly common). Pluralizing the noun keeps the "you own / owned
+  // by you in exile" anchor intact.
+  /\bcards? (?:you own|owned by you) in exile\b/,
   // (2) "cards exiled with __self__" / "cards exiled with this <type>" /
   // "cards exiled with it" (Intrepid Paleontologist, Kylox's Voltstrider,
   // Lazav). Optional "you own" / "owned by you" qualifier between cards and
@@ -56,6 +61,11 @@ const PATTERNS = [
   // v0.14.7 — (9) Duration framing — the exile pile is the persistence
   // anchor for a recasting permission. Outrageous Robbery.
   /\bfor as long as (?:they|it) remains? exiled\b/,
+  // v0.19 — (10) Anaphoric "still exiled" — back-references the exile pile
+  // produced earlier in the same ability. Dragonhawk, Fate's Tempest: "for
+  // each of those cards that are still exiled" scales damage off the still-
+  // in-exile subset of an impulse-draw pile.
+  /\bfor each (?:of those |those )?cards? that (?:are|is) still exiled\b/,
 ];
 
 export const rule: Rule = {

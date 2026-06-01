@@ -21,6 +21,14 @@ describe('effect.cost_reduction', () => {
     // reducer on its own keyword cost rather than on a spell cost.
     ['disguise {5}{r}. this cost is reduced by {1} for each instant and sorcery card in your graveyard.'],
     ['this cost is reduced by {2}'],
+    // Eluge, the Shoreless Sea — colored-mana cost reduction. "Costs {U} less"
+    // is the same cost-reduction class as numeric; the colored variant is
+    // common on colored-mana-cost-reduction designs (Beseech the Mirror-
+    // adjacent printings).
+    ['the first instant or sorcery spell you cast each turn costs {u} less to cast for each land you control with a flood counter on it.'],
+    ['this spell costs {b} less to cast for each creature you control.'],
+    // Hybrid mana reduction (rare but exists).
+    ['this spell costs {w/b} less to cast.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

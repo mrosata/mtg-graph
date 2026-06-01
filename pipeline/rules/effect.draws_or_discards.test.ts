@@ -48,6 +48,12 @@ describe('effect.draws_or_discards', () => {
     // subject is the opponent but the controller is doing the causing.
     ['you may have target opponent draw a card'],
     ['have target player draw a card'],
+    // Darkstar Augur (Dark Confidant frame) — "reveal the top card of your
+    // library and put that card into your hand" is functionally a draw. No
+    // literal `draw` token appears in the oracle text.
+    ['at the beginning of your upkeep, reveal the top card of your library and put that card into your hand. you lose life equal to its mana value.'],
+    // "Reveal the top card ... put it into your hand" variant.
+    ['reveal the top card of your library. put it into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

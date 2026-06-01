@@ -145,12 +145,14 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.clone_in_place': 'tap-untap-steal',
   'effect.copy_permanent_token': 'tap-untap-steal',
   'effect.pacify': 'tap-untap-steal',
+  'effect.stun_counter': 'tap-untap-steal',
   'effect.tap': 'tap-untap-steal',
   'effect.untap': 'tap-untap-steal',
   'trigger.tapped_or_untapped': 'tap-untap-steal',
 
   // lifegain
   'condition.cares_lifegain': 'lifegain',
+  'condition.cares_lifeloss': 'lifegain',
   'effect.life_changed': 'lifegain',
   'trigger.life_changed': 'lifegain',
   'effect.drain': 'lifegain',
@@ -206,6 +208,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.has_earthbend': 'set-mechanics',
   'effect.has_firebending': 'set-mechanics',
   'effect.has_gift': 'set-mechanics',
+  'trigger.gift_promised': 'set-mechanics',
+  'condition.gift_promised': 'set-mechanics',
   'effect.has_harmonize': 'set-mechanics',
   'effect.has_kicker': 'set-mechanics',
   'effect.has_plot': 'set-mechanics',

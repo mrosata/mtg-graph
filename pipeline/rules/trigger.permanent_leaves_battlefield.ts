@@ -23,7 +23,7 @@ export const tagDef: TagDef = {
   ],
 };
 
-const LTB_VERB = '(?:leaves the battlefield|is put into a graveyard from the battlefield)';
+const LTB_VERB = '(?:leaves? the battlefield|(?:is|are) put into a graveyard from the battlefield)';
 
 const PATTERN = new RegExp(
   `\\bwhen(?:ever)?\\s+(?:a\\s+|an\\s+|another\\s+|the\\s+|each\\s+)(?!(?:[\\w\\-]+\\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|nonland|creature|artifact|enchantment|planeswalker|land)\\s+)(?:[\\w\\-]+\\s+){0,4}?permanents?\\s+(?:[\\w\\-\\s]+? )?${LTB_VERB}\\b`,

@@ -17,8 +17,11 @@ const PATTERNS = [
   /\bputs? a number of \+1\/\+1 counters? (?:equal to |on )/,
   // multi-target distribute: "distribute N +1/+1 counters among <targets>"
   /\bdistributes? (?:\d+ |x |that many |one |two |three |four |five )?\+1\/\+1 counters? among/,
-  // ETB modifier: "enters [the battlefield] with a/N +1/+1 counter(s) on"
-  /enters? (?:the battlefield )?with (?:a |an |another |\d+ |x |one |two |three )?\+1\/\+1 counters?/,
+  // ETB modifier: "enters [the battlefield] with a/N +1/+1 counter(s) on".
+  // v0.19 — admits "additional" between the determiner and "+1/+1" (Gev,
+  // Scaled Scorch: "enter with an additional +1/+1 counter on them ..."),
+  // mirroring the existing "with N additional +1/+1" reanimate arm.
+  /enters? (?:the battlefield )?with (?:a |an |another |\d+ |x |one |two |three )?(?:additional )?\+1\/\+1 counters?/,
   // blink/return-with: "return ... with a +1/+1 counter on". v0.12.9: accept
   // "x" and "(N|x) additional" as quantifiers (Abuelo's Awakening — reanimate
   // with X additional +1/+1 counters). Filler window bumped from 80 to 120

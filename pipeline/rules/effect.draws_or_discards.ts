@@ -36,6 +36,15 @@ export const rule: Rule = {
     const causative = t.match(
       /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent)\s+(?:draws?|discards?) (?:a card|that many cards|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?)/,
     );
-    return causative ? { evidence: causative[0] } : false;
+    if (causative) return { evidence: causative[0] };
+    // v0.19 — Dark Confidant / Darkstar Augur frame: "reveal the top card of
+    // your library ... put (that card|it) into your hand". Functionally a
+    // draw — surfaces the top of library into the controller's hand without
+    // a literal `draw` token. Tolerates "and"/". " bridges between the two
+    // clauses (Darkstar Augur uses "and"; older printings split sentences).
+    const revealToHand = t.match(
+      /\breveal the top (?:\w+\s+)?card of your library[.,\s]*(?:and\s+)?put (?:that card|it) into your hand\b/,
+    );
+    return revealToHand ? { evidence: revealToHand[0] } : false;
   },
 };

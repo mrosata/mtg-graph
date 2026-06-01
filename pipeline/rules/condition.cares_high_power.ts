@@ -15,8 +15,12 @@ export const tagDef: TagDef = {
 // Threshold N >= 3 to avoid matching low-stat tribal effects ("power 1 or
 // less" is a different axis).
 // v0.14.1: added "is the greatest power" predicate form (Skullspore Nexus).
+// v0.19: added possessive copula arm "<name>'s/its power is N or greater"
+// (Kitsa, Otterball Elite: "activate only if __self__'s power is 3 or
+// greater"). Distinct from the bare "power N or greater" arm which doesn't
+// admit an intervening copula between the noun and the numeric phrase.
 const PATTERN =
-  /\bpower (?:[3-9]|\d{2,}) or (?:greater|more|higher)\b|\b(?:with|is) the greatest power\b|\b(?:[3-9]|\d{2,}) or greater power\b/;
+  /\bpower (?:[3-9]|\d{2,}) or (?:greater|more|higher)\b|\b(?:with|is) the greatest power\b|\b(?:[3-9]|\d{2,}) or greater power\b|\b(?:[\w']+?'s|its)\s+power\s+(?:is|are)\s+(?:[3-9]|\d{2,}) or (?:greater|more|higher)\b/;
 
 // v0.14.4 Task 4.2: "can't be blocked by creatures with power N or greater"
 // is a blocker-restriction (pseudo-evasion), NOT a cares-high-power payoff.

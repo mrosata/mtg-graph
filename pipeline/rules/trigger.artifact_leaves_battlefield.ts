@@ -15,7 +15,7 @@ export const tagDef: TagDef = {
   ],
 };
 
-const LTB_VERB = '(?:leaves the battlefield|is put into a graveyard from the battlefield)';
+const LTB_VERB = '(?:leaves? the battlefield|(?:is|are) put into a graveyard from the battlefield)';
 
 // v0.14.21 — `artifact` broadened to also match always-artifact subtype tokens
 // (Clue, Treasure, Food, Equipment, Vehicle). Teysa Opulent Oligarch's
@@ -32,6 +32,13 @@ const PATTERN_TEXT = new RegExp(
 const PATTERN_SELF = new RegExp(
   `\\bwhen(?:ever)?\\s+(?:this\\s+\\w+\\s+|__self__\\s+)${LTB_VERB}\\b`,
 );
+
+// Active-voice self-sacrifice: "when you sacrifice it/this/__self__". Carrot
+// Cake's "when you sacrifice it" is semantically a self-LtB event but uses the
+// active-voice frame with a pronoun antecedent. Scoped via matchCard to
+// artifact-typed cards (the caller checks card.types) so it doesn't leak onto
+// creatures, where trigger.permanent_sacrificed is the correct home.
+const PATTERN_SELF_ACTIVE_SACRIFICE = /\bwhen(?:ever)?\s+you\s+sacrifice\s+(?:it|this|__self__)\b/;
 
 // Active-voice sacrifice frame: "Whenever {opponent|player|each opponent}
 // sacrifices a/an {artifact-or-subtype}". Sacrificing IS a LtB event, so
@@ -55,7 +62,9 @@ export const rule: Rule = {
   },
   matchCard: (card: Card, normalizedText: string) => {
     if (!card.types.includes('Artifact')) return false;
-    const m = normalizedText.match(PATTERN_SELF);
+    const m =
+      normalizedText.match(PATTERN_SELF) ??
+      normalizedText.match(PATTERN_SELF_ACTIVE_SACRIFICE);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['leaves the battlefield'], proximity: ['artifact'], window: 6 },

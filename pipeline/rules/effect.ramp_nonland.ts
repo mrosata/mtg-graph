@@ -49,6 +49,13 @@ const PATTERNS = [
   // sentences with the "put one of them" anaphor. Typed nouns alone don't
   // require "basic" (the type IS basic-restricted by rules).
   /\bsearch your library for [\s\S]{0,60}?(?:plains|islands?|swamps?|mountains?|forests?) cards?[\s\S]{0,80}?\bput\s+(?:one|two|both|that\s+card|(?:one |two |both )?of them|of those|it)\s+[\s\S]{0,40}?onto the battlefield\b/,
+  // v0.19 — reveal-until-land Cultivate variant (Clifftop Lookout): "reveal
+  // cards from the top of your library until you reveal a (basic )?land card.
+  // Put that card onto the battlefield". Functionally identical to library-
+  // tutor ramp (a land enters from outside the deck without spending the
+  // turn's land drop) but uses the "reveal until" frame rather than "search
+  // your library for".
+  /\breveal cards from the top of your library until you reveal a (?:basic )?land card\.\s*put (?:it|that card) onto the battlefield\b/,
 ];
 
 export const rule: Rule = {

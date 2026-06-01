@@ -19,6 +19,12 @@ describe('trigger.permanent_sacrificed', () => {
     ['when you sacrifice a clue, return this card from your graveyard to your hand'],
     // Same shape with creature noun.
     ['when you sacrifice a creature, draw a card'],
+    // Camellia, the Seedmiser — "one or more <plural>" determiner + plural noun.
+    ['whenever you sacrifice one or more foods, create a 1/1 green squirrel creature token'],
+    // Numeric determiner + plural — common aristocrat templating.
+    ['whenever you sacrifice two or more creatures, draw a card'],
+    // Generic permanent plural.
+    ['whenever you sacrifice one or more permanents, this creature gets +1/+1'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
