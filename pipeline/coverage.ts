@@ -13,7 +13,8 @@ export function isPlainManaTapLand(card: Card, normalized: string): boolean {
 }
 
 export function isTaggable(card: Card): boolean {
-  const normalized = normalizeOracleText(card.oracleText, card.name);
+  const isLegendary = card.supertypes?.includes('Legendary') ?? false;
+  const normalized = normalizeOracleText(card.oracleText, card.name, isLegendary);
   if (normalized.length === 0) return false;
   if (isBasicLand(card)) return false;
   if (isPlainManaTapLand(card, normalized)) return false;

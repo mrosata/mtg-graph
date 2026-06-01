@@ -69,7 +69,8 @@ function tagCards(cards: Card[]): Card[] {
     catalog.map((d) => [d.tagId, d]),
   );
   return cards.map((c) => {
-    const normalized = normalizeOracleText(c.oracleText, c.name);
+    const isLegendary = c.supertypes?.includes('Legendary') ?? false;
+    const normalized = normalizeOracleText(c.oracleText, c.name, isLegendary);
     const tags = expandChildren(applyRules(normalized, c, rules), tagDefById);
     return { ...c, tags };
   });

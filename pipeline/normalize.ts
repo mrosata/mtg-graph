@@ -4,7 +4,11 @@ export function stripReminderText(text: string): string {
   return stripped.replace(/[ \t]+\./g, '.').trim();
 }
 
-export function replaceSelfReferences(text: string, cardName: string): string {
+export function replaceSelfReferences(
+  text: string,
+  cardName: string,
+  isLegendary: boolean = true,
+): string {
   const withTilde = text.replace(/~/g, '__SELF__');
   if (!cardName) return withTilde;
   // Self-references in oracle text appear in short forms beyond the literal
@@ -23,10 +27,20 @@ export function replaceSelfReferences(text: string, cardName: string): string {
   // Longest first so a short segment ("Greta") doesn't half-eat a longer one
   // ("Sweettooth Scourge") in pathological cases. Segments under 3 chars are
   // dropped (avoids replacing common bigrams like "of" / "an").
+  //
+  // v0.23 — the ` of ` / ` the ` short-name split is gated on `isLegendary`.
+  // Non-legendary cards like "Pull from the Grave" should NOT be split on
+  // " the " (yielding the segment "Grave" which then eats "graveyard" in
+  // oracle text). The split is only correct for legendary creatures using
+  // the rules-defined short-name convention. Same fix applies to "Pawn of
+  // Ulamog" / "Stolen by the Fae" / "Picklock Prankster // Free the Fae"
+  // (face B) / "Detective of the Month" / "Striding Shotcaller // Run the
+  // Play" — each of which had a body word eaten by the short-name segment.
+  const ofTheSplitter = isLegendary ? /\s+(?:of|the)\s+/i : null;
   const segments = cardName
     .split('//')
     .flatMap((face) => face.split(','))
-    .flatMap((seg) => seg.split(/\s+(?:of|the)\s+/i))
+    .flatMap((seg) => (ofTheSplitter ? seg.split(ofTheSplitter) : [seg]))
     .flatMap((seg) => {
       const trimmed = seg.trim();
       // Alchemy rebalanced cards print as "A-Original Name" but the oracle
@@ -100,10 +114,14 @@ export function stripQuotedAbilities(text: string): string {
     .replace(/“[^”]*”/g, ' ');
 }
 
-export function normalizeOracleText(text: string, cardName: string): string {
+export function normalizeOracleText(
+  text: string,
+  cardName: string,
+  isLegendary: boolean = true,
+): string {
   const stripped = stripReminderText(text);
   const unquoted = stripQuotedAbilities(stripped);
-  const selfed = replaceSelfReferences(unquoted, cardName);
+  const selfed = replaceSelfReferences(unquoted, cardName, isLegendary);
   // Collapse newlines so rules anchored on sentence boundaries don't miss
   // effects on a separate line (e.g. "...this turn.\nDraw three cards.").
   return selfed.toLowerCase().replace(/\s*\n+\s*/g, ' ');

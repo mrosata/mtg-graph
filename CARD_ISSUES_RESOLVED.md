@@ -11550,3 +11550,53 @@ When this creature enters, each opponent sacrifices a nontoken enchantment of th
   - **What's wrong:** The ETB makes each opponent sacrifice a creature AND an enchantment — canonical edict effect that should fire.
   - **Evidence vs reality:** normalized text contains `"each opponent sacrifices a nontoken enchantment ... sacrifices a nontoken creature"`, but `effect.edict` did not fire.
   - **Suggested fix:** ensure `effect.edict` regex covers "each opponent sacrifices a <type>" (currently may require just "sacrifice"/"target opponent sacrifices").
+
+---
+
+# 2026-06-01 — v0.23.0 batch resolution (26 cards)
+
+Shipped together: 14 new tags + 10 rule broadenings + 1 narrowing + 1 keyword-set add + 1 pipeline bug fix. Pipeline tests 3,379 pass (+29 regression rows); app tests 533 pass; coverage 99.0% on 6,918 cards.
+
+## New tags
+
+- **condition.converge** — Khans-era ability word, 12 cards (Rancorous Archaic family).
+- **condition.repartee** — DSK ability word, 12 cards (Lecturing Scornmage family).
+- **condition.opus** — FIN/EOE ability word, 10 cards (Expressive Firedancer family).
+- **condition.infusion** — FIN ability word, 12 cards (Poisoner's Apprentice family).
+- **condition.void** — EOE ability word, 14 cards (Hymn of the Faller family).
+- **effect.has_exhaust** / **effect.has_sneak** / **effect.has_renew** / **effect.has_job_select** — keyword tags via `card.keywords`, 38 / 26 / 12 / 19 cards.
+- **effect.endure** — DSK keyword action (Inspirited Vanguard family). Pairs with both `condition.cares_plus_one_counter` and `condition.cares_tribe.spirit`.
+- **effect.produces_energy** / **condition.cares_energy** — 25-card energy mechanic (Aetherwind Basker family).
+- **condition.devotion.{white,blue,black,red,green}** — Theros parametric (Gray Merchant of Asphodel + 6 others).
+- **condition.cares_legendary** — 27-card legendary-matters archetype (Bosco + Joins Up cycle).
+- **condition.cares_warped** — companion to existing `effect.has_warp` (Void-cycle scaling).
+
+## Rule broadenings
+
+- **effect.draws_or_discards** — subject slot admits `each of <NP>'s opponents` (Bounty Board).
+- **effect.destroy_creature** PATTERN_ENCHANTED — admits interleaved `becomes tapped`/`attacks`/`blocks` (Cryoshatter).
+- **effect.destroy_creature** PATTERN_OWN/BROAD — admits bare number determiner without `up to` (Curtains' Call, Hex).
+- **effect.exile_creature** PATTERN_ANAPHORIC — pronoun group widened to `(it|that creature|them)` (Turncoat Kunoichi).
+- **effect.exile_from_graveyard** — OWN_ANAPHORIC arm for `exile that card from your graveyard` (Containment Construct, Currency Converter).
+- **trigger.spell_cast** — both qualifier slots admit `or`-pairs (Archmage of Echoes; preserves Lilah).
+- **trigger.beginning_of_end_step** — admits bare `the end step` (Colfenor's Urn + 9 others).
+- **trigger.creature_leaves_battlefield** LTB_VERB — admits `your`/`opponent's`/`its owner's`/`that player's` graveyard (Colfenor's Urn).
+- **trigger.creature_dies** — new arm for RAW `is put into <X> graveyard from the battlefield` (Colfenor's Urn; semantically dies per CR 700.4).
+- **effect.life_changed** — PAY_VARIABLE (`pay life equal to`), CAUSATIVE (`have <subj> lose/gain N life`), CAUSATIVE_VARIABLE (`have <subj> lose life equal to`) (Eye of Duskmantle, Gempalm Polluter, Blood Seeker family).
+- **effect.deals_damage** — subjunctive `may have <SUBJ> deal N damage` arms (Requiem Monolith, Kederekt Parasite).
+
+## Rule narrowings
+
+- **effect.control_change** — added DONATION_SCRUB span-scrub of `<opponent> gains control of <X>` clauses before GAIN_CONTROL matches. Eliminates FP on 5 donation cards (Humble Defector, Harmless Offering, Wishclaw Talisman, Stiltzkin, Iroh); preserves legitimate-steal matches on Coveted Falcon, Zidane Tantalus Thief.
+
+## Keyword-set additions
+
+- **condition.cast_from_graveyard** — Mayhem keyword added (Prison Break + 11 other Marvel cards). Description and `pairsWith` updated.
+
+## Pipeline bug fix
+
+- **`pipeline/normalize.ts:replaceSelfReferences`** — added `isLegendary: boolean` parameter; ` of ` / ` the ` legendary-short-name split now gated on it. Fix applied to 6 non-legendary cards whose oracle body words were being eaten by spurious short-name segments: Pull from the Grave (`Grave` → `graveyard`), Pawn of Ulamog (`Pawn` → `Spawn`), Detective of the Month (`Detective` → `Detectives`), Stolen by the Fae (`Fae` → `Faerie`), Picklock Prankster // Free the Fae (same), Striding Shotcaller // Run the Play (`Play` → `player`). All 6 cards now carry correct tribal/token tags.
+
+## Deferred (see `CARD_ISSUES.md`)
+
+- **Tale of Katara and Toph** + **Citanul Hierophants** — anthem-grant quote-strip leaves these two cards with zero tags. The fix needs a pipeline-level enhancement (tag forwarding from grant interior to source). Deferred — not a single-rule narrowing.

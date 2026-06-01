@@ -136,6 +136,42 @@ describe('replaceSelfReferences', () => {
       ),
     ).toBe('When __SELF__ enters, create a token.');
   });
+
+  // v0.23 — non-legendary cards must NOT apply the " of " / " the " short-name
+  // split. Without the gate, "Pull from the Grave" yielded the segment
+  // "Grave" which then ate the substring "graveyard" in oracle text,
+  // rewriting it to "__SELF__yard" and blocking the
+  // effect.return_from_graveyard_to_hand rule.
+  it('does NOT split on " the " for non-legendary cards (Pull from the Grave)', () => {
+    expect(
+      replaceSelfReferences(
+        'Return up to two target creature cards from your graveyard to your hand. You gain 2 life.',
+        'Pull from the Grave',
+        false,
+      ),
+    ).toBe('Return up to two target creature cards from your graveyard to your hand. You gain 2 life.');
+  });
+
+  it('does NOT split on " of " for non-legendary cards (Pawn of Ulamog)', () => {
+    // "Pawn" would otherwise eat "Spawn" in the oracle text.
+    expect(
+      replaceSelfReferences(
+        'When Pawn of Ulamog dies, create a 0/1 colorless Eldrazi Spawn creature token.',
+        'Pawn of Ulamog',
+        false,
+      ),
+    ).toBe('When __SELF__ dies, create a 0/1 colorless Eldrazi Spawn creature token.');
+  });
+
+  it('still splits on " the " for legendary cards (Ajani the Greathearted)', () => {
+    expect(
+      replaceSelfReferences(
+        'Ajani gets +1.',
+        'Ajani the Greathearted',
+        true,
+      ),
+    ).toBe('__SELF__ gets +1.');
+  });
 });
 
 describe('isIntrinsicKeyword', () => {
