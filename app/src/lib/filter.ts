@@ -38,7 +38,10 @@ export function applyFilter(
   return cards.filter((c) => {
     if (libraryFilter && !libraryFilter.has(c.oracleId)) return false;
     if (f.scope === 'standard' && !c.printings.some((p) => STANDARD_SET_SET.has(p))) return false;
-    if (f.scope === 'unreleased' && !c.printings.some((p) => UPCOMING_SET_SET.has(p))) return false;
+    if (f.scope === 'unreleased') {
+      if (!c.printings.some((p) => UPCOMING_SET_SET.has(p))) return false;
+      if (c.supertypes.includes('Basic')) return false;
+    }
     if (!f.includeCommander && c.printings.every((p) => COMMANDER_SET_SET.has(p))) return false;
     if (f.colors?.length) {
       if (c.colors.length === 0) return false;

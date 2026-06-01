@@ -101,6 +101,20 @@ describe('applyFilter', () => {
         .toEqual(['preview', 'reprint']);
     });
 
+    it("scope 'unreleased' excludes basic lands even if they have an upcoming printing", () => {
+      const withBasic = [
+        ...cards,
+        card({
+          oracleId: 'basic_plains',
+          printings: ['blb', 'hob'],
+          types: ['Land'],
+          supertypes: ['Basic'],
+        }),
+      ];
+      expect(applyFilter(withBasic, { scope: 'unreleased' }).map((c) => c.oracleId))
+        .toEqual(['preview', 'reprint']);
+    });
+
     it("scope 'all' applies no scope filter", () => {
       expect(applyFilter(cards, { scope: 'all' }).map((c) => c.oracleId))
         .toEqual(['std', 'preview', 'reprint', 'unknown']);
