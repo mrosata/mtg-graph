@@ -28,35 +28,38 @@ export default function ConfirmModal({
   }, [onCancel]);
 
   const confirmClass = destructive
-    ? 'rounded bg-red-600 px-3 py-1 text-sm font-semibold text-white hover:bg-red-500'
-    : 'rounded bg-amber-500 px-3 py-1 text-sm font-semibold text-black hover:bg-amber-400';
+    ? 'focus-brass rounded bg-mana-r px-3.5 py-1.5 text-sm font-semibold text-ink-bg transition-colors hover:bg-mana-r/90'
+    : 'focus-brass rounded bg-brass px-3.5 py-1.5 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi';
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-bg/80 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
-        className="w-96 rounded-lg border border-neutral-700 bg-neutral-900 p-6 shadow-2xl"
+        className="w-96 overflow-hidden rounded-lg border border-ink-line-2 bg-ink-panel shadow-panel"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
       >
-        <h3 id="confirm-modal-title" className="text-lg font-semibold">
-          {title}
-        </h3>
-        <div className="mt-2 text-sm text-neutral-300">{message}</div>
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="rounded border border-neutral-700 px-3 py-1 text-sm"
-          >
-            {cancelLabel}
-          </button>
-          <button onClick={onConfirm} className={confirmClass}>
-            {confirmLabel}
-          </button>
+        <div className="brass-hairline" />
+        <div className="p-6">
+          <h3 id="confirm-modal-title" className="font-head text-2xl text-vellum">
+            {title}
+          </h3>
+          <div className="mt-3 text-sm text-vellum-mute">{message}</div>
+          <div className="mt-5 flex justify-end gap-2">
+            <button
+              onClick={onCancel}
+              className="focus-brass rounded border border-ink-line-2 bg-ink-raised px-3.5 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
+            >
+              {cancelLabel}
+            </button>
+            <button onClick={onConfirm} className={confirmClass}>
+              {confirmLabel}
+            </button>
+          </div>
         </div>
       </div>
     </div>

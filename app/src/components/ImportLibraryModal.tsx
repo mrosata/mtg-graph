@@ -50,71 +50,76 @@ export default function ImportLibraryModal({ onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-bg/80 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-[40rem] max-w-[92vw] rounded-lg border border-neutral-700 bg-neutral-900 p-6 shadow-2xl"
+        className="w-[40rem] max-w-[92vw] overflow-hidden rounded-lg border border-ink-line-2 bg-ink-panel shadow-panel"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-library-title"
       >
-        <h3 id="import-library-title" className="text-lg font-semibold">
-          Import library
-        </h3>
-        <p className="mt-1 text-xs text-neutral-400">
-          Pick a Manabox CSV backup. We'll only show cards that are in both your library and our graph.
-        </p>
-
-        <label className="mt-4 inline-flex cursor-pointer items-center rounded border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm hover:bg-neutral-700">
-          Choose Manabox CSV
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void handleFile(f);
-            }}
-            aria-label="Choose Manabox CSV"
-          />
-        </label>
-        {filename && <span className="ml-2 text-xs text-neutral-400">{filename}</span>}
-
-        {error && (
-          <p className="mt-3 rounded bg-rose-900/30 px-3 py-2 text-xs text-rose-200">
-            {error}
+        <div className="brass-hairline" />
+        <div className="p-6">
+          <h3 id="import-library-title" className="font-head text-2xl text-vellum">
+            Import library
+          </h3>
+          <p className="mt-1 text-xs text-vellum-dim">
+            Pick a Manabox CSV backup. We'll only show cards that are in both your library and our graph.
           </p>
-        )}
 
-        {result && (
-          <div className="mt-4">
-            <LibraryImportSummary result={result} />
-            {result.owned.size === 0 && (
-              <p className="mt-3 text-xs text-amber-300">
-                No matching cards found. Pick a different file.
-              </p>
-            )}
+          <label className="focus-brass mt-4 inline-flex cursor-pointer items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi">
+            Choose Manabox CSV
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void handleFile(f);
+              }}
+              aria-label="Choose Manabox CSV"
+            />
+          </label>
+          {filename && (
+            <span className="ml-2 font-mono text-xs text-vellum-dim">{filename}</span>
+          )}
+
+          {error && (
+            <p className="mt-3 rounded border border-mana-r/40 bg-mana-r/10 px-3 py-2 text-xs text-mana-r">
+              {error}
+            </p>
+          )}
+
+          {result && (
+            <div className="mt-4">
+              <LibraryImportSummary result={result} />
+              {result.owned.size === 0 && (
+                <p className="mt-3 text-xs text-brass-hi">
+                  No matching cards found. Pick a different file.
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="mt-6 flex justify-end gap-2">
+            <button
+              type="button"
+              className="focus-brass rounded border border-ink-line-2 bg-ink-raised px-3.5 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="focus-brass rounded bg-brass px-3.5 py-1.5 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
+              onClick={handleUse}
+              disabled={!result || result.owned.size === 0 || busy}
+            >
+              Use this library
+            </button>
           </div>
-        )}
-
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            className="rounded border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400"
-            onClick={handleUse}
-            disabled={!result || result.owned.size === 0 || busy}
-          >
-            Use this library
-          </button>
         </div>
       </div>
     </div>

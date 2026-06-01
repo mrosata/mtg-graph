@@ -40,15 +40,15 @@ export default function CardDetailDrawer({
   }, [card.oracleId]);
 
   return (
-    <aside ref={scrollRef} className="h-full w-full overflow-y-auto border-l border-neutral-800 bg-neutral-950 p-4">
-      <div className="inline-flex overflow-hidden rounded-md border border-neutral-800 bg-neutral-900/60">
+    <aside ref={scrollRef} className="h-full w-full overflow-y-auto border-l border-ink-line bg-ink-panel p-4 text-vellum">
+      <div className="inline-flex overflow-hidden rounded-md border border-ink-line bg-ink-raised/60">
         <NavButton
           direction="back"
           disabled={!canBack}
           onClick={onBack}
           ariaLabel="Previous card"
         />
-        <div className="h-8 w-px bg-neutral-800" aria-hidden="true" />
+        <div className="h-8 w-px bg-ink-line" aria-hidden="true" />
         <NavButton
           direction="forward"
           disabled={!canForward}
@@ -56,15 +56,18 @@ export default function CardDetailDrawer({
           ariaLabel="Next card"
         />
       </div>
-      <img src={card.imageUrl} alt={card.name} className="mt-3 w-full rounded" />
-      <h2 className="mt-3 text-lg font-semibold">{card.name}</h2>
-      <p className="text-xs text-neutral-400">{card.typeLine}</p>
-      <div className="mt-2 flex items-center gap-3">
+      <div className="foil-edge mt-3 overflow-hidden rounded-md" style={{ transitionDuration: '320ms' }}>
+        <img src={card.imageUrl} alt={card.name} className="w-full" />
+      </div>
+      <h2 className="mt-4 font-head text-3xl leading-tight text-vellum">{card.name}</h2>
+      <p className="font-head italic text-sm text-vellum-mute">{card.typeLine}</p>
+      <div className="brass-hairline-soft mt-3" aria-hidden="true" />
+      <div className="mt-3 flex items-center gap-3">
         <AddToDeckButton oracleId={card.oracleId} />
       </div>
-      <p className="mt-2 whitespace-pre-wrap text-sm">
+      <div className="mt-3 whitespace-pre-wrap">
         <OracleText text={card.oracleText} />
-      </p>
+      </div>
       <div className="mt-3 flex flex-wrap gap-1">
         {collapseParentChildChips(card.tags, tagCatalog).map((t, i) => (
           <TagChip key={`${t.tagId}-${i}`} tag={t} def={tagCatalog.get(t.tagId)} />
@@ -90,7 +93,7 @@ function NavButton({ direction, disabled, onClick, ariaLabel }: NavButtonProps) 
       disabled={disabled}
       aria-label={ariaLabel}
       title={ariaLabel}
-      className="flex h-8 w-9 items-center justify-center text-neutral-300 transition hover:bg-neutral-800 hover:text-white focus:outline-none focus:ring-1 focus:ring-amber-400 disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent"
+      className="focus-brass flex h-8 w-9 items-center justify-center text-brass transition-colors hover:bg-brass/10 hover:text-brass-hi disabled:cursor-not-allowed disabled:text-ink-line-2 disabled:hover:bg-transparent"
     >
       {direction === 'back' ? <ChevronLeft /> : <ChevronRight />}
     </button>

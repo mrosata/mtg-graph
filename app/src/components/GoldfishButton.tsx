@@ -11,9 +11,9 @@ export default function GoldfishButton() {
         type="button"
         onClick={() => setOpen(true)}
         data-tour-id={TOUR_IDS.goldfishButton}
-        className="inline-flex items-center gap-1.5 rounded border border-neutral-700 px-2 py-1 text-xs text-neutral-200 hover:bg-neutral-900"
+        className="focus-brass inline-flex items-center gap-1.5 rounded-full border border-mana-u/30 bg-mana-u/[0.06] px-3 py-1 text-xs text-vellum-mute transition-colors hover:border-mana-u/60 hover:bg-mana-u/[0.12] hover:text-vellum"
       >
-        <FishIcon className="text-amber-400" />
+        <FishIcon className="text-mana-u" />
         Goldfish
       </button>
       {open && <GoldfishModal onClose={() => setOpen(false)} />}

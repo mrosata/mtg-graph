@@ -8,19 +8,22 @@ function Group({
 }: { title: string; rows: ImportRowSummary[]; initialOpen: boolean }) {
   const [open, setOpen] = useState(initialOpen);
   return (
-    <div className="mt-3 border-t border-neutral-800 pt-2">
+    <div className="mt-3 border-t border-ink-line pt-2">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between text-left text-xs font-medium text-neutral-300"
+        className="focus-brass flex w-full items-center justify-between text-left text-xs font-medium text-vellum-mute transition-colors hover:text-brass-hi"
       >
-        <span>{open ? '▼' : '▶'} {title} ({rows.length})</span>
+        <span>
+          <span aria-hidden="true" className="mr-1 text-brass">{open ? '▼' : '▶'}</span>
+          {`${title} (${rows.length})`}
+        </span>
       </button>
       {open && rows.length > 0 && (
-        <ul className="mt-2 max-h-48 overflow-y-auto text-xs text-neutral-400">
+        <ul className="mt-2 max-h-48 overflow-y-auto font-mono text-xs tabular text-vellum-dim scrollbar-slim">
           {rows.map((r, i) => (
             <li key={`${r.name}-${r.setCode}-${i}`}>
-              {r.quantity}× {r.name} ({r.setCode || '—'})
+              {`${r.quantity}× ${r.name} (${r.setCode || '—'})`}
             </li>
           ))}
         </ul>
@@ -36,7 +39,7 @@ export default function LibraryImportSummary({ result }: Props) {
 
   return (
     <div>
-      <p className="text-sm text-neutral-200">
+      <p className="text-sm tabular text-brass-hi">
         {`Imported ${cardCount.toLocaleString()} cards (${copyCount.toLocaleString()} copies)`}
       </p>
       <Group title="Unknown names" rows={result.unknownNames} initialOpen />

@@ -55,37 +55,41 @@ export default function GoldfishModal({ onClose }: Props) {
   return (
     <div
       data-testid="goldfish-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-bg/80 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-[1500px] max-w-[95vw] flex-col rounded-lg border border-neutral-700 bg-neutral-900 p-5 shadow-2xl"
+        className="flex max-h-[90vh] w-[1500px] max-w-[95vw] flex-col overflow-hidden rounded-lg border border-ink-line-2 bg-ink-panel shadow-panel"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="goldfish-title"
       >
-        <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
-          <h3 id="goldfish-title" className="text-sm font-semibold text-neutral-200">
-            Goldfish — &ldquo;{deck?.name ?? '(no deck)'}&rdquo;
-          </h3>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xs tabular-nums text-neutral-400">
-              Library: {remaining} / {totalLibrary}
+        <div className="brass-hairline" />
+        <div className="flex items-center justify-between border-b border-ink-line px-5 py-3">
+          <div className="flex items-baseline gap-2">
+            <span className="eyebrow">Goldfish</span>
+            <h3 id="goldfish-title" className="font-head text-xl italic text-vellum">
+              {`“${deck?.name ?? '(no deck)'}”`}
+            </h3>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="font-mono text-xs tabular text-vellum-dim">
+              {`Library: ${remaining} / ${totalLibrary}`}
             </span>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="text-neutral-400 hover:text-neutral-100"
+              className="focus-brass text-vellum-dim transition-colors hover:text-brass-hi"
             >
               ×
             </button>
           </div>
         </div>
-        <div className="my-4 min-h-0 flex-1 overflow-auto">
+        <div className="my-4 min-h-0 flex-1 overflow-auto px-5">
           {empty ? (
-            <div className="flex h-full items-center justify-center py-8 text-sm text-neutral-400">
+            <div className="flex h-full items-center justify-center py-8 font-head italic text-vellum-mute">
               This deck is empty.
             </div>
           ) : (
@@ -105,13 +109,13 @@ export default function GoldfishModal({ onClose }: Props) {
                       <img
                         src={c.imageUrl}
                         alt={c.name}
-                        className="h-[336px] w-[240px] rounded-lg border border-neutral-700 shadow-md group-hover:shadow-2xl group-hover:ring-1 group-hover:ring-amber-400/60"
+                        className="h-[336px] w-[240px] rounded-lg border border-ink-line shadow-md group-hover:shadow-2xl group-hover:ring-1 group-hover:ring-brass/60"
                       />
                     ) : (
                       <div
                         role="img"
                         aria-label={c?.name ?? oracleId}
-                        className="flex h-[336px] w-[240px] items-end rounded-lg border border-neutral-700 bg-neutral-800 p-2 text-xs text-neutral-300 shadow-md group-hover:shadow-2xl group-hover:ring-1 group-hover:ring-amber-400/60"
+                        className="flex h-[336px] w-[240px] items-end rounded-lg border border-ink-line bg-ink-raised p-2 font-head text-xs italic text-vellum-mute shadow-md group-hover:shadow-2xl group-hover:ring-1 group-hover:ring-brass/60"
                       >
                         {c?.name ?? oracleId}
                       </div>
@@ -122,22 +126,22 @@ export default function GoldfishModal({ onClose }: Props) {
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-2 border-t border-neutral-800 pt-3">
+        <div className="flex justify-end gap-2 border-t border-ink-line px-5 py-3">
           <button
             type="button"
             onClick={onShuffle}
             disabled={empty}
-            className="rounded border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:text-neutral-600"
+            className="focus-brass inline-flex items-center gap-1 rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-xs text-vellum-mute transition-colors hover:border-brass/50 hover:text-brass-hi disabled:cursor-not-allowed disabled:opacity-50"
           >
-            ↻ Shuffle
+            <span aria-hidden="true">↻</span> Shuffle
           </button>
           <button
             type="button"
             onClick={onDraw}
             disabled={!canDraw}
-            className="rounded bg-amber-500 px-3 py-1 text-xs font-semibold text-black hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500"
+            className="focus-brass inline-flex items-center gap-1 rounded bg-brass px-3 py-1.5 text-xs font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
           >
-            + Draw
+            <span aria-hidden="true">+</span> Draw
           </button>
         </div>
       </div>

@@ -5,14 +5,33 @@ export default function LibraryStatusBadge() {
   const enabled = useLibraryStore((s) => s.enabled);
 
   if (!owned) {
-    return <span className="text-xs text-neutral-500">No library</span>;
+    return (
+      <span className="eyebrow text-vellum-dim/70" aria-label="No library loaded">
+        no library
+      </span>
+    );
   }
   return (
     <span
-      className={`text-xs ${enabled ? 'text-neutral-200' : 'text-neutral-500'}`}
       aria-label={enabled ? 'Library active' : 'Library loaded but inactive'}
+      className={
+        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors ' +
+        (enabled
+          ? 'border-brass/40 bg-brass/10 text-brass-hi'
+          : 'border-ink-line-2 bg-ink-panel/60 text-vellum-dim')
+      }
     >
-      Library: {owned.size.toLocaleString()} cards
+      <span
+        aria-hidden="true"
+        className={
+          'h-1.5 w-1.5 rounded-full ' +
+          (enabled ? 'bg-brass shadow-[0_0_6px_var(--brass)]' : 'bg-vellum-dim/50')
+        }
+      />
+      <span className="font-mono tabular text-[11px] leading-none">
+        {owned.size.toLocaleString()}
+      </span>
+      <span className="leading-none">cards owned</span>
     </span>
   );
 }

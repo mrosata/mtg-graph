@@ -22,6 +22,24 @@ const AXIS_LABEL: Record<TagAxis, string> = {
   condition: 'Conditions',
 };
 
+// Per-axis decoration for the small inline group headings. The dot + thin
+// underline give each axis sub-list its own identity without shouting.
+const AXIS_DOT: Record<TagAxis, string> = {
+  trigger: 'bg-mana-u',
+  effect: 'bg-brass',
+  condition: 'bg-[#b388e8]',
+};
+const AXIS_UNDERLINE: Record<TagAxis, string> = {
+  trigger: 'from-mana-u/50',
+  effect: 'from-brass/60',
+  condition: 'from-[#b388e8]/50',
+};
+const AXIS_ACCENT_TEXT: Record<TagAxis, string> = {
+  trigger: 'text-mana-u',
+  effect: 'text-brass',
+  condition: 'text-[#b388e8]',
+};
+
 function useDebounced<T>(value: T, ms: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -64,8 +82,12 @@ export default function TagFilterSection({
       <li key={t.tagId}>
         <label
           aria-disabled={isMuted || undefined}
-          className={`flex cursor-pointer items-center gap-2 text-sm ${
-            isMuted ? 'italic text-neutral-600' : 'text-neutral-200'
+          className={`flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 text-sm transition-colors hover:bg-ink-raised/60 ${
+            isMuted
+              ? 'italic text-vellum-dim/60'
+              : isSelected
+                ? 'text-vellum'
+                : 'text-vellum-mute'
           }`}
         >
           <input
@@ -73,7 +95,7 @@ export default function TagFilterSection({
             checked={isSelected}
             onChange={() => onToggle(t.tagId)}
             aria-label={t.label}
-            className="h-3.5 w-3.5"
+            className="h-3.5 w-3.5 accent-[#d4a44a]"
           />
           <span className="truncate">{t.label}</span>
         </label>
@@ -81,14 +103,34 @@ export default function TagFilterSection({
     );
   }
 
-  function renderGroup(label: string, items: TagDef[]) {
+  function renderAxisGroup(axis: TagAxis, items: TagDef[]) {
     return (
-      <div key={label} className="mt-2">
-        <div className="text-[10px] uppercase tracking-wide text-neutral-500">{label}</div>
+      <div key={axis} className="mt-3">
+        <div className="flex items-center gap-1.5">
+          <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${AXIS_DOT[axis]}`} />
+          <span className={`eyebrow ${AXIS_ACCENT_TEXT[axis]}`}>{AXIS_LABEL[axis]}</span>
+        </div>
+        <div
+          aria-hidden="true"
+          className={`mt-1 h-px w-full bg-gradient-to-r ${AXIS_UNDERLINE[axis]} via-transparent to-transparent`}
+        />
         {items.length === 0 ? (
-          <p className="text-xs italic text-neutral-600">(no matches)</p>
+          <p className="mt-1 text-xs italic text-vellum-dim/70">(no matches)</p>
         ) : (
-          <ul className="space-y-0.5">{items.map(renderRow)}</ul>
+          <ul className="mt-1 space-y-0.5">{items.map(renderRow)}</ul>
+        )}
+      </div>
+    );
+  }
+
+  function renderGenericGroup(label: string, items: TagDef[]) {
+    return (
+      <div key={label} className="mt-3">
+        <div className="eyebrow">{label}</div>
+        {items.length === 0 ? (
+          <p className="mt-1 text-xs italic text-vellum-dim/70">(no matches)</p>
+        ) : (
+          <ul className="mt-1 space-y-0.5">{items.map(renderRow)}</ul>
         )}
       </div>
     );
@@ -97,13 +139,13 @@ export default function TagFilterSection({
   function renderBody() {
     if (groupByAxis) {
       return AXIS_ORDER.map((axis) =>
-        renderGroup(AXIS_LABEL[axis], unpinned.filter((t) => t.axis === axis)),
+        renderAxisGroup(axis, unpinned.filter((t) => t.axis === axis)),
       );
     }
     return (
       <>
-        {pinned.length > 0 && renderGroup('Your deck wants', pinned)}
-        {renderGroup('All themes', unpinned)}
+        {pinned.length > 0 && renderGenericGroup('Your deck wants', pinned)}
+        {renderGenericGroup('All themes', unpinned)}
       </>
     );
   }
@@ -114,14 +156,14 @@ export default function TagFilterSection({
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400 hover:text-neutral-200"
+          className="group flex items-center gap-1.5 text-vellum-dim transition-colors hover:text-vellum"
         >
-          <span aria-hidden="true" className="inline-block w-3 text-neutral-500">
+          <span aria-hidden="true" className="inline-block w-3 text-brass/70">
             {collapsed ? '▸' : '▾'}
           </span>
-          <span>{title}</span>
+          <span className="eyebrow group-hover:text-vellum">{title}</span>
           {selected.length > 0 && (
-            <span className="ml-1 rounded bg-amber-500/15 px-1.5 text-[10px] tracking-normal text-amber-400">
+            <span className="ml-1 rounded bg-brass/15 px-1.5 font-mono text-[10px] leading-5 tracking-normal text-brass-hi tabular">
               {selected.length}
             </span>
           )}
@@ -139,7 +181,7 @@ export default function TagFilterSection({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={`Search ${title.toLowerCase()}…`}
-            className="mt-2 w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-sm focus:border-neutral-600 focus:outline-none"
+            className="focus-brass mt-2 w-full rounded-md border border-ink-line bg-ink-raised px-2 py-1 text-sm text-vellum placeholder:text-vellum-dim focus:outline-none"
           />
           <div className="scrollbar-slim max-h-72 overflow-y-auto pr-1">{renderBody()}</div>
         </>

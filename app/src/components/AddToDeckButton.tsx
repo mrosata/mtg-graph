@@ -61,7 +61,7 @@ export default function AddToDeckButton({ oracleId }: Props) {
       <>
         <button
           onClick={handleAdd}
-          className="rounded bg-amber-500 px-3 py-1 text-sm font-semibold text-black transition hover:bg-amber-400"
+          className="focus-brass rounded-full bg-brass px-4 py-1 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi"
           title="Click: add 1 • Shift+Click: add 4"
         >
           Add to deck
@@ -91,13 +91,13 @@ export default function AddToDeckButton({ oracleId }: Props) {
     <div
       role="group"
       aria-label="Adjust copies in deck"
-      className="inline-flex select-none overflow-hidden rounded border border-amber-500/70 bg-neutral-900 shadow-sm"
+      className="inline-flex select-none overflow-hidden rounded-full border border-brass/50 bg-ink-raised shadow-sm"
     >
       {count > 0 && (
         <button
           type="button"
           onClick={handleRemove}
-          className="flex h-8 w-8 items-center justify-center text-amber-300 transition hover:bg-amber-500/15 hover:text-amber-200 focus:outline-none focus:ring-1 focus:ring-amber-400"
+          className="focus-brass flex h-8 w-8 items-center justify-center text-brass transition-colors hover:bg-brass/15 hover:text-brass-hi"
           title="Click: remove 1 • Shift+Click: remove up to 4"
           aria-label="Remove one copy"
         >
@@ -106,7 +106,7 @@ export default function AddToDeckButton({ oracleId }: Props) {
       )}
       {count > 0 && (
         <span
-          className="flex h-8 min-w-[2.25rem] items-center justify-center border-x border-amber-500/40 px-2 font-mono text-sm font-semibold text-amber-200"
+          className="flex h-8 min-w-[2.25rem] items-center justify-center border-x border-brass/30 px-2 font-mono tabular text-sm font-semibold text-brass-hi"
           aria-label={`${count} in deck`}
         >
           {count}
@@ -115,7 +115,7 @@ export default function AddToDeckButton({ oracleId }: Props) {
       <button
         type="button"
         onClick={handleAdd}
-        className={`flex h-8 items-center gap-1.5 bg-amber-500 px-3 text-sm font-semibold text-black transition hover:bg-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-300 ${count > 0 ? '' : 'rounded'}`}
+        className={`focus-brass flex h-8 items-center gap-1.5 bg-brass px-3 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi ${count > 0 ? '' : 'rounded-full'}`}
         title="Click: add 1 • Shift+Click: add 4"
         aria-label={count > 0 ? 'Add one copy' : 'Add to deck'}
       >

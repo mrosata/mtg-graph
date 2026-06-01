@@ -48,7 +48,7 @@ export default function HelpMenu() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative ml-auto">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         aria-label="Help"
@@ -56,29 +56,35 @@ export default function HelpMenu() {
         aria-expanded={open}
         data-tour-id={TOUR_IDS.navHelp}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-700 text-sm text-neutral-300 hover:border-neutral-500 hover:text-neutral-100"
+        className={
+          'flex h-7 w-7 items-center justify-center rounded-full border text-[13px] transition-colors ' +
+          (open
+            ? 'border-brass bg-brass/15 text-brass-hi'
+            : 'border-ink-line-2 bg-ink-panel/60 text-vellum-mute hover:border-brass/60 hover:text-brass-hi')
+        }
       >
         ?
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded border border-neutral-700 bg-neutral-900 text-sm shadow-lg"
+          className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded-md border border-ink-line-2 bg-ink-panel shadow-panel"
         >
+          <div aria-hidden="true" className="brass-hairline" />
           <button
             type="button"
             role="menuitem"
             onClick={openCheatsheet}
-            className="block w-full px-3 py-2 text-left text-neutral-200 hover:bg-neutral-800"
+            className="block w-full px-3 py-2 text-left text-sm text-vellum transition-colors hover:bg-ink-raised hover:text-brass-hi"
           >
             Cheatsheet
           </button>
-          <hr className="border-neutral-800" />
+          <hr className="border-ink-line" />
           <button
             type="button"
             role="menuitem"
             onClick={() => launch('global')}
-            className="block w-full px-3 py-2 text-left text-neutral-200 hover:bg-neutral-800"
+            className="block w-full px-3 py-2 text-left text-sm text-vellum transition-colors hover:bg-ink-raised hover:text-brass-hi"
           >
             Show {tourLabel('global')}
           </button>
@@ -87,7 +93,7 @@ export default function HelpMenu() {
               type="button"
               role="menuitem"
               onClick={() => launch(pageTour)}
-              className="block w-full px-3 py-2 text-left text-neutral-200 hover:bg-neutral-800"
+              className="block w-full px-3 py-2 text-left text-sm text-vellum transition-colors hover:bg-ink-raised hover:text-brass-hi"
             >
               Show {tourLabel(pageTour)}
             </button>

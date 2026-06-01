@@ -137,18 +137,44 @@ export default function BrowserShell({
     [cards, filterForPanel, libraryFilter],
   );
 
-  if (status === 'loading') return <div className="p-8 text-neutral-400">Loading card data…</div>;
-  if (status === 'error') return <div className="p-8 text-red-400">Failed to load card data.</div>;
+  if (status === 'loading') {
+    return (
+      <div className="flex h-full items-center justify-center p-8 text-center" role="status" aria-live="polite">
+        <div className="flex flex-col items-center gap-3">
+          <div
+            aria-hidden="true"
+            className="h-6 w-6 animate-spin rounded-full border-2 border-brass/30 border-t-brass"
+          />
+          <p className="eyebrow text-vellum-dim">loading card data</p>
+        </div>
+      </div>
+    );
+  }
+  if (status === 'error') {
+    return (
+      <div className="flex h-full items-center justify-center p-8 text-center" role="alert">
+        <div className="max-w-sm">
+          <p className="font-head text-2xl italic text-vellum">The grimoire is missing.</p>
+          <p className="mt-2 text-sm text-vellum-mute">
+            Failed to load card data. Run <code className="font-mono text-brass-hi">npm run build:cards -- --standard</code> at the repo root, then refresh.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-full min-h-0">
-      <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-neutral-800 bg-[#0c0c0c]">
+    <div className="flex h-full min-h-0 page-enter">
+      <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-ink-line bg-ink-panel/60">
         <FilterPanel value={filterForPanel} onChange={handleFilterChange} cards={cards} tagCatalog={tagCatalog} />
       </aside>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex shrink-0 items-center gap-3 border-b border-neutral-900 px-5 py-2.5 text-xs uppercase tracking-[0.14em] text-neutral-500">
-          <span className="font-mono text-neutral-300">{filtered.length.toLocaleString()}</span>
-          <span>cards</span>
+        <div className="flex shrink-0 items-center gap-3 border-b border-ink-line bg-ink-bg/60 px-5 py-2.5">
+          <span className="font-mono tabular text-[15px] font-semibold text-vellum">
+            {filtered.length.toLocaleString()}
+          </span>
+          <span className="eyebrow">cards</span>
+          <span aria-hidden="true" className="h-3 w-px bg-ink-line-2" />
           <ActiveTagFilter tagIds={urlTags} onRemove={removeUrlTag} />
           {headerExtra}
         </div>
@@ -163,7 +189,7 @@ export default function BrowserShell({
         </div>
       </div>
       {focused && (
-        <div className="h-full w-[420px] shrink-0 border-l border-neutral-800">
+        <div className="h-full w-[420px] shrink-0 border-l border-ink-line bg-ink-panel/40">
           <CardDetailDrawer
             card={focused}
             onFocusCard={cardNav.push}
@@ -175,7 +201,7 @@ export default function BrowserShell({
         </div>
       )}
       {rightRail && (
-        <div ref={setDeckRail} className="scrollbar-slim h-full shrink-0 overflow-y-auto border-l border-neutral-800">
+        <div ref={setDeckRail} className="scrollbar-slim h-full shrink-0 overflow-y-auto border-l border-ink-line bg-ink-panel/40">
           {rightRail({ onCardClick: cardNav.push, drawerOpen: !!focused })}
         </div>
       )}

@@ -8,8 +8,8 @@ type Props = {
 };
 
 const BTN_BASE =
-  'inline-flex h-8 w-8 items-center justify-center rounded-full border border-neutral-700 bg-neutral-900/60 text-neutral-200 transition';
-const BTN_ENABLED = 'hover:bg-neutral-800/80 hover:text-white';
+  'focus-brass inline-flex h-8 w-8 items-center justify-center rounded-full border border-ink-line-2 bg-ink-raised/80 text-brass-hi shadow-[0_2px_6px_-2px_rgba(0,0,0,0.5)] backdrop-blur-sm transition-colors';
+const BTN_ENABLED = 'hover:border-brass/60 hover:bg-ink-raised hover:text-brass';
 const BTN_DISABLED = 'opacity-40 cursor-not-allowed';
 
 export default function CanvasNavButtons({ canBack, canForward, onBack, onForward }: Props) {

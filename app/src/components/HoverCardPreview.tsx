@@ -49,7 +49,7 @@ export default function HoverCardPreview(props: Props) {
         src={props.url}
         alt=""
         data-testid="hover-card-preview"
-        className="pointer-events-none fixed z-50 rounded shadow-2xl"
+        className="pointer-events-none fixed z-50 rounded-lg shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7),0_0_0_1px_rgba(212,164,74,0.25)]"
         style={{
           width,
           left: Math.max(8, props.x - (width + 20)),
@@ -64,7 +64,7 @@ export default function HoverCardPreview(props: Props) {
       src={props.url}
       alt=""
       data-testid="hover-card-preview"
-      className="pointer-events-none fixed top-1/2 z-50 -translate-y-1/2 rounded shadow-2xl"
+      className="pointer-events-none fixed top-1/2 z-50 -translate-y-1/2 rounded-lg shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7),0_0_0_1px_rgba(212,164,74,0.25)]"
       style={{ right: props.anchorRight, width: props.width }}
     />
   );

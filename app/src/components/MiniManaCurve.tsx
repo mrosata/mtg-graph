@@ -11,7 +11,7 @@ export default function MiniManaCurve({ countsByCmc, heightPx = 36 }: Props) {
         <div
           key={i}
           data-cmc={i}
-          className="w-2 bg-amber-500"
+          className="w-2 rounded-t-[1px] bg-brass/80"
           style={{ height: Math.round((n / max) * heightPx) }}
           title={`CMC ${i === 7 ? '7+' : i}: ${n}`}
         />

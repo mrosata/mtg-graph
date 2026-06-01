@@ -15,12 +15,12 @@ export default function LibrarySection() {
 
   if (!owned) {
     return (
-      <section className="mb-4">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Library</h4>
-        <p className="mt-1 text-xs text-neutral-500">Import a Manabox CSV backup.</p>
+      <section className="mb-4 rounded-lg border border-ink-line bg-ink-raised p-3">
+        <h4 className="eyebrow">Library</h4>
+        <p className="mt-1.5 text-xs text-vellum-mute">Import a Manabox CSV backup.</p>
         <button
           type="button"
-          className="mt-2 rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs hover:bg-neutral-700"
+          className="focus-brass mt-2 rounded-md border border-ink-line bg-ink-panel px-2.5 py-1 text-xs text-vellum transition-colors hover:border-brass/40 hover:text-brass-hi"
           onClick={() => setShowImport(true)}
         >
           Import library
@@ -36,39 +36,40 @@ export default function LibrarySection() {
   const importedDate = meta ? new Date(meta.importedAt).toLocaleDateString() : '';
 
   return (
-    <section className="mb-4">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Library</h4>
-      <p className="mt-1 text-xs text-neutral-300">
+    <section className="mb-4 rounded-lg border border-ink-line bg-ink-raised p-3">
+      <h4 className="eyebrow">Library</h4>
+      <p className="mt-1.5 font-mono tabular text-xs text-vellum">
         {cardCount.toLocaleString()} cards · {copyCount.toLocaleString()} copies
       </p>
-      <p className="text-xs text-neutral-500">Imported {importedDate}</p>
-      <label className="mt-2 flex items-center gap-2 text-xs">
+      <p className="text-[11px] text-vellum-dim">Imported {importedDate}</p>
+      <label className="mt-2 flex items-center gap-2 text-xs text-vellum-mute">
         <input
           type="checkbox"
           checked={enabled}
           onChange={(e) => void setEnabled(e.target.checked)}
           aria-label="Library only"
+          className="h-3.5 w-3.5 accent-[#d4a44a]"
         />
         Library only
       </label>
       <div className="mt-2 flex flex-wrap gap-1">
         <button
           type="button"
-          className="rounded border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800"
+          className="focus-brass rounded border border-ink-line px-2 py-0.5 text-[11px] text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
           onClick={() => setShowImport(true)}
         >
           Re-import
         </button>
         <button
           type="button"
-          className="rounded border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800"
+          className="focus-brass rounded border border-ink-line px-2 py-0.5 text-[11px] text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
           onClick={() => setShowReport(true)}
         >
           View report
         </button>
         <button
           type="button"
-          className="rounded border border-rose-700/50 px-2 py-0.5 text-xs text-rose-300 hover:bg-rose-900/30"
+          className="focus-brass rounded border border-rose-800/50 px-2 py-0.5 text-[11px] text-rose-300 transition-colors hover:bg-rose-900/30"
           onClick={() => {
             if (confirm('Clear your library? You can re-import any time.')) void clearLibrary();
           }}
@@ -84,12 +85,13 @@ export default function LibrarySection() {
           onClick={() => setShowReport(false)}
         >
           <div
-            className="w-[36rem] max-w-[92vw] rounded-lg border border-neutral-700 bg-neutral-900 p-6 shadow-2xl"
+            className="w-[36rem] max-w-[92vw] rounded-lg border border-ink-line-2 bg-ink-panel p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
-            <h3 className="text-lg font-semibold">Library import report</h3>
+            <h3 className="font-head text-lg italic text-vellum">Library import report</h3>
+            <div aria-hidden="true" className="brass-hairline-soft mt-2" />
             <div className="mt-3">
               <LibraryImportSummary
                 result={{
@@ -101,7 +103,7 @@ export default function LibrarySection() {
             <div className="mt-6 flex justify-end">
               <button
                 type="button"
-                className="rounded border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
+                className="focus-brass rounded border border-ink-line px-3 py-1.5 text-sm text-vellum transition-colors hover:border-brass/40 hover:text-brass-hi"
                 onClick={() => setShowReport(false)}
               >
                 Close

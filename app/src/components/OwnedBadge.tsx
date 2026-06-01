@@ -12,11 +12,25 @@ export default function OwnedBadge({ card, className = '' }: Props) {
   return (
     <span
       className={
-        'inline-flex items-center rounded bg-neutral-800/80 px-1.5 text-[10px] font-medium text-neutral-200 ' +
+        'inline-flex items-center rounded bg-mana-g/15 px-1.5 font-mono tabular text-[10px] font-medium text-[#82b97c] ring-1 ring-inset ring-mana-g/25 ' +
         className
       }
       aria-label={`Owned: ${count}`}
     >
+      <svg
+        viewBox="0 0 16 16"
+        width="9"
+        height="9"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="mr-0.5 opacity-90"
+      >
+        <path d="M3 8.5l3 3 7-7" />
+      </svg>
       ×{count}
     </span>
   );

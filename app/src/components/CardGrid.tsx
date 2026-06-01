@@ -53,15 +53,17 @@ export default function CardGrid({ cards, onCardClick, onHoverCard, width, heigh
               onClick={() => onCardClick(card)}
               onMouseEnter={() => scheduleHover(card)}
               onMouseLeave={clearHover}
-              className="relative p-1 text-left"
+              className="foil-edge relative p-1 text-left"
             >
-              <img
-                src={card.imageUrl}
-                alt={card.name}
-                loading="lazy"
-                className="h-full w-full rounded object-contain"
-              />
-              <OwnedBadge card={card} className="absolute bottom-1 right-1" />
+              <div className="relative h-full w-full overflow-hidden rounded-md">
+                <img
+                  src={card.imageUrl}
+                  alt={card.name}
+                  loading="lazy"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <OwnedBadge card={card} className="absolute bottom-2 right-2" />
             </button>
           );
         }}

@@ -230,10 +230,17 @@ export default function DeckGraphPage() {
   if (!deck) {
     return (
       <div className="flex h-full items-center justify-center p-8 text-center">
-        <div>
-          <p className="text-neutral-300">No active deck.</p>
-          <Link to="/decks" className="mt-2 inline-block text-sm text-amber-400 hover:underline">
-            Pick or create one
+        <div className="max-w-sm">
+          <p className="font-head text-3xl italic text-vellum">No active deck.</p>
+          <p className="mt-2 text-sm text-vellum-mute">
+            The interaction graph needs a deck to draw from.
+          </p>
+          <Link
+            to="/decks"
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-brass/40 bg-brass/10 px-4 py-1.5 text-sm font-semibold text-brass-hi transition-colors hover:bg-brass/20 hover:border-brass"
+          >
+            <span aria-hidden="true">→</span>
+            <span>Pick or create one</span>
           </Link>
         </div>
       </div>
@@ -243,10 +250,20 @@ export default function DeckGraphPage() {
   if (deck.workingCards.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-8 text-center">
-        <div>
-          <p className="text-neutral-300">{deck.name} is empty.</p>
-          <Link to="/" className="mt-2 inline-block text-sm text-amber-400 hover:underline">
-            Pick a card from the browser to start exploring
+        <div className="max-w-sm">
+          <p className="font-head text-3xl italic text-vellum">
+            <span className="not-italic font-display text-2xl tracking-wider text-brass-hi">{deck.name}</span>
+            <span className="mt-1 block">is empty.</span>
+          </p>
+          <p className="mt-3 text-sm text-vellum-mute">
+            Add cards from the browser and the graph will draw their interactions.
+          </p>
+          <Link
+            to="/"
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-brass/40 bg-brass/10 px-4 py-1.5 text-sm font-semibold text-brass-hi transition-colors hover:bg-brass/20 hover:border-brass"
+          >
+            <span aria-hidden="true">→</span>
+            <span>Start with the browser</span>
           </Link>
         </div>
       </div>
@@ -331,16 +348,31 @@ export default function DeckGraphPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-950 px-4 py-2">
+      <div className="flex items-center justify-between border-b border-ink-line bg-ink-bg/70 px-4 py-2">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-sm text-neutral-400 hover:text-neutral-200" aria-label="Back to deck list" data-tour-id={TOUR_IDS.deckGraphBackLink}>
-            ← {deck.name}
+          <Link
+            to="/"
+            className="group flex items-center gap-1.5 text-sm text-vellum-mute transition-colors hover:text-brass-hi"
+            aria-label="Back to deck list"
+            data-tour-id={TOUR_IDS.deckGraphBackLink}
+          >
+            <span aria-hidden="true" className="inline-block transition-transform group-hover:-translate-x-0.5">←</span>
+            <span className="font-head italic text-[15px] leading-none">{deck.name}</span>
           </Link>
-          <span className="text-xs text-neutral-500">· {deck.workingCards.reduce((s, c) => s + c.count, 0)} cards</span>
+          <span className="font-mono tabular text-[11px] text-vellum-dim">
+            · {deck.workingCards.reduce((s, c) => s + c.count, 0)} cards
+          </span>
         </div>
-        <div className="inline-flex overflow-hidden rounded border border-neutral-700 text-xs">
-          <Link to="/" className="px-2 py-1 text-neutral-300 hover:bg-neutral-900">List</Link>
-          <span className="bg-amber-900/40 px-2 py-1 font-semibold text-amber-200">Graph</span>
+        <div className="inline-flex overflow-hidden rounded-full border border-ink-line-2 bg-ink-panel/80 p-0.5 text-[11px]">
+          <Link
+            to="/"
+            className="rounded-full px-2.5 py-1 font-semibold uppercase tracking-caps text-vellum-mute transition-colors hover:bg-ink-raised hover:text-vellum"
+          >
+            List
+          </Link>
+          <span className="rounded-full bg-brass/15 px-2.5 py-1 font-semibold uppercase tracking-caps text-brass-hi shadow-[inset_0_0_0_1px_rgba(212,164,74,0.45)]">
+            Graph
+          </span>
         </div>
       </div>
 

@@ -28,12 +28,12 @@ function rowCountLabel(
   owned: Map<string, number> | null,
 ): React.JSX.Element {
   if (!owned || !card || isBasicLand(card)) {
-    return <span className="tabular-nums text-neutral-500">{count}×</span>;
+    return <span className="font-mono tabular text-xs text-vellum-dim">{count}×</span>;
   }
   const have = owned.get(card.oracleId) ?? 0;
   const short = have < count;
   return (
-    <span className={`tabular-nums ${short ? 'text-amber-300' : 'text-neutral-500'}`}>
+    <span className={`font-mono tabular text-xs ${short ? 'text-brass-hi' : 'text-vellum-dim'}`}>
       {count}/{have}
     </span>
   );
@@ -140,7 +140,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
   if (!deck) {
     return (
       <div className={`h-full transition-[width] duration-200 ease-out ${widthClass}`}>
-        <p className="p-4 text-neutral-400">No active deck. Create or select one from Decks.</p>
+        <p className="p-4 font-head italic text-vellum-mute">No active deck. Create or select one from Decks.</p>
       </div>
     );
   }
@@ -160,24 +160,24 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                   if (e.key === 'Enter') commitName();
                   if (e.key === 'Escape') setEditingName(false);
                 }}
-                className="w-full bg-neutral-900 px-1 text-lg font-semibold"
+                className="focus-brass w-full rounded border border-ink-line bg-ink-raised px-2 py-1 font-head text-2xl italic text-vellum"
               />
             ) : (
               <h2
                 onClick={startEditingName}
-                className="cursor-pointer truncate text-lg font-semibold hover:underline"
+                className="cursor-pointer truncate font-head text-2xl italic text-vellum transition-colors hover:text-brass-hi"
                 title="Click to rename"
               >
                 {deck.name}{dirty ? '*' : ''}
               </h2>
             )}
-            <p className="text-xs text-neutral-400">{total} cards</p>
+            <p className="font-mono tabular text-xs text-vellum-dim">{total} cards</p>
             <div className="mt-2 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => saveDeck(deck.id)}
                 disabled={!dirty}
-                className="rounded bg-amber-500 px-2 py-0.5 text-xs font-semibold text-black hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500 disabled:hover:bg-neutral-800"
+                className="focus-brass rounded-full bg-brass px-3 py-0.5 text-xs font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim disabled:hover:bg-ink-raised"
               >
                 Save
               </button>
@@ -185,7 +185,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                 type="button"
                 onClick={() => discardChanges(deck.id)}
                 disabled={!dirty}
-                className="rounded border border-red-500/50 px-2 py-0.5 text-xs text-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:border-neutral-800 disabled:text-neutral-600 disabled:hover:text-neutral-600"
+                className="focus-brass rounded-full border border-mana-r/50 px-3 py-0.5 text-xs text-mana-r transition-colors hover:bg-mana-r/10 hover:text-mana-r disabled:cursor-not-allowed disabled:border-ink-line disabled:text-vellum-dim disabled:hover:bg-transparent"
               >
                 Discard
               </button>
@@ -199,7 +199,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                     showToast('Copy failed. Select the text and copy manually.');
                   }
                 }}
-                className="ml-auto text-xs text-amber-400 hover:underline"
+                className="focus-brass ml-auto text-xs text-brass transition-colors hover:text-brass-hi"
               >
                 Export
               </button>
@@ -209,9 +209,21 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
             type="button"
             onClick={() => setCollapsed(true)}
             aria-label="Collapse deck panel"
-            className="shrink-0 text-neutral-400 hover:text-neutral-100"
+            className="focus-brass shrink-0 rounded p-1 text-vellum-dim transition-colors hover:bg-ink-raised hover:text-brass-hi"
           >
-            ◀
+            <svg
+              viewBox="0 0 16 16"
+              width="14"
+              height="14"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 3L5 8l5 5" />
+            </svg>
           </button>
         </div>
         <div data-tour-id={TOUR_IDS.manaCurve}>
@@ -220,21 +232,29 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
         {warnings.length > 0 && (
           <ul className="space-y-1">
             {warnings.map((w, i) => (
-              <li key={i} className="text-xs text-amber-300">{w.message}</li>
+              <li key={i} className="text-xs text-brass-hi">{w.message}</li>
             ))}
           </ul>
         )}
         {owned && missing !== null && (
           missing === 0
-            ? <p aria-label="Library is fully stocked" className="text-xs text-emerald-400">✓ Library covers this deck</p>
-            : <p className="text-xs text-amber-300">Missing: {missing} cards</p>
+            ? (
+              <p
+                aria-label="Library is fully stocked"
+                className="font-head italic text-xs text-vellum-mute"
+              >
+                <span aria-hidden="true" className="mr-1 text-brass">✓</span>
+                Library covers this deck.
+              </p>
+            )
+            : <p className="font-mono tabular text-xs text-brass-hi">Missing: {missing} cards</p>
         )}
         <div className="space-y-3">
           {TYPE_ORDER.filter((t) => grouped[t]?.length).map((t) => (
             <div key={t}>
               <h3
                 ref={(el) => { sectionRefs.current[t] = el; }}
-                className="text-xs uppercase tracking-wide text-neutral-400"
+                className="eyebrow"
               >
                 {TYPE_PLURAL[t]}
               </h3>
@@ -277,7 +297,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
           ))}
           {grouped['Unknown']?.length ? (
             <div>
-              <h3 className="text-xs uppercase tracking-wide text-neutral-400">Unknown</h3>
+              <h3 className="eyebrow">Unknown</h3>
               <ul className="mt-1 space-y-0.5">
                 {grouped['Unknown'].map((e) => (
                   <li
@@ -292,7 +312,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                       onAdd={(qty) => addCard(e.oracleId, qty)}
                       onRemove={(qty) => removeCard(e.oracleId, qty)}
                     />
-                    <span className="truncate text-neutral-400" title={e.oracleId}>{e.name}</span>
+                    <span className="truncate text-vellum-dim" title={e.oracleId}>{e.name}</span>
                   </li>
                 ))}
               </ul>
@@ -300,7 +320,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
           ) : null}
           {removedEntries.length > 0 && (
             <div>
-              <h3 className="text-xs uppercase tracking-wide text-neutral-400">Removed cards</h3>
+              <h3 className="eyebrow">Removed cards</h3>
               <ul className="mt-1 space-y-0.5">
                 {removedEntries.map((r) => {
                   const displayName = cards.get(r.oracleId)?.name ?? r.name ?? `Unknown card (oracleId: ${r.oracleId.slice(0, 8)})`;
@@ -314,11 +334,11 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                         type="button"
                         onClick={() => restoreRemoved(r.oracleId)}
                         aria-label={`Restore ${displayName}`}
-                        className="flex w-full items-center gap-2 rounded px-1 py-0.5 text-left text-sm text-neutral-300 hover:bg-neutral-900 hover:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        className="focus-brass flex w-full items-center gap-2 rounded px-1 py-0.5 text-left text-sm text-vellum-mute transition-colors hover:bg-ink-raised/50 hover:text-vellum"
                       >
-                        <span className="tabular-nums text-neutral-500">{r.count}×</span>
+                        <span className="font-mono tabular text-vellum-dim">{r.count}×</span>
                         <span className="truncate">{displayName}</span>
-                        <span className="ml-auto text-xs text-neutral-500">Restore</span>
+                        <span className="ml-auto text-xs text-vellum-dim">Restore</span>
                       </button>
                     </li>
                   );

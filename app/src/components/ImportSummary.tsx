@@ -12,46 +12,48 @@ export default function ImportSummary() {
 
   const importedCount = result.resolved.reduce((s, e) => s + e.count, 0);
   const totalParsed = importedCount + result.unknown.reduce((s, e) => s + e.count, 0);
+  const skippedCount = result.unknown.reduce((s, e) => s + e.count, 0);
 
   return (
     <div
       role="status"
-      className="m-4 rounded border border-amber-700/50 bg-amber-900/20 p-3 text-sm text-amber-100"
+      className="m-4 rounded border border-brass/40 bg-brass/10 p-3 text-sm text-vellum"
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="font-semibold">Imported {importedCount} of {totalParsed} cards.</p>
+        <p className="font-semibold tabular text-brass-hi">
+          {`Imported ${importedCount} of ${totalParsed} cards.`}
+        </p>
         <button
           onClick={clear}
           aria-label="Dismiss import summary"
-          className="text-amber-300 hover:text-amber-100"
+          className="focus-brass text-vellum-mute transition-colors hover:text-brass-hi"
         >
           ×
         </button>
       </div>
       {result.unknown.length > 0 && (
         <details className="mt-2">
-          <summary className="cursor-pointer">
-            {result.unknown.reduce((s, e) => s + e.count, 0)} cards skipped — not in Standard.
-            mtg-graph currently only supports Standard.
+          <summary className="cursor-pointer text-vellum-mute">
+            {`${skippedCount} cards skipped — not in Standard. mtg-graph currently only supports Standard.`}
           </summary>
-          <ul className="mt-1 list-disc pl-5 text-xs text-amber-200">
+          <ul className="mt-1 list-disc pl-5 font-mono text-xs tabular text-vellum-dim">
             {result.unknown.map((e, i) => (
-              <li key={i}>{e.count} {e.name}</li>
+              <li key={i}>{`${e.count} ${e.name}`}</li>
             ))}
           </ul>
         </details>
       )}
       {result.sideboardCount > 0 && (
-        <p className="mt-2 text-xs text-amber-200">
-          {result.sideboardCount} sideboard cards skipped — sideboards aren't supported yet.
+        <p className="mt-2 text-xs text-vellum-dim">
+          {`${result.sideboardCount} sideboard cards skipped — sideboards aren't supported yet.`}
         </p>
       )}
       {result.unparseableLines.length > 0 && (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-amber-200">
-            {result.unparseableLines.length} unparseable lines skipped.
+          <summary className="cursor-pointer text-xs text-vellum-dim">
+            {`${result.unparseableLines.length} unparseable lines skipped.`}
           </summary>
-          <ul className="mt-1 list-disc pl-5 font-mono text-xs text-amber-200">
+          <ul className="mt-1 list-disc pl-5 font-mono text-xs text-vellum-dim">
             {result.unparseableLines.map((line, i) => (
               <li key={i}>{line}</li>
             ))}

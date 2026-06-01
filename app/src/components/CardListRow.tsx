@@ -37,13 +37,13 @@ export default function CardListRow({
       onMouseEnter={onMouseEnter}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
-      className={`group flex items-center gap-2 rounded px-1 py-0.5 text-sm hover:bg-neutral-900/50${className ? ' ' + className : ''}`}
+      className={`group flex items-center gap-2 rounded px-1 py-0.5 text-sm text-vellum transition-colors hover:bg-ink-raised/40${className ? ' ' + className : ''}`}
     >
       <CountControls count={count} onAdd={onAdd} onRemove={onRemove} />
       <button
         type="button"
         onClick={onClickName}
-        className={`flex min-w-0 flex-1 items-center gap-2 truncate text-left ${onClickName ? 'cursor-pointer hover:text-amber-200' : 'cursor-default'}`}
+        className={`flex min-w-0 flex-1 items-center gap-2 truncate text-left transition-colors ${onClickName ? 'cursor-pointer hover:text-brass-hi' : 'cursor-default'}`}
       >
         <ManaCost cost={manaCost} />
         <span className="truncate">{name}</span>
@@ -74,7 +74,7 @@ export function CountControls({ count, onAdd, onRemove }: CountControlsProps) {
       role="group"
       aria-label="Adjust copies"
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex shrink-0 select-none overflow-hidden rounded border border-neutral-800 bg-neutral-950 transition group-hover:border-neutral-700"
+      className="inline-flex shrink-0 select-none overflow-hidden rounded border border-ink-line bg-ink-bg transition-colors group-hover:border-ink-line-2"
     >
       <button
         type="button"
@@ -82,14 +82,14 @@ export function CountControls({ count, onAdd, onRemove }: CountControlsProps) {
         disabled={count === 0}
         aria-label="Remove one copy"
         title="Click: remove 1 • Shift+Click: remove up to 4"
-        className="flex h-6 w-6 items-center justify-center text-neutral-400 transition hover:bg-neutral-800 hover:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-amber-400 disabled:cursor-not-allowed disabled:text-neutral-700 disabled:hover:bg-transparent"
+        className="focus-brass flex h-6 w-6 items-center justify-center text-vellum-dim transition-colors hover:bg-ink-raised hover:text-vellum disabled:cursor-not-allowed disabled:text-ink-line-2 disabled:hover:bg-transparent"
       >
         <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M3 8h10" />
         </svg>
       </button>
       <span
-        className="flex h-6 min-w-[1.5rem] items-center justify-center border-x border-neutral-800 px-1 font-mono text-xs font-semibold text-neutral-200"
+        className="flex h-6 min-w-[1.5rem] items-center justify-center border-x border-ink-line px-1 font-mono tabular text-xs font-semibold text-vellum"
         aria-label={`${count} in deck`}
       >
         {count}
@@ -99,7 +99,7 @@ export function CountControls({ count, onAdd, onRemove }: CountControlsProps) {
         onClick={handleAdd}
         aria-label="Add one copy"
         title="Click: add 1 • Shift+Click: add 4"
-        className="flex h-6 w-6 items-center justify-center text-amber-300 transition hover:bg-amber-500/15 hover:text-amber-200 focus:outline-none focus:ring-1 focus:ring-amber-400"
+        className="focus-brass flex h-6 w-6 items-center justify-center text-brass transition-colors hover:bg-brass/15 hover:text-brass-hi"
       >
         <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M8 3v10M3 8h10" />

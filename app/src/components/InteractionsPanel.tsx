@@ -158,13 +158,13 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
   const activeCounts = tab === 'interactions' ? interactionTypeCounts : themeTypeCounts;
   const activeTone =
     tab === 'themes'
-      ? 'border-violet-700 text-violet-200 hover:border-violet-400 hover:bg-violet-950'
-      : 'border-neutral-700 text-neutral-300 hover:border-amber-500 hover:bg-amber-950/40 hover:text-amber-200';
-  const reasonTone = tab === 'themes' ? 'text-violet-300' : 'text-neutral-400';
+      ? 'border-axis-theme/40 text-axis-theme/90 hover:border-axis-theme hover:bg-axis-theme/10 hover:text-axis-theme'
+      : 'border-ink-line-2 text-vellum-mute hover:border-brass hover:bg-brass/10 hover:text-brass-hi';
+  const reasonTone = tab === 'themes' ? 'text-axis-theme/80' : 'text-vellum-dim';
 
   return (
-    <div className="mt-4 border-t border-neutral-800 pt-3">
-      <div className="mb-2 flex gap-1 border-b border-neutral-800">
+    <div className="mt-4 border-t border-ink-line pt-3">
+      <div className="mb-2 flex gap-1 border-b border-ink-line">
         <TabButton
           active={tab === 'interactions'}
           onClick={() => setTab('interactions')}
@@ -191,11 +191,11 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
                   onClick={() => navigateToTag(tagId)}
                   // No hover popup — `title` is intentionally omitted so the description
                   // doesn't appear as a native tooltip. Hover feedback is purely visual.
-                  className={`rounded border px-1.5 py-0.5 text-[11px] transition-colors ${activeTone}`}
+                  className={`rounded-full border px-2 py-0.5 text-[11px] transition-colors ${activeTone}`}
                   aria-label={`Show all cards tagged ${label}`}
                   aria-description={def?.description}
                 >
-                  {label} <span className="opacity-70">{count}</span>
+                  {label} <span className="ml-0.5 font-mono tabular opacity-70">{count}</span>
                 </button>
               );
             })}
@@ -214,7 +214,11 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
                   : [...(filter.colors ?? []), c],
               })
             }
-            className={`h-6 w-6 rounded border text-xs ${filter.colors?.includes(c) ? 'bg-amber-500 text-black' : 'border-neutral-700'}`}
+            className={`focus-brass h-6 w-6 rounded-full border text-xs font-semibold transition-colors ${
+              filter.colors?.includes(c)
+                ? 'border-brass bg-brass text-ink-bg'
+                : 'border-ink-line-2 text-vellum-mute hover:text-vellum'
+            }`}
           >
             {c}
           </button>
@@ -228,7 +232,7 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
           onChange={(e) =>
             setFilter({ ...filter, cmcMin: e.target.value === '' ? undefined : Number(e.target.value) })
           }
-          className="w-16 bg-neutral-900 px-1 text-sm"
+          className="focus-brass w-16 rounded border border-ink-line bg-ink-raised px-1.5 font-mono tabular text-sm text-vellum placeholder:text-vellum-dim"
         />
         <input
           type="number"
@@ -239,7 +243,7 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
           onChange={(e) =>
             setFilter({ ...filter, cmcMax: e.target.value === '' ? undefined : Number(e.target.value) })
           }
-          className="w-16 bg-neutral-900 px-1 text-sm"
+          className="focus-brass w-16 rounded border border-ink-line bg-ink-raised px-1.5 font-mono tabular text-sm text-vellum placeholder:text-vellum-dim"
         />
       </div>
       <div className="mb-2 flex flex-wrap gap-1">
@@ -259,7 +263,11 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
                     : [...(filter.rarities ?? []), r],
                 })
               }
-              className={`h-6 min-w-6 rounded border px-1.5 text-[11px] font-bold ${on ? 'border-amber-500 bg-amber-500/20 text-amber-200' : 'border-neutral-700 text-neutral-400'}`}
+              className={`focus-brass h-6 min-w-6 rounded border px-1.5 font-mono tabular text-[11px] font-bold transition-colors ${
+                on
+                  ? 'border-brass bg-brass/20 text-brass-hi'
+                  : 'border-ink-line-2 text-vellum-dim hover:text-vellum'
+              }`}
             >
               {RARITY_LETTERS[r]}
             </button>
@@ -281,14 +289,18 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
                   if (card.imageUrl) setHoverUrl(card.imageUrl);
                 }}
                 onMouseLeave={() => setHoverUrl(null)}
-                className="flex w-full items-center gap-2 rounded p-1 text-left hover:bg-neutral-900"
+                className="group flex w-full items-center gap-2 rounded p-1 text-left transition-colors hover:bg-ink-raised/40"
               >
-                <img src={card.imageUrl} alt="" className="h-12 w-9 rounded object-contain" />
+                <img
+                  src={card.imageUrl}
+                  alt=""
+                  className="h-12 w-9 rounded object-contain ring-1 ring-transparent transition-shadow group-hover:ring-brass/40"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="truncate text-sm">{card.name}</div>
+                    <div className="truncate text-sm text-vellum group-hover:text-brass-hi">{card.name}</div>
                     {countInDeck(n.oracleId) > 0 && (
-                      <span className="shrink-0 rounded bg-amber-900 px-1.5 py-0.5 text-[10px] font-semibold text-amber-200">
+                      <span className="shrink-0 rounded-full border border-brass/40 bg-brass/15 px-1.5 py-0.5 font-mono tabular text-[10px] font-semibold text-brass-hi">
                         ×{countInDeck(n.oracleId)}
                       </span>
                     )}
@@ -340,12 +352,15 @@ function TabButton({
   label: string;
   accent?: 'amber' | 'violet';
 }) {
-  const activeColor = accent === 'violet' ? 'border-violet-500 text-violet-200' : 'border-amber-500 text-amber-200';
+  const activeColor =
+    accent === 'violet'
+      ? 'border-axis-theme text-axis-theme'
+      : 'border-brass text-brass-hi';
   return (
     <button
       onClick={onClick}
-      className={`-mb-px border-b-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-        active ? activeColor : 'border-transparent text-neutral-400 hover:text-neutral-200'
+      className={`focus-brass -mb-px border-b-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-eyebrow transition-colors ${
+        active ? activeColor : 'border-transparent text-vellum-dim hover:text-vellum'
       }`}
     >
       {label}

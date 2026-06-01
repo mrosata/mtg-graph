@@ -53,7 +53,7 @@ export default function ManaSymbol({ token }: Props) {
     return (
       <span
         role="img"
-        className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-neutral-700 px-1 text-[9px] font-bold text-neutral-100"
+        className="inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-ink-line-2 bg-ink-raised px-1 font-mono text-[9px] font-bold text-vellum"
         aria-label={inner}
       >
         {inner}

@@ -89,46 +89,50 @@ export default function SelectionDrawer({
       : `Connects to ${summary.uniqueCards} ${summary.uniqueCards === 1 ? 'node' : 'nodes'}` +
         ` · ${summary.totalCopies} ${summary.totalCopies === 1 ? 'card' : 'cards'} in your deck`;
 
+  const clsLabel =
+    node.cls === 'deck' ? 'in deck' : node.cls === 'bridge' ? 'bridge' : 'candidate';
+
   return (
-    <aside className="h-full w-80 shrink-0 overflow-y-auto border-l border-neutral-800 bg-neutral-950 p-4">
+    <aside className="h-full w-80 shrink-0 overflow-y-auto border-l border-ink-line bg-ink-panel p-4 scrollbar-slim">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-            Selected · {node.cls === 'deck' ? 'in deck' : node.cls === 'bridge' ? 'bridge' : 'candidate'}
-          </p>
-          <h3 className="mt-0.5 text-base font-semibold text-neutral-100">{node.card.name}</h3>
+          <p className="eyebrow">{`Selected · ${clsLabel}`}</p>
+          <h3 className="mt-1 font-head text-2xl italic text-vellum">{node.card.name}</h3>
         </div>
         <button
           type="button"
           aria-label="Close drawer"
           onClick={onClose}
-          className="text-neutral-400 hover:text-neutral-100"
+          className="focus-brass text-vellum-dim transition-colors hover:text-brass-hi"
         >
           ×
         </button>
       </div>
 
-      <div className="mt-2 flex items-center gap-2 text-xs text-neutral-400">
+      <div className="mt-1.5 flex items-center gap-2 text-xs text-vellum-mute">
         <ManaCost cost={node.card.manaCost} />
-        <span>· {node.card.typeLine}</span>
+        <span className="font-head italic">{`· ${node.card.typeLine}`}</span>
       </div>
 
       {node.card.imageUrl && (
-        <img
-          src={node.card.imageUrl}
-          alt={node.card.name}
-          className="mt-3 w-full rounded border border-neutral-800"
-        />
+        <div className="relative mt-3">
+          {/* Persistent brass top edge — a subtle gilded reminder that this card
+           * is the one in focus, without disturbing the artwork. */}
+          <div className="brass-hairline-soft absolute inset-x-2 top-0 z-10 rounded" />
+          <img
+            src={node.card.imageUrl}
+            alt={node.card.name}
+            className="w-full rounded border border-ink-line shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]"
+          />
+        </div>
       )}
 
       <div className="mt-3">
-        <p className="text-xs text-neutral-400">{summaryText}</p>
+        <p className="text-xs text-vellum-mute">{summaryText}</p>
         {byFamily.size > 0 && (
           <>
-            <p className="mt-2 text-[10px] uppercase tracking-wider text-neutral-500">
-              Shared interactions
-            </p>
-            <ul className="mt-1 flex flex-wrap gap-1">
+            <p className="eyebrow mt-3">Shared interactions</p>
+            <ul className="mt-1.5 flex flex-wrap gap-1">
               {Array.from(byFamily.entries()).map(([famId, count]) => {
                 const fd = FAMILY_DEFS.get(famId);
                 if (!fd) return null;
@@ -139,11 +143,14 @@ export default function SelectionDrawer({
                       onClick={() => onToggleFamily(famId)}
                       aria-label={`Hide ${fd.label} edges`}
                       title={`Hide ${fd.label} edges`}
-                      className="inline-flex items-center gap-1 rounded border border-neutral-800 px-1.5 py-0.5 text-xs text-neutral-300 hover:border-neutral-600 hover:text-neutral-100"
+                      className="focus-brass inline-flex items-center gap-1 rounded-full border border-ink-line bg-ink-raised px-2 py-0.5 text-xs text-vellum-mute transition-colors hover:border-brass/50 hover:text-brass-hi"
                     >
-                      <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: fd.color }} />
+                      <span
+                        className="inline-block h-1.5 w-1.5 rounded-full"
+                        style={{ background: fd.color, boxShadow: `0 0 4px ${fd.color}88` }}
+                      />
                       <span>{fd.label}</span>
-                      <span className="text-neutral-500">·{count}</span>
+                      <span className="font-mono tabular text-vellum-dim">{`·${count}`}</span>
                     </button>
                   </li>
                 );
@@ -158,7 +165,7 @@ export default function SelectionDrawer({
           <button
             type="button"
             onClick={onAdd}
-            className="w-full rounded bg-amber-500 px-3 py-2 text-sm font-semibold text-black hover:bg-amber-400"
+            className="focus-brass w-full rounded bg-brass px-3 py-2 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi"
           >
             + Add to deck
           </button>
@@ -169,15 +176,15 @@ export default function SelectionDrawer({
               type="button"
               onClick={onRemoveOne}
               disabled={deckCount === 0}
-              className="w-full rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="focus-brass w-full rounded border border-ink-line-2 bg-ink-raised px-3 py-2 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Remove one copy ({deckCount} in deck)
+              {`Remove one copy (${deckCount} in deck)`}
             </button>
             {deckCount > 1 && (
               <button
                 type="button"
                 onClick={() => setConfirmingRemoveAll(true)}
-                className="w-full rounded border border-red-900 px-3 py-2 text-sm text-red-300 hover:border-red-500"
+                className="focus-brass w-full rounded border border-mana-r/40 bg-mana-r/5 px-3 py-2 text-sm text-mana-r transition-colors hover:bg-mana-r/10 hover:border-mana-r/60"
               >
                 Remove all copies
               </button>
@@ -188,10 +195,8 @@ export default function SelectionDrawer({
 
       {neighbors.length > 0 && (
         <div className="mt-5">
-          <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-            Connected cards · {neighbors.length}
-          </p>
-          <ul className="mt-1 space-y-0.5">
+          <p className="eyebrow">{`Connected cards · ${neighbors.length}`}</p>
+          <ul className="mt-1.5 space-y-0.5">
             {neighbors.map((n) => (
               <CardListRow
                 key={n.oracleId}
@@ -234,7 +239,8 @@ export default function SelectionDrawer({
           title="Remove all copies?"
           message={
             <>
-              Remove all {deckCount} copies of <span className="font-semibold text-neutral-100">{node.card.name}</span>?
+              {`Remove all ${deckCount} copies of `}
+              <span className="font-head italic text-vellum">{node.card.name}</span>?
             </>
           }
           confirmLabel="Remove"
@@ -255,7 +261,7 @@ function NeighborBadges({ stat }: { stat: NeighborStat }) {
           data-bridge-indicator
           title="Bridge: reachable via the selected card"
           aria-label="Bridge neighbor"
-          className="inline-block h-2 w-2 rounded-full border border-dashed border-neutral-400"
+          className="inline-block h-2 w-2 rounded-full border border-dashed border-vellum-dim"
         />
       )}
       <span className="flex items-center gap-0.5" aria-label="Shared families">
@@ -267,16 +273,16 @@ function NeighborBadges({ stat }: { stat: NeighborStat }) {
               key={b.familyId}
               title={`${fd.label} · ${b.count}`}
               className="inline-block h-1.5 w-1.5 rounded-full"
-              style={{ background: fd.color }}
+              style={{ background: fd.color, boxShadow: `0 0 4px ${fd.color}66` }}
             />
           );
         })}
       </span>
       <span
-        className="font-mono text-[10px] text-neutral-500"
+        className="font-mono text-[10px] tabular text-vellum-dim"
         title={`${stat.totalEdgeCount} shared interaction${stat.totalEdgeCount === 1 ? '' : 's'}`}
       >
-        ×{stat.totalEdgeCount}
+        {`×${stat.totalEdgeCount}`}
       </span>
     </span>
   );

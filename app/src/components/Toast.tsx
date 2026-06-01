@@ -19,9 +19,10 @@ export default function Toast() {
     <div
       role="status"
       onClick={dismiss}
-      className="fixed bottom-4 right-4 z-50 cursor-pointer rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 shadow-lg"
+      className="fixed bottom-4 right-4 z-50 cursor-pointer overflow-hidden rounded-md border border-ink-line bg-ink-raised px-4 py-2.5 text-sm text-vellum shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7),0_0_0_1px_rgba(212,164,74,0.18)]"
     >
-      {message}
+      <div className="brass-hairline-soft -mx-4 -mt-2.5 mb-2" aria-hidden="true" />
+      <span className="font-head italic text-vellum">{message}</span>
     </div>
   );
 }

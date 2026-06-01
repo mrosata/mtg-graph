@@ -18,20 +18,37 @@ const THEMES_STORAGE_KEY = 'mtg-graph:filter-themes-collapsed';
 
 const COLORS: Color[] = ['W', 'U', 'B', 'R', 'G'];
 
-const COLOR_STYLES: Record<Color, string> = {
-  W: 'bg-amber-50 text-amber-900 border-amber-200',
-  U: 'bg-blue-100 text-blue-900 border-blue-200',
-  B: 'bg-neutral-800 text-neutral-300 border-neutral-700',
-  R: 'bg-red-100 text-red-900 border-red-200',
-  G: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+// Per-color tokens for the iconic WUBRG filter pips. Each color gets:
+//  - a glowing inner dot (semantic mana color)
+//  - a letter that lights up brass when active, fades to vellum-dim when off
+//  - a 28×28 ring with brass focus + active glow
+const COLOR_DOT: Record<Color, string> = {
+  W: 'bg-mana-w',
+  U: 'bg-mana-u',
+  B: 'bg-mana-b',
+  R: 'bg-mana-r',
+  G: 'bg-mana-g',
 };
 
 const RARITIES: Rarity[] = ['common', 'uncommon', 'rare', 'mythic'];
+// Refined rarity gradients: bone / silver / brass / ember-amaranth.
 const RARITY_STYLES: Record<Rarity, { letter: string; on: string }> = {
-  common: { letter: 'C', on: 'bg-neutral-800 text-neutral-200 border-neutral-600' },
-  uncommon: { letter: 'U', on: 'bg-gradient-to-br from-slate-700 to-slate-900 text-slate-200 border-slate-500' },
-  rare: { letter: 'R', on: 'bg-gradient-to-br from-amber-950 to-stone-950 text-amber-300 border-amber-700' },
-  mythic: { letter: 'M', on: 'bg-gradient-to-br from-orange-950 to-stone-950 text-orange-300 border-orange-700' },
+  common: {
+    letter: 'C',
+    on: 'bg-gradient-to-br from-[#c8bfa8] to-[#8a8295] text-ink-bg border-vellum-dim/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]',
+  },
+  uncommon: {
+    letter: 'U',
+    on: 'bg-gradient-to-br from-[#d6d8db] to-[#6b6f76] text-ink-bg border-[#a4a8af] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]',
+  },
+  rare: {
+    letter: 'R',
+    on: 'bg-gradient-to-br from-brass-hi to-brass-deep text-ink-bg border-brass shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_0_10px_rgba(212,164,74,0.35)]',
+  },
+  mythic: {
+    letter: 'M',
+    on: 'bg-gradient-to-br from-[#f0a86a] to-[#9b2a3d] text-vellum border-[#e07772] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_10px_rgba(224,119,114,0.4)]',
+  },
 };
 
 type Props = {
@@ -170,11 +187,18 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   return (
     <div className="scrollbar-slim flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4" data-tour-id={TOUR_IDS.filterPanel}>
       <LibrarySection />
+
       <section>
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-          Scope
-        </label>
-        <div className="mt-2 flex rounded-lg border border-neutral-800 bg-neutral-900 p-0.5" role="radiogroup" aria-label="Scope">
+        <div className="flex items-center gap-1.5">
+          <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-brass shadow-[0_0_6px_rgba(212,164,74,0.6)]" />
+          <label className="eyebrow">Scope</label>
+        </div>
+        <div aria-hidden="true" className="brass-hairline-soft mt-1" />
+        <div
+          className="mt-2 flex rounded-lg border border-ink-line bg-ink-raised p-0.5"
+          role="radiogroup"
+          aria-label="Scope"
+        >
           {scopeOptions.map((opt) => {
             const active = scope === opt.value;
             return (
@@ -185,10 +209,10 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
                 aria-checked={active}
                 onClick={() => changeScope(opt.value)}
                 className={
-                  'flex-1 rounded-md px-2 py-1 text-xs transition-colors ' +
+                  'focus-brass flex-1 rounded-md px-2 py-1 text-xs transition-colors ' +
                   (active
-                    ? 'bg-neutral-700 text-neutral-50'
-                    : 'text-neutral-400 hover:text-neutral-200')
+                    ? 'bg-brass/15 text-brass-hi shadow-[inset_0_0_0_1px_rgba(212,164,74,0.35)]'
+                    : 'text-vellum-mute hover:text-vellum')
                 }
               >
                 {opt.label}
@@ -196,7 +220,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
             );
           })}
         </div>
-        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-neutral-300">
+        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-vellum-mute">
           <input
             type="checkbox"
             checked={!!value.includeCommander}
@@ -206,22 +230,20 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
                 includeCommander: e.target.checked ? true : undefined,
               })
             }
-            className="h-3.5 w-3.5 accent-amber-500"
+            className="h-3.5 w-3.5 accent-[#d4a44a]"
           />
           <span>Include Commander cards</span>
         </label>
       </section>
 
       <section>
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-          Search
-        </label>
+        <label className="eyebrow block">Search</label>
         <div className="mt-2 flex flex-col gap-1.5">
-          <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-2.5 py-1.5 focus-within:border-neutral-600">
+          <div className="focus-brass flex items-center gap-2 rounded-lg border border-ink-line bg-ink-raised px-2.5 py-1.5">
             <svg
               width="13" height="13" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2"
-              className="flex-shrink-0 text-neutral-500"
+              className="flex-shrink-0 text-vellum-dim"
               aria-hidden="true"
             >
               <circle cx="11" cy="11" r="7" />
@@ -233,14 +255,14 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
               aria-label="Card name"
               value={value.name ?? ''}
               onChange={(e) => onChange({ ...value, name: e.target.value || undefined })}
-              className="w-full bg-transparent text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
+              className="w-full bg-transparent text-sm text-vellum placeholder:text-vellum-dim focus:outline-none"
             />
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-2.5 py-1.5 focus-within:border-neutral-600">
+          <div className="focus-brass flex items-center gap-2 rounded-lg border border-ink-line bg-ink-raised px-2.5 py-1.5">
             <svg
               width="13" height="13" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2"
-              className="flex-shrink-0 text-neutral-500"
+              className="flex-shrink-0 text-vellum-dim"
               aria-hidden="true"
             >
               <path d="M4 6h16M4 12h10M4 18h16" />
@@ -251,16 +273,16 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
               aria-label="Oracle text"
               value={value.text ?? ''}
               onChange={(e) => onChange({ ...value, text: e.target.value || undefined })}
-              className="w-full bg-transparent text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
+              className="w-full bg-transparent text-sm text-vellum placeholder:text-vellum-dim focus:outline-none"
             />
           </div>
         </div>
       </section>
 
+      <div aria-hidden="true" className="brass-hairline" />
+
       <section>
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-          Colors
-        </label>
+        <label className="eyebrow block">Colors</label>
         <div className="mt-2 flex gap-1.5">
           {COLORS.map((c) => {
             const on = value.colors?.includes(c) ?? false;
@@ -271,9 +293,23 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
                 aria-label={c}
                 aria-pressed={on}
                 onClick={() => toggleColor(c)}
-                className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold transition ${COLOR_STYLES[c]} ${on ? 'ring-2 ring-amber-400/70' : 'opacity-30 hover:opacity-60'}`}
+                className={
+                  'focus-brass relative flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-mono tabular transition ' +
+                  (on
+                    ? 'border-brass/60 bg-ink-raised text-brass-hi shadow-[inset_0_0_0_1px_rgba(0,0,0,0.4),0_0_10px_rgba(212,164,74,0.45)]'
+                    : 'border-ink-line bg-ink-panel text-vellum-dim opacity-70 hover:opacity-100 hover:text-vellum')
+                }
               >
-                {c}
+                <span
+                  aria-hidden="true"
+                  className={
+                    'pointer-events-none absolute inset-1 rounded-full ' +
+                    COLOR_DOT[c] +
+                    (on ? ' opacity-70' : ' opacity-25')
+                  }
+                  style={{ filter: on ? 'blur(0.5px)' : 'none' }}
+                />
+                <span className="relative z-10">{c}</span>
               </button>
             );
           })}
@@ -281,9 +317,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
       </section>
 
       <section>
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-          Rarity
-        </label>
+        <label className="eyebrow block">Rarity</label>
         <div className="mt-2 flex gap-1.5">
           {RARITIES.map((r) => {
             const on = value.rarities?.includes(r) ?? false;
@@ -295,7 +329,10 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
                 aria-label={r}
                 aria-pressed={on}
                 onClick={() => toggleRarity(r)}
-                className={`flex h-6 min-w-6 items-center justify-center rounded border px-1.5 text-[11px] font-bold transition ${style.on} ${on ? '' : 'opacity-30 hover:opacity-60'}`}
+                className={
+                  `focus-brass font-display flex h-6 min-w-6 items-center justify-center rounded border px-1.5 text-[11px] font-bold tracking-[0.12em] transition ${style.on} ` +
+                  (on ? '' : 'opacity-35 hover:opacity-75')
+                }
               >
                 {style.letter}
               </button>
@@ -305,12 +342,10 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
       </section>
 
       <section>
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-          CMC
-        </label>
+        <label className="eyebrow block">CMC</label>
         <div className="mt-2 flex gap-1.5">
-          <div className="flex flex-1 items-center gap-1.5 rounded-lg border border-neutral-800 bg-neutral-900 px-2 py-1 focus-within:border-neutral-600">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">min</span>
+          <div className="focus-brass flex flex-1 items-center gap-1.5 rounded-lg border border-ink-line bg-ink-raised px-2 py-1 shadow-[inset_0_1px_0_rgba(0,0,0,0.35)]">
+            <span className="eyebrow !text-[9px] !tracking-[0.18em]">min</span>
             <input
               type="number"
               min={0}
@@ -323,11 +358,11 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
                   cmcMin: e.target.value === '' ? undefined : Number(e.target.value),
                 })
               }
-              className="w-full min-w-0 bg-transparent text-sm text-neutral-100 focus:outline-none"
+              className="w-full min-w-0 bg-transparent font-mono tabular text-sm text-vellum focus:outline-none"
             />
           </div>
-          <div className="flex flex-1 items-center gap-1.5 rounded-lg border border-neutral-800 bg-neutral-900 px-2 py-1 focus-within:border-neutral-600">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">max</span>
+          <div className="focus-brass flex flex-1 items-center gap-1.5 rounded-lg border border-ink-line bg-ink-raised px-2 py-1 shadow-[inset_0_1px_0_rgba(0,0,0,0.35)]">
+            <span className="eyebrow !text-[9px] !tracking-[0.18em]">max</span>
             <input
               type="number"
               min={0}
@@ -340,13 +375,15 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
                   cmcMax: e.target.value === '' ? undefined : Number(e.target.value),
                 })
               }
-              className="w-full min-w-0 bg-transparent text-sm text-neutral-100 focus:outline-none"
+              className="w-full min-w-0 bg-transparent font-mono tabular text-sm text-vellum focus:outline-none"
             />
           </div>
         </div>
       </section>
 
-      <section className="border-t border-neutral-900 pt-3">
+      <div aria-hidden="true" className="brass-hairline" />
+
+      <section className="pt-1">
         <TagFilterSection
           title="Interactions"
           tags={interactionTags}
@@ -360,7 +397,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
         />
       </section>
 
-      <section className="border-t border-neutral-900 pt-3">
+      <section className="border-t border-ink-line pt-3">
         <TagFilterSection
           title="Deck themes"
           tags={themeTags}
@@ -372,19 +409,19 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
         />
       </section>
 
-      <section className="border-t border-neutral-900 pt-3">
+      <section className="border-t border-ink-line pt-3">
         <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={() => setSetsCollapsed(!setsCollapsed)}
-            className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400 hover:text-neutral-200"
+            className="group flex items-center gap-1.5 text-vellum-dim transition-colors hover:text-vellum"
           >
-            <span aria-hidden="true" className="inline-block w-3 text-neutral-500">
+            <span aria-hidden="true" className="inline-block w-3 text-brass/70">
               {setsCollapsed ? '▸' : '▾'}
             </span>
-            <span>Sets</span>
+            <span className="eyebrow group-hover:text-vellum">Sets</span>
             {value.sets?.length ? (
-              <span className="ml-1 rounded bg-amber-500/15 px-1.5 text-[10px] tracking-normal text-amber-400">
+              <span className="ml-1 rounded bg-brass/15 px-1.5 font-mono text-[10px] leading-5 tracking-normal text-brass-hi tabular">
                 {value.sets.length}
               </span>
             ) : null}
@@ -392,7 +429,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
           {value.sets?.length ? (
             <button
               onClick={() => onChange({ ...value, sets: undefined })}
-              className="text-[10px] uppercase tracking-wider text-neutral-500 hover:text-neutral-300"
+              className="eyebrow hover:text-vellum"
             >
               Clear
             </button>
@@ -404,17 +441,17 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
               const checked = value.sets?.includes(s.code) ?? false;
               return (
                 <li key={s.code}>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 text-sm transition-colors hover:bg-ink-raised/60">
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleSet(s.code)}
-                      className="h-3.5 w-3.5 accent-amber-500"
+                      className="h-3.5 w-3.5 accent-[#d4a44a]"
                     />
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-neutral-500">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-vellum-dim">
                       {s.code}
                     </span>
-                    <span className="truncate text-neutral-200">{s.name}</span>
+                    <span className="truncate text-vellum-mute">{s.name}</span>
                   </label>
                 </li>
               );

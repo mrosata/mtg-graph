@@ -45,16 +45,18 @@ export default function WorkspacePage() {
   return (
     <div className="flex h-full flex-col">
       <div
-        className="flex items-center justify-end gap-2 border-b border-neutral-800 bg-neutral-950 px-4 py-2"
+        className="flex items-center justify-end gap-2 border-b border-ink-line bg-ink-bg/70 px-4 py-2"
         data-tour-id={TOUR_IDS.deckActionBar}
       >
         <FillManaButton />
         <GoldfishButton />
-        <div className="inline-flex overflow-hidden rounded border border-neutral-700 text-xs">
-          <span className="bg-amber-900/40 px-2 py-1 font-semibold text-amber-200">List</span>
+        <div className="ml-1 inline-flex overflow-hidden rounded-full border border-ink-line-2 bg-ink-panel/80 p-0.5 text-[11px]">
+          <span className="rounded-full bg-brass/15 px-2.5 py-1 font-semibold uppercase tracking-caps text-brass-hi shadow-[inset_0_0_0_1px_rgba(212,164,74,0.45)]">
+            List
+          </span>
           <Link
             to="/graph"
-            className="px-2 py-1 text-neutral-300 hover:bg-neutral-900"
+            className="rounded-full px-2.5 py-1 font-semibold uppercase tracking-caps text-vellum-mute transition-colors hover:bg-ink-raised hover:text-vellum"
             data-tour-id={TOUR_IDS.deckGraphLink}
           >
             Graph

@@ -2,17 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+ * Planeswalker's Atelier — design tokens
+ * --------------------------------------------------------------------------*/
+:root {
+  --ink-bg: #0c0a0d;
+  --ink-panel: #15131a;
+  --ink-raised: #1c1a22;
+  --ink-line: #2a2632;
+  --ink-line-2: #3a3543;
+
+  --vellum: #ece4cf;
+  --vellum-mute: #b8af9a;
+  --vellum-dim: #8a8295;
+
+  --brass: #d4a44a;
+  --brass-hi: #f0c97a;
+  --brass-deep: #8a6628;
+  --brass-glow: rgb(212 164 74 / 0.18);
+
+  --mana-w: #f0e6c8;
+  --mana-u: #7eb6e8;
+  --mana-b: #7a6b86;
+  --mana-r: #e07772;
+  --mana-g: #82b97c;
+
+  --axis-effect: #d4a44a;
+  --axis-trigger: #7eb6e8;
+  --axis-condition: #b388e8;
+
+  --font-display: 'Cinzel', 'Iowan Old Style', Palatino, serif;
+  --font-head: 'Cormorant Garamond', 'Iowan Old Style', Palatino, serif;
+  --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
 html,
 body,
 #root {
   height: 100%;
-  background-color: rgb(10 10 10);
+  background-color: var(--ink-bg);
+}
+
+html {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+}
+
+body {
+  color: var(--vellum);
+  background-color: var(--ink-bg);
+  /* Sub-grade paper grain: a single SVG turbulence layer at ~3% opacity.
+   * Sits behind every panel without ever stealing contrast from card art. */
+  background-image:
+    radial-gradient(1200px 600px at 12% -10%, rgba(212, 164, 74, 0.04) 0%, transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, rgba(126, 182, 232, 0.025) 0%, transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.92 0 0 0 0 0.86 0 0 0 0 0.74 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--brass);
+  color: var(--ink-bg);
 }
 
 @layer utilities {
+  /* Scrollbar (existing, kept verbatim) */
   .scrollbar-slim {
     scrollbar-width: thin;
-    scrollbar-color: rgb(64 64 64) transparent;
+    scrollbar-color: var(--ink-line-2) transparent;
   }
   .scrollbar-slim::-webkit-scrollbar {
     width: 8px;
@@ -22,11 +82,132 @@ body,
     background: transparent;
   }
   .scrollbar-slim::-webkit-scrollbar-thumb {
-    background: rgb(38 38 38);
+    background: var(--ink-line);
     border-radius: 9999px;
   }
   .scrollbar-slim:hover::-webkit-scrollbar-thumb,
   .scrollbar-slim:focus-within::-webkit-scrollbar-thumb {
-    background: rgb(64 64 64);
+    background: var(--ink-line-2);
+  }
+
+  /* Typography helpers */
+  .font-display { font-family: var(--font-display); }
+  .font-head { font-family: var(--font-head); }
+  .font-mono { font-family: var(--font-mono); font-feature-settings: 'tnum'; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .eyebrow {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--vellum-dim);
+  }
+
+  /* Brass hairline — a one-pixel gilded rule used as a separator under headings
+   * and along the top of the app shell. Gradient gives it depth without weight. */
+  .brass-hairline {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(212, 164, 74, 0.55) 18%,
+      rgba(240, 201, 122, 0.9) 50%,
+      rgba(212, 164, 74, 0.55) 82%,
+      transparent 100%
+    );
+  }
+  .brass-hairline-soft {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(212, 164, 74, 0.28) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Brass focus ring for inputs and buttons — warm glow, no cool ring */
+  .focus-brass:focus-visible,
+  .focus-brass:focus-within {
+    outline: none;
+    box-shadow:
+      inset 0 0 0 1px var(--brass),
+      0 0 0 4px var(--brass-glow);
+  }
+
+  /* Surface layers */
+  .surface-panel {
+    background-color: var(--ink-panel);
+    border: 1px solid var(--ink-line);
+  }
+  .surface-raised {
+    background-color: var(--ink-raised);
+    border: 1px solid var(--ink-line);
+  }
+
+  /* Page-enter staggered reveal — apply to a container; direct children fade
+   * in with an ascending delay driven by their order. Cap is 12 children. */
+  .page-enter > * {
+    animation: pageEnter 360ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .page-enter > *:nth-child(1) { animation-delay: 0ms; }
+  .page-enter > *:nth-child(2) { animation-delay: 40ms; }
+  .page-enter > *:nth-child(3) { animation-delay: 80ms; }
+  .page-enter > *:nth-child(4) { animation-delay: 120ms; }
+  .page-enter > *:nth-child(5) { animation-delay: 160ms; }
+  .page-enter > *:nth-child(6) { animation-delay: 200ms; }
+  .page-enter > *:nth-child(7) { animation-delay: 240ms; }
+  .page-enter > *:nth-child(8) { animation-delay: 280ms; }
+  .page-enter > *:nth-child(n+9) { animation-delay: 320ms; }
+
+  @keyframes pageEnter {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Foil edge — a hovering card grows a 1px brass top border that catches the
+   * eye without disturbing the artwork. Used on CardGrid tiles. */
+  .foil-edge {
+    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .foil-edge:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 28px -8px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(212, 164, 74, 0.55),
+      inset 0 1px 0 rgba(240, 201, 122, 0.6);
+  }
+  .foil-edge:focus-visible {
+    outline: none;
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 28px -8px rgba(0, 0, 0, 0.6),
+      0 0 0 2px var(--brass),
+      0 0 0 5px var(--brass-glow);
+  }
+
+  /* Mana pip swatches — used in nav active-deck indicator and deck row gradients */
+  .pip {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 6px currentColor;
+  }
+  .pip-w { background-color: var(--mana-w); color: rgba(240, 230, 200, 0.45); }
+  .pip-u { background-color: var(--mana-u); color: rgba(126, 182, 232, 0.55); }
+  .pip-b { background-color: var(--mana-b); color: rgba(122, 107, 134, 0.65); }
+  .pip-r { background-color: var(--mana-r); color: rgba(224, 119, 114, 0.55); }
+  .pip-g { background-color: var(--mana-g); color: rgba(130, 185, 124, 0.55); }
+}
+
+/* Reduced motion: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter > *,
+  .foil-edge {
+    animation: none !important;
+    transition: none !important;
   }
 }

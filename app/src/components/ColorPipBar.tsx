@@ -6,12 +6,15 @@ type Props = {
 
 const WUBRG: Color[] = ['W', 'U', 'B', 'R', 'G'];
 
+// Semantic mana fills calibrated for the dark editorial canvas. These match the
+// `mana-*` tokens from index.css / tailwind.config.js so they read consistently
+// next to color filter pips elsewhere in the UI.
 const COLOR_BG: Record<Color, string> = {
-  W: 'bg-yellow-100',
-  U: 'bg-sky-300',
-  B: 'bg-neutral-800',
-  R: 'bg-red-500',
-  G: 'bg-green-600',
+  W: 'bg-mana-w',
+  U: 'bg-mana-u',
+  B: 'bg-mana-b',
+  R: 'bg-mana-r',
+  G: 'bg-mana-g',
 };
 
 const COLOR_NAME: Record<Color, string> = {
@@ -33,12 +36,12 @@ export default function ColorPipBar({ distribution }: Props) {
       <div
         role="img"
         aria-label="No colored pips"
-        className="h-3 w-full rounded-sm bg-neutral-800"
+        className="h-3 w-full rounded-sm border border-ink-line bg-ink-raised"
       />
     );
   }
   return (
-    <div className="flex h-3 w-full overflow-hidden rounded-sm">
+    <div className="flex h-3 w-full overflow-hidden rounded-sm border border-ink-line shadow-[inset_0_1px_0_rgba(0,0,0,0.4)]">
       {WUBRG.filter((c) => distribution[c] > 0).map((c) => (
         <div
           key={c}

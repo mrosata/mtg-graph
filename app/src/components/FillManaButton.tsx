@@ -85,18 +85,18 @@ export default function FillManaButton() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1 rounded border border-neutral-700 px-2 py-1 text-xs text-neutral-200 hover:bg-neutral-900"
+        className="focus-brass inline-flex items-center gap-1 rounded-full border border-ink-line-2 bg-ink-raised px-3 py-1 text-xs text-vellum-mute transition-colors hover:text-brass-hi"
       >
         Fill mana
-        <span aria-hidden className="text-neutral-500">▾</span>
+        <span aria-hidden className="text-vellum-dim">▾</span>
       </button>
       {open && (
         <div
           role="dialog"
           aria-label="Fill mana options"
-          className="absolute right-0 z-50 mt-1 w-64 rounded-md border border-neutral-700 bg-neutral-900 p-3 text-sm text-neutral-200 shadow-xl"
+          className="absolute right-0 z-50 mt-1 w-64 rounded-md border border-ink-line bg-ink-panel p-3 text-sm text-vellum shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7),0_0_0_1px_rgba(212,164,74,0.18)]"
         >
-          <div className="mb-2 text-xs text-neutral-400">Detected: {spellCount} spells</div>
+          <div className="mb-2 font-mono tabular text-xs text-vellum-dim">Detected: {spellCount} spells</div>
           <div className="space-y-1">
             <label className="flex items-center gap-2">
               <input
@@ -119,9 +119,9 @@ export default function FillManaButton() {
               <span>Standard (60) — {lands60} lands</span>
             </label>
           </div>
-          <div className="mt-3 text-xs text-neutral-300">
+          <div className="mt-3 text-xs text-vellum-mute">
             {plan?.reason === 'no_colored_spells' || plan?.reason === 'empty' ? (
-              <span className="text-amber-300">Add some colored spells first.</span>
+              <span className="text-brass-hi">Add some colored spells first.</span>
             ) : plan && (plan.add.length > 0 || plan.remove.length > 0) ? (
               <>
                 <div>
@@ -140,7 +140,7 @@ export default function FillManaButton() {
                 </div>
               </>
             ) : (
-              <span className="text-neutral-500">No changes needed.</span>
+              <span className="text-vellum-dim">No changes needed.</span>
             )}
           </div>
           <div className="mt-3 flex justify-end gap-2">
@@ -150,7 +150,7 @@ export default function FillManaButton() {
                 setOpen(false);
                 setOverride(null);
               }}
-              className="rounded border border-neutral-700 px-2 py-1 text-xs"
+              className="focus-brass rounded-full border border-ink-line-2 bg-ink-raised px-3 py-1 text-xs text-vellum-mute transition-colors hover:text-vellum"
             >
               Cancel
             </button>
@@ -163,7 +163,7 @@ export default function FillManaButton() {
                 setOpen(false);
                 setOverride(null);
               }}
-              className="rounded bg-amber-500 px-2 py-1 text-xs font-semibold text-black hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500"
+              className="focus-brass rounded-full bg-brass px-3 py-1 text-xs font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
             >
               Fill
             </button>

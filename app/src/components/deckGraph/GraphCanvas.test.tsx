@@ -78,12 +78,12 @@ describe('GraphCanvas', () => {
     expect(onFocus).toHaveBeenCalledWith('b');
   });
 
-  it('renders deck nodes with a distinguishing amber stroke', () => {
+  it('renders deck nodes with a distinguishing brass stroke', () => {
     const { container } = render(
       <GraphCanvas graph={graph()} selectedId={null} hoveredId={null} onSelect={() => {}} onFocus={() => {}} />,
     );
     const deckCircle = container.querySelector('[data-node-id="a"] circle:not([data-halo])');
-    expect(deckCircle?.getAttribute('stroke')?.toLowerCase()).toBe('#fbbf24');
+    expect(deckCircle?.getAttribute('stroke')?.toLowerCase()).toBe('#d4a44a');
   });
 
   it('renders the edge with the dominant-family color', () => {
@@ -111,7 +111,7 @@ describe('GraphCanvas', () => {
     const halos = container.querySelectorAll('[data-node-id] circle[data-halo]');
     expect(halos).toHaveLength(2);
     for (const h of halos) {
-      expect(h.getAttribute('stroke')?.toLowerCase()).toBe('#fbbf24');
+      expect(h.getAttribute('stroke')?.toLowerCase()).toBe('#f0c97a');
     }
   });
 
@@ -126,7 +126,7 @@ describe('GraphCanvas', () => {
     );
     const bridgeCircle = container.querySelector('[data-node-id="c"] circle:not([data-halo])');
     expect(bridgeCircle?.getAttribute('stroke-dasharray')).toBe('3 2');
-    expect(bridgeCircle?.getAttribute('stroke')?.toLowerCase()).toBe('#3a3a3a');
+    expect(bridgeCircle?.getAttribute('stroke')?.toLowerCase()).toBe('#3a3543');
   });
 
   it('renders bridge edges dashed', () => {

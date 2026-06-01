@@ -33,15 +33,22 @@ type Props = {
 
 export default function PillRow(props: Props) {
   return (
-    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-neutral-800 bg-neutral-950 px-4 py-2 text-xs" data-tour-id={TOUR_IDS.pillRow}>
+    <div
+      className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-ink-line bg-ink-panel/95 px-4 py-2 text-xs backdrop-blur-sm"
+      data-tour-id={TOUR_IDS.pillRow}
+    >
       <div className="flex items-center gap-2">
-        <span className="uppercase tracking-wide text-neutral-500">Mode</span>
-        <div className="inline-flex overflow-hidden rounded border border-neutral-700">
+        <span className="eyebrow">Mode</span>
+        <div className="inline-flex overflow-hidden rounded-full border border-ink-line-2 bg-ink-raised p-0.5">
           <button
             type="button"
             onClick={() => props.onModeChange('deck')}
             title="Show every card in the deck and the interactions between them"
-            className={`px-2 py-1 ${props.mode === 'deck' ? 'bg-amber-900/40 text-amber-200' : 'text-neutral-300 hover:bg-neutral-900'}`}
+            className={`focus-brass rounded-full px-3 py-0.5 transition-colors ${
+              props.mode === 'deck'
+                ? 'bg-brass text-ink-bg shadow-[0_0_8px_rgba(212,164,74,0.35)]'
+                : 'text-vellum-mute hover:text-brass-hi'
+            }`}
           >
             Deck
           </button>
@@ -54,19 +61,23 @@ export default function PillRow(props: Props) {
                 ? 'Pick a card to highlight only its neighborhood of interactions'
                 : 'Click a card (or double-click in the graph) to focus on it'
             }
-            className={`px-2 py-1 ${props.mode === 'focus' ? 'bg-amber-900/40 text-amber-200' : 'text-neutral-300 hover:bg-neutral-900'} disabled:cursor-not-allowed disabled:text-neutral-600 disabled:hover:bg-transparent`}
+            className={`focus-brass rounded-full px-3 py-0.5 transition-colors ${
+              props.mode === 'focus'
+                ? 'bg-brass text-ink-bg shadow-[0_0_8px_rgba(212,164,74,0.35)]'
+                : 'text-vellum-mute hover:text-brass-hi'
+            } disabled:cursor-not-allowed disabled:text-vellum-dim disabled:hover:text-vellum-dim`}
           >
             Card focus
           </button>
         </div>
         {props.focusedCardName && (
-          <span className="ml-1 inline-flex items-center gap-1 rounded border border-amber-700 bg-amber-950/50 px-2 py-0.5 text-amber-200">
+          <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-brass/40 bg-brass/15 px-2 py-0.5 font-head italic text-brass-hi">
             {props.focusedCardName}
             <button
               type="button"
               aria-label="Clear focused card"
               onClick={props.onClearFocus}
-              className="ml-1 text-amber-300 hover:text-amber-100"
+              className="focus-brass ml-1 not-italic text-brass-hi transition-colors hover:text-vellum"
             >
               ×
             </button>
@@ -75,7 +86,7 @@ export default function PillRow(props: Props) {
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="uppercase tracking-wide text-neutral-500">Families</span>
+        <span className="eyebrow">Families</span>
         {FAMILIES.filter(
           (f) => props.presentFamilies.has(f.id) || props.offFamilies.has(f.id),
         ).map((f) => {
@@ -88,19 +99,23 @@ export default function PillRow(props: Props) {
               aria-pressed={!isOff}
               onClick={() => props.onToggleFamily(f.id)}
               title={`${f.label} — ${f.description}${isOff ? ' (click to show)' : ' (click to hide)'}`}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 ${
+              className={`focus-brass inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 transition-colors ${
                 isOff
-                  ? 'border-neutral-800 bg-neutral-900 text-neutral-600 line-through'
-                  : 'border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-neutral-500'
+                  ? 'border-ink-line bg-ink-bg text-vellum-dim line-through'
+                  : 'border-brass/40 bg-brass/10 text-brass-hi hover:border-brass/70'
               }`}
             >
               <span
                 className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: f.color, opacity: isOff ? 0.3 : 1 }}
+                style={{
+                  backgroundColor: f.color,
+                  opacity: isOff ? 0.3 : 1,
+                  boxShadow: isOff ? 'none' : `0 0 6px ${f.color}88`,
+                }}
               />
               {f.label}
               {count !== undefined && !isOff && (
-                <span className="text-[10px] text-neutral-500">·{count}</span>
+                <span className="font-mono text-[10px] tabular text-vellum-dim">{`·${count}`}</span>
               )}
             </button>
           );
@@ -109,7 +124,7 @@ export default function PillRow(props: Props) {
           <button
             type="button"
             onClick={props.onResetFamilies}
-            className="ml-1 text-amber-400 hover:text-amber-200 hover:underline"
+            className="focus-brass ml-1 text-brass transition-colors hover:text-brass-hi hover:underline"
           >
             Reset
           </button>
@@ -117,7 +132,7 @@ export default function PillRow(props: Props) {
       </div>
 
       <div className="flex items-center gap-1">
-        <span className="uppercase tracking-wide text-neutral-500">Colors</span>
+        <span className="eyebrow">Colors</span>
         {COLORS.map((c) => {
           const on = props.onColors.has(c.id);
           return (
@@ -127,7 +142,7 @@ export default function PillRow(props: Props) {
               aria-label={c.label}
               aria-pressed={on}
               onClick={() => props.onToggleColor(c.id)}
-              className={`flex h-6 w-6 items-center justify-center rounded-full ${on ? '' : 'opacity-30'}`}
+              className={`focus-brass flex h-6 w-6 items-center justify-center rounded-full transition-opacity ${on ? '' : 'opacity-30 grayscale'} hover:opacity-100`}
             >
               <ManaSymbol token={c.id.toLowerCase()} />
             </button>
@@ -139,12 +154,14 @@ export default function PillRow(props: Props) {
         type="button"
         onClick={props.onRefresh}
         disabled={props.pendingMutationCount === 0}
-        className="ml-auto inline-flex items-center gap-1.5 rounded border border-amber-600 bg-amber-500 px-3 py-1 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:border-neutral-700 disabled:bg-neutral-800 disabled:text-neutral-500"
+        className="focus-brass ml-auto inline-flex items-center gap-1.5 rounded-full bg-brass px-3.5 py-1 font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
         aria-label="Refresh suggestions"
       >
         Refresh suggestions
         {props.pendingMutationCount > 0 && (
-          <span className="rounded bg-black/30 px-1.5 py-0.5 text-[10px]">+{props.pendingMutationCount}</span>
+          <span className="rounded-full bg-ink-bg/30 px-1.5 py-0.5 font-mono text-[10px] tabular text-brass-hi">
+            {`+${props.pendingMutationCount}`}
+          </span>
         )}
       </button>
     </div>

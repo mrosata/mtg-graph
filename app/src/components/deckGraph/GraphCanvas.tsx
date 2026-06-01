@@ -8,9 +8,9 @@ import type { GraphOutput } from '../../lib/deckGraph';
 import { TOUR_IDS } from '../../wizard/selectors';
 
 const COLOR_BY_FAMILY = new Map(FAMILIES.map((f) => [f.id, f.color]));
-const AMBER = '#fbbf24';
-const NEUTRAL = '#3a3a3a';
-const SELECTED = '#ef4444';
+const BRASS = '#d4a44a';
+const NEUTRAL = '#3a3543';
+const SELECTED = '#e07772';
 
 // d3-zoom filter: decides which events trigger pan/zoom. Returning false also
 // skips d3-zoom's preventDefault(), so a rejected wheel event falls through to
@@ -160,15 +160,15 @@ export default function GraphCanvas({ graph, selectedId, hoveredId, onSelect, on
   if (graph.nodes.length > 0 && graph.edges.length === 0) {
     return (
       <div ref={containerRef} className="relative h-full w-full" data-testid="graph-canvas" data-tour-id={TOUR_IDS.graphCanvas}>
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-neutral-400">
-          No edges match the current filters.
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="font-head italic text-lg text-vellum-mute">No edges match the current filters.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden bg-neutral-950" data-testid="graph-canvas" data-tour-id={TOUR_IDS.graphCanvas}>
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden bg-ink-bg" data-testid="graph-canvas" data-tour-id={TOUR_IDS.graphCanvas}>
       <svg ref={svgRef} width="100%" height="100%" viewBox={`0 0 ${viewport.width} ${viewport.height}`}>
         <g ref={zoomTargetRef} data-layer="zoom-target">
           <g data-layer="edges">
@@ -218,8 +218,8 @@ export default function GraphCanvas({ graph, selectedId, hoveredId, onSelect, on
               const isBridge = n.cls === 'bridge';
               const stroke =
                 selectedId === n.id ? SELECTED
-                : n.cls === 'deck'  ? AMBER
-                : isBridge          ? '#3a3a3a'
+                : n.cls === 'deck'  ? BRASS
+                : isBridge          ? '#3a3543'
                 : NEUTRAL;
               const strokeWidth = selectedId === n.id ? 3 : n.cls === 'deck' ? 1.8 : 1;
               const strokeDash = isBridge ? '3 2' : undefined;
@@ -242,7 +242,7 @@ export default function GraphCanvas({ graph, selectedId, hoveredId, onSelect, on
                       ref={(el) => { haloRefs.current.set(n.id, el); }}
                       r={n.radius + 5}
                       fill="none"
-                      stroke="#fbbf24"
+                      stroke="#f0c97a"
                       strokeWidth={2}
                       strokeDasharray="3 2"
                       opacity={0}
@@ -252,7 +252,7 @@ export default function GraphCanvas({ graph, selectedId, hoveredId, onSelect, on
                     />
                     <circle
                       r={n.radius}
-                      fill="#161616"
+                      fill="#15131a"
                       stroke={stroke}
                       strokeWidth={strokeWidth}
                       strokeDasharray={strokeDash}
@@ -262,7 +262,8 @@ export default function GraphCanvas({ graph, selectedId, hoveredId, onSelect, on
                       textAnchor="middle"
                       dy="0.35em"
                       fontSize={10}
-                      fill={n.cls === 'deck' ? '#f5e0a0' : '#cccccc'}
+                      fontFamily="Manrope, ui-sans-serif, system-ui"
+                      fill={n.cls === 'deck' ? '#f0e6c8' : '#b8af9a'}
                       pointerEvents="none"
                     >
                       {label}
@@ -277,7 +278,7 @@ export default function GraphCanvas({ graph, selectedId, hoveredId, onSelect, on
       <button
         type="button"
         onClick={handleResetZoom}
-        className="absolute right-3 top-3 rounded border border-neutral-700 bg-neutral-900/80 px-2 py-1 text-[11px] text-neutral-300 hover:border-neutral-500 hover:text-neutral-100"
+        className="absolute right-3 top-3 rounded-full border border-ink-line-2 bg-ink-panel/80 px-3 py-1 text-[11px] font-medium uppercase tracking-caps text-vellum-mute backdrop-blur transition-colors hover:border-brass/60 hover:text-brass-hi focus-brass focus:outline-none"
         aria-label="Reset zoom"
         title="Reset zoom · drag empty space to pan · scroll to zoom"
       >
