@@ -107,6 +107,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.play_extra_land': 'resources',
   'effect.ramp_nonland': 'resources',
   'effect.tutors_basic_land': 'resources',
+  'effect.tutors_land': 'resources',
   'condition.cares_tokens': 'resources',
   'trigger.token_created': 'resources',
 
@@ -140,14 +141,17 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.tutor_any': 'card-selection',
   'effect.tutors_artifact': 'card-selection',
   'effect.tutors_creature': 'card-selection',
+  'effect.tutors_instant_sorcery': 'card-selection',
   'effect.tutors_subtype': 'card-selection',
   'trigger.card_drawn_discarded': 'card-selection',
   'condition.cares_hand_size': 'card-selection',
 
   // tap-untap-steal
+  'effect.cant_block_until_eot': 'tap-untap-steal',
   'effect.control_change': 'tap-untap-steal',
   'effect.clone_in_place': 'tap-untap-steal',
   'effect.copy_permanent_token': 'tap-untap-steal',
+  'effect.donate': 'tap-untap-steal',
   'effect.pacify': 'tap-untap-steal',
   'effect.stun_counter': 'tap-untap-steal',
   'effect.tap': 'tap-untap-steal',
@@ -161,6 +165,11 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'trigger.life_changed': 'lifegain',
   'effect.drain': 'lifegain',
   'effect.cant_lose': 'lifegain',
+  'effect.prevent_lifegain': 'lifegain',
+  // Poison axis — co-located with lifegain alongside effect.cant_lose since
+  // the poison-counter lose-the-game gate is a sibling alt-loss condition.
+  'effect.give_poison_counters': 'lifegain',
+  'condition.cares_poison': 'lifegain',
 
   // themes
   'condition.adventure_matters': 'themes',
@@ -179,6 +188,9 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'condition.cares_low_mana_value': 'themes',
   'condition.cares_low_power': 'themes',
   'condition.cast_from_graveyard': 'themes',
+  'effect.grants_cast_from_graveyard': 'themes',
+  'effect.alt_win_condition': 'themes',
+  'effect.has_leyline': 'themes',
   'condition.has_x_in_cost': 'themes',
   'effect.adventure_card': 'themes',
   'effect.cast_from_library_top': 'themes',
@@ -238,6 +250,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.forage': 'set-mechanics',
   // OTJ Mount / Saddle mechanic.
   'effect.has_saddle': 'set-mechanics',
+  // Khans-revisit Raid ability word (resurfaces in OTJ and recent Standard).
+  'condition.raid': 'set-mechanics',
   // OTJ Spree / Outlaw mechanics.
   'effect.has_spree': 'set-mechanics',
   'condition.cares_outlaws': 'set-mechanics',
@@ -282,6 +296,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.counter_modified': 'keywords',
   'effect.gains_keyword_self_conditional': 'keywords',
   'effect.grants_evasion': 'keywords',
+  'effect.grants_flash': 'keywords',
   'effect.grants_stat_buff': 'keywords',
   'effect.has_activated_ability': 'keywords',
   'effect.has_mana_activated_ability': 'keywords',
@@ -302,6 +317,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.unblockable': 'keywords',
   'effect.partial_unblockable': 'keywords',
   'effect.grants_protection': 'keywords',
+  'effect.has_protection': 'keywords',
   'effect.has_double_strike': 'keywords',
   'effect.has_first_strike': 'keywords',
   'effect.has_flash': 'keywords',
@@ -316,6 +332,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.has_trample': 'keywords',
   'effect.has_vigilance': 'keywords',
   'effect.has_ward': 'keywords',
+  'effect.has_toxic': 'keywords',
   'effect.plus_one_counter': 'keywords',
   'trigger.attack_or_block': 'keywords',
   'trigger.counter_changed': 'keywords',

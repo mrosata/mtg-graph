@@ -33,6 +33,11 @@ export const THEME_SUBTYPES = [
   // v0.24 — FFI/EOE Town land subtype with "Towns you control" payoffs
   // (PuPu UFO, Treno, Rabanastre, Ishgard, Gohn).
   'town',
+  // v0.27.0+ — Gate land subtype with the "Affinity for Gates" / "Whenever a
+  // Gate you control enters" / Maze's End "ten or more Gates" archetype.
+  // Gate Colossus, Gateway Sneak, Archway Angel, Circuitous Route, Maze's
+  // End, plus all the Guildgate cycles in current Standard.
+  'gate',
 ] as const;
 
 export type ThemeSubtype = (typeof THEME_SUBTYPES)[number];

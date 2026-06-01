@@ -338,6 +338,8 @@ If an instant or sorcery card would be put into a graveyard from anywhere, exile
 
 **Status (v0.27.0):** REJECTED v0.27.0 batch — `effect.tutors_basic_land` tagDef is explicitly the basic-tutor family (Cultivate / Lay of the Land); broadening would dilute the axis. Defer to new `effect.tutors_land` parametric tag for unrestricted land tutors (recurring family above).
 
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.tutors_land` rule added (matches "search your library for a land card" without basic-restriction; pairs with `condition.cares_lands`). 7 hits in current Standard.
+
 ---
 
 ## Exsanguinate  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -440,6 +442,8 @@ Whenever this creature attacks, you may pay {R}. If you do, target creature can'
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
 
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.cant_block_until_eot` rule added (16 Standard hits).
+
 ---
 
 ## Fynn, the Fangbearer  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -464,6 +468,8 @@ Whenever a creature you control with deathtouch deals combat damage to a player,
   - **Suggested fix:** Add `effect.give_poison_counters` rule (regex anchored on "poison counter(s)?" / "toxic N" keyword). Companion `condition.cares_poison` for payoffs like Vraska's Fall, Skithiryx etc. Also worth a `effect.has_toxic` printed-keyword tag. Family is small in current Standard but the axis is canonical MTG and the only alt-win con worth supporting at the tag layer.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — full poison axis added: `effect.give_poison_counters` (5 hits incl. Fynn), `condition.cares_poison`, `effect.has_toxic` (printed Toxic N keyword). Fynn now fires `effect.give_poison_counters`.
 
 ---
 
@@ -501,6 +507,8 @@ Whenever a Gate you control enters, you may put this card from your graveyard on
 
 **Status (v0.27.0):** SHIPPED in v0.27.0 batch — `trigger.another_creature_etb` tribal-arm negative lookahead now excludes land subtypes (Gate, Cave, Sphere, basic-land types, Locus, Lair, Town, Mine, Tower, Power-Plant, Urza); `trigger.landfall` got a third PATTERN handling typed-land subtype triggers. `condition.cares_subtype.gate` coverage gap remains deferred for new-rule authoring.
 
+**Status (v0.28.0):** SHIPPED in v0.28.0 — Gate added to `THEME_SUBTYPES` (parametric). Auto-generated `condition.cares_subtype.gate` AND bonus `effect.tutors_subtype.gate`. 6 hits including Gate Colossus, Maze's End, Circuitous Route.
+
 ---
 
 ## Gateway Sneak  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -522,6 +530,8 @@ Whenever this creature deals combat damage to a player, draw a card.
 - Same Gate-related issues as **Gate Colossus** entry above — `trigger.another_creature_etb` FP (Gate isn't a creature), missing `trigger.landfall` (Gate is a land), missing `condition.cares_subtype.gate`. See Gate Colossus for full discussion. Logging here as a second occurrence to confirm this is a recurring family.
 
 **Status (v0.27.0):** SHIPPED in v0.27.0 batch — same fix as Gate Colossus (`trigger.another_creature_etb` narrowing + `trigger.landfall` broadening).
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — same parametric `condition.cares_subtype.gate` + `effect.tutors_subtype.gate` as Gate Colossus.
 
 ---
 
@@ -577,6 +587,8 @@ Players can't gain life.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
 
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.prevent_lifegain` rule added (7 Standard hits: Giant Cindermaw, Rampaging Ferocidon, Everlasting Torment, Sunspine Lynx, The Lord of Pain, Grievous Wound, Screaming Nemesis). Pairs with `condition.cares_lifegain`.
+
 ---
 
 ## Goblin Boarders  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -600,6 +612,8 @@ Raid — This creature enters with a +1/+1 counter on it if you attacked this tu
   - **Suggested fix:** Author `condition.raid` rule (regex anchored on `raid —` (U+2014) and the bare "if you attacked this turn" frame for un-ability-worded raid-style cards). Family is medium-sized in Standard.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `condition.raid` rule (14 Standard hits). Three patterns: `raid —` ability-word, bare `if you('ve)? attacked this turn`, `activate only if you('ve)? attacked this turn`. Pairs with `trigger.attack_or_block`.
 
 ---
 
@@ -650,6 +664,8 @@ Target opponent gains control of target permanent you control.
 
 **Status (v0.27.0):** REJECTED v0.27.0 batch — `DONATION_SCRUB` at `effect.control_change.ts:26-31` is intentional v0.23 design; Harmless Offering is an EXPLICIT negative test row at `effect.control_change.test.ts:39` with 4 sibling negatives (Humble Defector, Wishclaw Talisman, Stiltzkin, Iroh). Defer to a new `effect.donate` tag for the give-direction axis.
 
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.donate` rule added (5 Standard hits). Includes a `TRIGGER_SCRUB` pre-match to exclude "whenever an opponent gains control of a permanent from you" trigger frames (Zidane, Tantalus Thief). Producer-only axis — no pairsWith (consumers unmodeled).
+
 ---
 
 ## High Fae Trickster  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -676,6 +692,8 @@ You may cast spells as though they had flash.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
 
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.grants_flash` rule (10 Standard hits). Broadened subject filler to admit "sorcery spells and dragon spells" etc. while keeping a `(?!this spell)` self-cost exclusion (Asinine Antics, Mystical Tether stay on self-flash, not grants).
+
 ---
 
 ## Leyline Axe  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -701,6 +719,8 @@ Equip {3} ({3}: Attach to target creature you control. Equip only as a sorcery.)
   - **Suggested fix:** Author `effect.has_leyline` rule (regex: `if this card is in your opening hand, you may begin the game with it on the battlefield`). Family is ~7-10 Leyline cards across Standard + reprints. Worth a tag for the unique starts-in-play axis.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.has_leyline` rule (8 Standard hits: Leyline Axe + full Leyline cycle — Hope, Mutation, Resonance, Transformation, Void, Guildpact).
 
 ---
 
@@ -729,6 +749,8 @@ This land enters tapped.
 - **missing**: `effect.tutors_land` (already logged on Expedition Map — applies to Gate-specific tutor here too) and `condition.cares_subtype.gate` (already logged on Gate Colossus).
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions). `effect.alt_win_condition`, `effect.tutors_land`, and `condition.cares_subtype.gate` all belong to the next coverage-gap dispatch.
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — all three new tags now exist: `effect.alt_win_condition` (10 hits), `effect.tutors_land` (7 hits), `condition.cares_subtype.gate` (6 hits, parametric). Maze's End now fires all three.
 
 ---
 
@@ -762,6 +784,8 @@ When this creature enters, you may search your library for an instant or sorcery
 
 **Status (v0.27.0):** REJECTED v0.27.0 batch — broadening `condition.cares_low_mana_value` to bare "mana value N" would flip the existing negative test row at `condition.cares_low_mana_value.test.ts:32` ("this creature has mana value 2"). Better path: author dedicated `effect.tutors_instant_sorcery` rule, or a new `condition.cares_exact_mana_value` axis if cards repeatedly gate on exact mana value. Both deferred for coverage-gap authoring.
 
+**Status (v0.28.0):** PARTIALLY SHIPPED in v0.28.0 — new `effect.tutors_instant_sorcery` rule added (4 Standard hits incl. Micromancer); pairs with `condition.cares_instant_sorcery_in_graveyard`. The `condition.cares_exact_mana_value` axis remains deferred — Micromancer's specific "mana value 1" gate is now covered semantically by the I/S tutor.
+
 ---
 
 ## Muldrotha, the Gravetide  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
@@ -785,6 +809,8 @@ During each of your turns, you may play a land and cast a permanent spell of eac
   - **Suggested fix:** Author `effect.grants_cast_from_graveyard` (or similar) — covers permission frames distinct from the keyword family already captured in `condition.cast_from_graveyard`. Mid-size family with strong combo and deckbuilding-filter relevance.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions).
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.grants_cast_from_graveyard` rule (38 Standard hits — generous, sampled positives clean). Covers both "cast X from graveyard" license + "play lands from graveyard" Crucible-style. Self-keyword exclusion (`cast this card from your graveyard`) protects against flashback-keyword false-positives. Pairs with `trigger.card_drawn_discarded` + `condition.cares_graveyard`.
 
 ---
 
@@ -815,3 +841,5 @@ If Progenitus would be put into a graveyard from anywhere, reveal Progenitus and
   - **Suggested fix:** Defer / skip — narrow family.
 
 **Status (v0.27.0):** coverage gap — deferred for new-rule authoring (see CLAUDE.md tag conventions). `effect.has_protection` is the load-bearing miss; the self-shuffle clause is genuinely single-card.
+
+**Status (v0.28.0):** SHIPPED in v0.28.0 — new `effect.has_protection` rule added (9 Standard hits: Progenitus, Stormbreath Dragon, Akroma, Shifting Ceratops, Karmic Guide, Stonecoil Serpent, etc.). Intrinsic-only via `card.keywords.includes('Protection')` + `isIntrinsicKeyword` text anchor — same pattern as Hexproof's "Hexproof from black" handling. Self-shuffle clause remains unmodeled (single-card axis).

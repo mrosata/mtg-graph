@@ -185,4 +185,46 @@ describe('condition.cares_subtype', () => {
       ),
     ).toBe(false);
   });
+
+  // v0.27.0+ — Gate land subtype. Affinity for Gates / Whenever a Gate you
+  // control enters / "for each Gate you control" / "search for a Gate card"
+  // / Maze's End "ten or more Gates" all surface the same payoff axis.
+  it('gate matches "Affinity for Gates" framing (Gate Colossus)', () => {
+    const r = ruleFor('condition.cares_subtype.gate');
+    expect(
+      r.match("affinity for gates this creature can't be blocked by creatures with power 2 or less. whenever a gate you control enters, you may put this card from your graveyard on top of your library."),
+    ).toBeTruthy();
+  });
+
+  it('gate matches "Whenever a Gate you control enters" (Gateway Sneak)', () => {
+    const r = ruleFor('condition.cares_subtype.gate');
+    expect(
+      r.match("whenever a gate you control enters, this creature can't be blocked this turn. whenever this creature deals combat damage to a player, draw a card."),
+    ).toBeTruthy();
+  });
+
+  it('gate matches "for each Gate you control" lifegain payoff (Archway Angel)', () => {
+    const r = ruleFor('condition.cares_subtype.gate');
+    expect(
+      r.match('flying when this creature enters, you gain 2 life for each gate you control.'),
+    ).toBeTruthy();
+  });
+
+  it('gate matches "search ... for a Gate card" tutor (Maze\'s End)', () => {
+    const r = ruleFor('condition.cares_subtype.gate');
+    expect(
+      r.match("this land enters tapped. {t}: add {c}. {3}, {t}, return this land to its owner's hand: search your library for a gate card, put it onto the battlefield, then shuffle. if you control ten or more gates with different names, you win the game."),
+    ).toBeTruthy();
+  });
+
+  it('gate does NOT match "gateway" (different word, not a subtype reference)', () => {
+    const r = ruleFor('condition.cares_subtype.gate');
+    expect(r.match('gateway sneak attacks again')).toBe(false);
+  });
+
+  it('gate does NOT match unrelated text', () => {
+    const r = ruleFor('condition.cares_subtype.gate');
+    expect(r.match('draw a card')).toBe(false);
+    expect(r.match('this creature has flying')).toBe(false);
+  });
 });
