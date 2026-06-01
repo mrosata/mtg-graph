@@ -56,7 +56,9 @@ describe('effect.create_creature_token', () => {
   });
 
   it('omits metadata when no known tribe in the token type-line', () => {
-    const out = rule.match('create a 4/4 black demon creature token');
+    // v0.17: "demon" is now a known tribe; use a creature type not in
+    // THEME_TRIBES to test the metadata-omitted path.
+    const out = rule.match('create a 4/4 black treefolk creature token');
     expect(out).toBeTruthy();
     expect((out as { metadata?: unknown }).metadata).toBeUndefined();
   });

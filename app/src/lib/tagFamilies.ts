@@ -79,6 +79,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   // counter-magic
   'effect.counterspell': 'counter-magic',
   'effect.silence_opponents': 'counter-magic',
+  'trigger.commit_a_crime': 'counter-magic',
 
   // bounce-blink
   'effect.bounce_artifact': 'bounce-blink',
@@ -185,6 +186,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'trigger.landfall': 'themes',
   'trigger.creature_leaves_graveyard': 'themes',
   'trigger.self_etb': 'themes',
+  'condition.cares_planeswalkers': 'themes',
+  'condition.cares_excess_damage': 'themes',
 
   // set-mechanics
   'condition.cares_bending': 'set-mechanics',
@@ -220,6 +223,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'trigger.expend': 'set-mechanics',
   'effect.has_offspring': 'set-mechanics',
   'effect.forage': 'set-mechanics',
+  // OTJ Mount / Saddle mechanic.
+  'effect.has_saddle': 'set-mechanics',
 
   // keywords
   'condition.cares_deathtouch': 'keywords',

@@ -3,7 +3,7 @@ import { rules, tagDefs } from './condition.cares_tribe';
 
 describe('condition.cares_tribe parametric', () => {
   it('exports a rule per tribe', () => {
-    expect(rules.length).toBe(25);
+    expect(rules.length).toBe(31);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -17,10 +17,13 @@ describe('condition.cares_tribe parametric', () => {
     expect(ids.has('condition.cares_tribe.raccoon')).toBe(true);
     expect(ids.has('condition.cares_tribe.mouse')).toBe(true);
     expect(ids.has('condition.cares_tribe.bat')).toBe(true);
+    // v0.17 — backlog tribes (spirit / demon / angel / cat / dog / wolf).
+    expect(ids.has('condition.cares_tribe.spirit')).toBe(true);
+    expect(ids.has('condition.cares_tribe.wolf')).toBe(true);
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(25);
+    expect(tagDefs.length).toBe(31);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');
@@ -115,5 +118,32 @@ describe('condition.cares_tribe parametric', () => {
     expect(r.match('raccoons you control get +1/+1 and gain vigilance until end of turn')).toBeTruthy();
     const s = rules.find((r) => r.id === 'condition.cares_tribe.squirrel')!;
     expect(s.match('whenever another squirrel you control enters, you gain 1 life')).toBeTruthy();
+  });
+
+  // v0.17 — wolf irregular plural and wolf-tribe payoffs (Tolsimir, Voja).
+  it('wolf matches both "wolf" and "wolves" plural', () => {
+    const w = rules.find((r) => r.id === 'condition.cares_tribe.wolf')!;
+    expect(w.match('wolves you control get +1/+1')).toBeTruthy();
+    expect(w.match('whenever a wolf you control attacks, draw a card')).toBeTruthy();
+    // Token framing strip — "create a Wolf creature token" alone should not match.
+    expect(w.match('create a 5/5 green wolf creature token')).toBe(false);
+  });
+
+  it('spirit / cat / dog / angel / demon FP-resistant on substrings', () => {
+    const sp = rules.find((r) => r.id === 'condition.cares_tribe.spirit')!;
+    expect(sp.match('this creature has spiritual energy')).toBe(false); // 'spiritual'
+    expect(sp.match('spirits you control have flying')).toBeTruthy();
+    const c = rules.find((r) => r.id === 'condition.cares_tribe.cat')!;
+    expect(c.match('this card is in the cathedral category')).toBe(false); // 'cathedral' / 'category'
+    expect(c.match('cats you control gain lifelink')).toBeTruthy();
+    const dg = rules.find((r) => r.id === 'condition.cares_tribe.dog')!;
+    expect(dg.match('a dogged pursuit reveals dogma')).toBe(false); // 'dogged' / 'dogma'
+    expect(dg.match('dogs you control get +1/+1')).toBeTruthy();
+    const an = rules.find((r) => r.id === 'condition.cares_tribe.angel')!;
+    expect(an.match('this creature has angelic grace')).toBe(false); // 'angelic'
+    expect(an.match('angels you control have vigilance')).toBeTruthy();
+    const dm = rules.find((r) => r.id === 'condition.cares_tribe.demon')!;
+    expect(dm.match('a demonic display of power')).toBe(false); // 'demonic'
+    expect(dm.match('demons you control have menace')).toBeTruthy();
   });
 });

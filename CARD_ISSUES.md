@@ -36,52 +36,6 @@ Whenever a Wolf you control attacks, if Tolsimir attacked this combat, target cr
 
 ---
 
-## Tomik, Wielder of Law  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Legendary Creature — Human Advisor
-**Mana cost:** {1}{W}{B}
-
-**Oracle text:**
-
-```
-Affinity for planeswalkers (This spell costs {1} less to cast for each planeswalker you control.)
-Flying, vigilance
-Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, that opponent loses 3 life and you draw a card.
-```
-
-**Current tags:** `effect.draws_or_discards`, `effect.has_flying`, `effect.has_vigilance`, `trigger.attack_or_block`
-
-### Issues
-
-- **missing**: `condition.cares_planeswalkers` (coverage gap — no such tag in catalog)
-  - **What's wrong:** Card scales cost via Affinity for planeswalkers AND its combat trigger gates on opponents attacking "planeswalkers you control". Catalog has only `effect.<verb>_planeswalker` tags; no condition axis.
-  - **Evidence vs reality:** No tag in catalog flags "cares about planeswalkers you control" — would not show up as a planeswalker-deck payoff in filter queries.
-  - **Suggested fix:** Author `condition.cares_planeswalkers` rule keyed on `planeswalkers? you control`, `for each planeswalker`, `for each planeswalker`, `attacks?.+planeswalker`. Pair with `effect.create_planeswalker` (if/when authored) and existing `effect.*_planeswalker` family.
-
----
-
-## Torch the Witness  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Sorcery
-**Mana cost:** {X}{R}
-
-**Oracle text:**
-
-```
-Torch the Witness deals twice X damage to target creature. If excess damage was dealt to that creature this way, investigate.
-```
-
-**Current tags:** `condition.has_x_in_cost`, `effect.cast_noncreature_spell`, `effect.create_clue`, `effect.create_token`, `effect.is_instant_or_sorcery`
-
-### Issues
-
-- **missing** (coverage gap): `condition.cares_excess_damage` (no such tag in catalog)
-  - **What's wrong:** "If excess damage was dealt to that creature this way" is the excess-damage conditional family (Atraxa, Grand Unifier-adjacent; Tribute to the World Tree; this card). Not currently distinguishable from generic deals_damage payoffs.
-  - **Evidence vs reality:** No catalog tag matches `excess damage`.
-  - **Suggested fix:** Author `condition.cares_excess_damage` only if the family is >5 cards in Standard. Otherwise skip — this single card doesn't warrant a tag.
-
----
-
 ## Tunnel Tipster  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Creature — Mole Scout
@@ -126,29 +80,6 @@ At the beginning of combat on your turn, choose one —
   - **What's wrong:** Second mode gates the +1/+1 counter on "each colorless creature you control" — a colorless / cloak / Eldrazi-matter payoff. Combined with the first mode producing a colorless face-down creature, Vannifar is a payoff for the colorless-matters archetype.
   - **Evidence vs reality:** No catalog tag for "cares about colorless creatures/permanents". Closest is `effect.cloak` (producer side). A deckbuilder cannot query "colorless-matter payoffs" today.
   - **Suggested fix:** Author `condition.cares_colorless` keyed on `colorless (?:creatures?|permanents?|spells?|cards?)`, `for each colorless`, `each colorless creature you control`. Pair with `effect.cloak`, future face-down/manifest effects, and any Eldrazi-spawn producers. Likely a small family — defer if <5 Standard cards.
-
----
-
-## Voja, Jaws of the Conclave  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Legendary Creature — Wolf
-**Mana cost:** {2}{R}{G}{W}
-
-**Oracle text:**
-
-```
-Vigilance, trample, ward {3}
-Whenever Voja attacks, put X +1/+1 counters on each creature you control, where X is the number of Elves you control. Draw a card for each Wolf you control.
-```
-
-**Current tags:** `condition.cares_tribe.elf`, `effect.counter_modified`, `effect.draws_or_discards`, `effect.has_trample`, `effect.has_vigilance`, `effect.has_ward`, `effect.plus_one_counter`, `trigger.attack_or_block`
-
-### Issues
-
-- **missing**: `condition.cares_tribe.wolf` (same coverage gap as Tolsimir, Midnight's Light)
-  - **What's wrong:** "Draw a card for each Wolf you control" is a Wolf-tribal payoff; no `wolf` entry in `pipeline/themes.ts THEME_TRIBES`.
-  - **Evidence vs reality:** Voja IS a Wolf and scales card draw on Wolves you control. Cannot be found via Wolf-tribal payoff filter.
-  - **Suggested fix:** Add `wolf` to `THEME_TRIBES` (same fix as Tolsimir entry). Voja + Tolsimir + Voja Fenstalker token producers establish the family.
 
 ---
 
@@ -514,25 +445,6 @@ Equip {1}
 
 ---
 
-## Lazav, Familiar Stranger  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Legendary Creature — Shapeshifter
-**Mana cost:** {1}{U}{B}
-
-**Oracle text:**
-
-```
-Whenever you commit a crime, put a +1/+1 counter on Lazav. Then you may exile a card from a graveyard. If a creature card was exiled this way, you may have Lazav become a copy of that card until end of turn. This ability triggers only once each turn.
-```
-
-**Current tags:** `effect.counter_modified`, `effect.exile_from_graveyard`, `effect.plus_one_counter`
-
-### Issues
-
-- **missing**: `trigger.commit_a_crime` — second instance of the MKM Crime mechanic coverage gap. See Kaervek, the Punisher entry above for the rule-authoring proposal.
-
----
-
 ## Lilah, Undefeated Slickshot  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Human Rogue
@@ -580,31 +492,6 @@ Spree
 - **false-positive (debatable)**: `effect.tutor_any`
   - **What's wrong:** "Search your library for a card, put it into your graveyard" is Entomb-style — fetches a specific library card into the GRAVEYARD, not to hand or battlefield. The colloquial sense of "tutor" implies access (hand/play), not graveyard-loading. Lumping Entomb effects under `tutor_any` will cause deckbuilder confusion: searching for "tutor any" filters in Buried Alive / Entomb / Lively Dirge as if they're Demonic Tutor analogues.
   - **Suggested fix:** Either (a) accept current behavior as a deliberate broad reading; or (b) narrow `tutor_any` to exclude `\bput it into your graveyard\b` and author a separate `effect.entomb` tag. Defer the decision to user — likely few Standard hits today.
-
----
-
-## Magda, the Hoardmaster  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Legendary Creature — Dwarf Berserker
-**Mana cost:** {1}{R}
-
-**Oracle text:**
-
-```
-Whenever you commit a crime, create a tapped Treasure token. This ability triggers only once each turn.
-Sacrifice three Treasures: Create a 4/4 red Scorpion Dragon creature token with flying and haste. Activate only as a sorcery.
-```
-
-**Current tags (relevant subset):** `effect.has_mana_activated_ability`, `effect.sacrifice_artifact`, plus 7 others
-
-### Issues
-
-- **false-positive**: `effect.has_mana_activated_ability`
-  - **What's wrong:** Magda's only activated ability has cost `Sacrifice three Treasures:` — pure sacrifice cost, no mana symbol. The tagDef explicitly scopes to "cost includes mana (… reducible by Training-Grounds-style cost reducers)" and excludes Crew. Sacrifice-as-cost should be excluded for the same reason — Training Grounds does not reduce sacrifice costs.
-  - **Evidence vs reality:** evidence was `". sacrifice three treasures:"`. The rule appears to anchor on the colon and a preceding cost segment without verifying the segment actually contains a mana symbol (`\{[WUBRGCXSEP0-9]+\}`).
-  - **Suggested fix:** Tighten `pipeline/rules/effect.has_mana_activated_ability.ts` to require a mana-symbol-bearing token in the cost segment. Add Magda regression (`Sacrifice three Treasures: …` as a negative). Likely affects many sacrifice-cost activated abilities — grep cost lines starting with `^sacrifice`, `^discard`, `^pay` in the artifact to estimate scope.
-
-- **missing**: `trigger.commit_a_crime` — third instance of the MKM Crime mechanic coverage gap (see Kaervek entry above for the proposed rule).
 
 ---
 
@@ -685,36 +572,6 @@ When this creature enters, return up to one target non-Faerie, nonland permanent
 - **false-positive (debatable)**: `condition.cares_tribe.faerie`
   - **What's wrong:** Card mentions Faerie only as a negative target restriction ("non-Faerie"). A Faerie tribal deckbuilder filter searching for "cares about Faerie" gets this card as a hit, but the card doesn't reward, count, or interact positively with Faeries — it excludes them. Same shape as the `non-Human` family.
   - **Suggested fix:** Defer (low-priority). If pursuing, add an exclusion for `non-<tribe>\b` to `condition.cares_tribe.*` regexes, or accept that mentioning a tribe (positive or negative) is enough to flag the axis.
-
----
-
-## Oko, the Ringleader  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Legendary Planeswalker — Oko
-**Mana cost:** {2}{G}{U}
-
-**Oracle text:**
-
-```
-At the beginning of combat on your turn, Oko becomes a copy of up to one target creature you control until end of turn, except he has hexproof.
-+1: Draw two cards. If you've committed a crime this turn, discard a card. Otherwise, discard two cards.
-−1: Create a 3/3 green Elk creature token.
-−5: For each other nonland permanent you control, create a token that's a copy of that permanent.
-```
-
-**Current tags:** `effect.copy_permanent_token`, `effect.create_creature_token`, `effect.create_token`, `effect.draws_or_discards`, `effect.grants_hexproof`, `trigger.beginning_of_combat`
-
-### Issues
-
-- **missing**: `effect.clone_in_place`
-  - **What's wrong:** Rule should fire on "Oko becomes a copy of up to one target creature you control" — self-clone trigger. Same shape as Lazav, Familiar Stranger (also logged above). Currently not firing.
-  - **Evidence vs reality:** Substring `__SELF__ becomes a copy of up to one target creature you control` is the becomes-a-copy form the tagDef explicitly covers.
-  - **Suggested fix:** Same as the Lazav entry — add `\b__SELF__ becomes? a copy of\b` to `pipeline/rules/effect.clone_in_place.ts`. Single rule fix covers both.
-
-- **false-positive (debatable)**: `effect.grants_hexproof`
-  - **What's wrong:** The "except he has hexproof" clause grants hexproof to Oko (in his copied form), not to the targeted creature. The rule appears to anchor loosely on "target creature you control" + "has hexproof" without verifying the subject of "has hexproof" is the targeted creature rather than Oko himself.
-  - **Evidence vs reality:** evidence was `"target creature you control until end of turn, except he has hexproof"`. Subject of "has hexproof" is pronoun "he" referring to Oko (the becomes-a-copy subject), not the target.
-  - **Suggested fix:** This is a narrow becomes-a-copy edge case; one card hit in Standard. Skip unless `pipeline/rules/effect.grants_hexproof.ts` gains a broader audit. Note: in Oko's case the hexproof IS granted (to himself), so the tag has accidental semantic correctness for downstream "find cards that grant hexproof" filters.
 
 ---
 
@@ -1019,30 +876,6 @@ Plot {4}{U}{U} (You may pay {4}{U}{U} and exile this card from your hand. Cast i
 
 ---
 
-## Stingerback Terror  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Scorpion Dragon
-**Mana cost:** {2}{R}{R}
-
-**Oracle text:**
-
-```
-Flying, trample
-This creature gets -1/-1 for each card in your hand.
-Plot {2}{R} (You may pay {2}{R} and exile this card from your hand. Cast it as a sorcery on a later turn without paying its mana cost. Plot only as a sorcery.)
-```
-
-**Current tags:** `effect.debuff_minus_n`, `effect.has_flying`, `effect.has_plot`, `effect.has_trample`
-
-### Issues
-
-- **missing**: `condition.cares_hand_size` (no such tag exists — coverage gap)
-  - **What's wrong:** No catalog tag for "for each card in your hand" scaling. This is a real family — empty-hand / full-hand payoffs (Stingerback Terror, Library of Alexandria-style, Madness-feeders, Reckless Wurm). Plot-cast version of this card is the payoff: empty-hand 4/4 flying trample for {2}{R}.
-  - **Evidence vs reality:** oracle `"gets -1/-1 for each card in your hand"` is a hand-size scaling clause; no condition tag flags it.
-  - **Suggested fix:** add `condition.cares_hand_size` rule — anchors `for each card in your hand`, `cards in your hand`, `your hand is empty`, `no cards in hand`, etc. Pair with `effect.draws_or_discards`, `effect.targeted_discard`. Coverage family also includes hellbent payoffs and Mind Carver-style hand-attack.
-
----
-
 ## Stoic Sphinx  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
 
 **Type:** Creature — Sphinx
@@ -1068,29 +901,6 @@ This creature has hexproof as long as you haven't cast a spell this turn.
   - **What's wrong:** Card has hexproof as a (conditional) intrinsic ability, which is exactly what `effect.has_hexproof` flags. Currently absent.
   - **Evidence vs reality:** oracle clause `"this creature has hexproof as long as you haven't cast a spell this turn"` describes a printed intrinsic conditional hexproof. The companion `grants_` tag is mis-firing instead.
   - **Suggested fix:** broaden `effect.has_hexproof` to include `this creature has hexproof` / `__SELF__ has hexproof` (including `as long as` conditional gates). Currently likely scopes to bare-keyword/printed-only.
-
----
-
-## Stubborn Burrowfiend  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Badger Beast Mount
-**Mana cost:** {1}{G}
-
-**Oracle text:**
-
-```
-Whenever this creature becomes saddled for the first time each turn, mill two cards, then this creature gets +X/+X until end of turn, where X is the number of creature cards in your graveyard.
-Saddle 2 (Tap any number of other creatures you control with total power 2 or more: This Mount becomes saddled until end of turn. Saddle only as a sorcery.)
-```
-
-**Current tags:** `condition.cares_graveyard`, `effect.grants_stat_buff`, `effect.mill`
-
-### Issues
-
-- **missing**: `effect.has_saddle` (no such tag exists — coverage gap)
-  - **What's wrong:** Saddle is an OTJ keyword (multi-card family — Stubborn Burrowfiend, Bovine Intervention, Slick Sequence's Mount partner, Aven Interrupter–partner Mounts, etc.). No tag flags the keyword or the saddle-payoff axis.
-  - **Evidence vs reality:** oracle `"Saddle 2"` (keyword line) and `"becomes saddled for the first time each turn"` (saddle trigger) — both unflagged.
-  - **Suggested fix:** add `effect.has_saddle` (mirrors `effect.has_crew`) and `trigger.becomes_saddled` (mirrors `trigger.becomes_crewed`-style triggers; verify whether the crew-equivalent trigger tag exists). Pair with the Mount-tribe coverage gap (already logged under Steer Clear).
 
 ---
 

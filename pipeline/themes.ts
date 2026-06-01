@@ -26,6 +26,10 @@ export const THEME_SUBTYPES = [
   'clue',
   'treasure',
   'food',
+  // v0.17 — OTJ Mount subtype. Mounts use the Saddle keyword for combat
+  // gating; Mount-cares cards (Miriam, Roxanne, lord-style anthems) need
+  // a parametric cares_subtype.mount tag for tribal/care queries.
+  'mount',
 ] as const;
 
 export type ThemeSubtype = (typeof THEME_SUBTYPES)[number];
@@ -55,6 +59,11 @@ export const THEME_TRIBES = [
   // irregular plural "mice".
   'rabbit', 'raccoon', 'mouse', 'otter', 'squirrel',
   'bat', 'bird', 'lizard', 'frog',
+  // v0.17 — recurring evergreen tribes surfaced by the pre-batch audit
+  // backlog. Spirit (~28 cards) is the largest gap; the rest are mid-size
+  // families with regular reprint patterns. Wolf uses the irregular
+  // F→ves plural ("wolves").
+  'spirit', 'demon', 'angel', 'cat', 'dog', 'wolf',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];
@@ -62,9 +71,11 @@ export type ThemeTribe = (typeof THEME_TRIBES)[number];
 // Simple noun-plural pattern for tribes; tribes never end in 's' in MTG.
 // Special-cased F-pluralization for elf/elves and dwarf/dwarves.
 // v0.16 — mouse/mice irregular plural.
+// v0.17 — wolf/wolves irregular plural.
 export function tribePattern(s: string): string {
   if (s === 'elf') return 'el(?:f|ves)';
   if (s === 'dwarf') return 'dwar(?:f|ves)';
+  if (s === 'wolf') return 'wol(?:f|ves)';
   if (s === 'mouse') return '(?:mouse|mice)';
   return `${s}s?`;
 }
