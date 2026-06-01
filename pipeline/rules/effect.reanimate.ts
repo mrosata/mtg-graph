@@ -46,6 +46,15 @@ const PATTERNS = [
   // battlefield" clause. Graveyard must be present in the zone list; searching
   // only library/hand is a tutor, not reanimation.
   /\bsearch your (?:[^.]{0,60}?\bgraveyard\b[^.]{0,60}?) for [^.]*?and put (?:it|them|that card|those cards) onto the battlefield/,
+  // v0.18 — anaphoric "return that card to the battlefield" after a
+  // graveyard-source or dies-trigger antecedent across a sentence
+  // boundary (Shepherd of the Clouds, Vraska, the Silencer). The
+  // antecedent ("from <X>'s graveyard ..." or "<creature> dies") appears
+  // in an earlier sentence; the reanimation clause refers back via
+  // "that card". Bounded filler so the two halves stay within a tight
+  // window — guards against unrelated battlefield-return triggers later
+  // in the same card.
+  /(?:from (?:your|a|an opponent's|any) graveyard|graveyards?|\bdies)[^.]{0,200}?\.[^.]{0,100}?return that card[^.]{0,40}?(?:to|onto) (?:the )?battlefield/,
 ];
 
 export const rule: Rule = {

@@ -39,7 +39,18 @@ export const rule: Rule = {
       // [...filter...], exile them" / "search your library for a card [...]
       // and exile it" (Omenpath Journey). The library is searched, matched
       // cards are exiled to enable a later play-from-exile payoff.
-      + `|\\bsearch your library for [^.]{0,120}?(?:,\\s+exile (?:them|it|that card|those cards)|\\s+and exile (?:them|it|that card|those cards))\\b`,
+      + `|\\bsearch your library for [^.]{0,120}?(?:,\\s+exile (?:them|it|that card|those cards)|\\s+and exile (?:them|it|that card|those cards))\\b`
+      // v0.18 — Frame E: look-then-exile "look at the top [N] cards of
+      // <library>. you may exile (a|an|one|...) <type>? card from among
+      // them" (Make Your Own Luck, The Key to the Vault). Two-clause shape
+      // separated by a period; the exile is opt-in. NOTE: forbid `.`
+      // and `,` in the filler so we can't span across an unrelated later
+      // sentence's exile clause.
+      + `|\\blook at (?:the top (?:${NUM} )?cards?|that many cards) (?:of |from the top of )${LIBRARY_OWNER} library\\.[^.]{0,80}?(?:you may )?exile (?:up to )?(?:a|an|one|two|three) (?:[\\w\\-]+\\s+){0,2}?card from among them\\b`
+      // v0.18 — Frame F: variable-expression count. "exile cards equal to
+      // <expr> from the top of <library>" (Rakdos, the Muscle). The count
+      // is an arithmetic phrase rather than a literal NUM token.
+      + `|\\bexile cards equal to [^.]{0,80}? from the top of ${LIBRARY_OWNER} library\\b`,
     );
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;

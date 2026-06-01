@@ -153,6 +153,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'condition.cares_lifegain': 'lifegain',
   'effect.life_changed': 'lifegain',
   'trigger.life_changed': 'lifegain',
+  'effect.drain': 'lifegain',
 
   // themes
   'condition.adventure_matters': 'themes',
@@ -188,6 +189,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'trigger.self_etb': 'themes',
   'condition.cares_planeswalkers': 'themes',
   'condition.cares_excess_damage': 'themes',
+  'effect.amplifies_triggers': 'themes',
 
   // set-mechanics
   'condition.cares_bending': 'set-mechanics',
@@ -225,6 +227,9 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.forage': 'set-mechanics',
   // OTJ Mount / Saddle mechanic.
   'effect.has_saddle': 'set-mechanics',
+  // OTJ Spree / Outlaw mechanics.
+  'effect.has_spree': 'set-mechanics',
+  'condition.cares_outlaws': 'set-mechanics',
 
   // keywords
   'condition.cares_deathtouch': 'keywords',
@@ -251,6 +256,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.grants_vigilance': 'keywords',
   'effect.unblockable': 'keywords',
   'effect.partial_unblockable': 'keywords',
+  'effect.grants_protection': 'keywords',
   'effect.has_double_strike': 'keywords',
   'effect.has_first_strike': 'keywords',
   'effect.has_flash': 'keywords',

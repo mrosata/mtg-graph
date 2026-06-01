@@ -21,6 +21,16 @@ describe('effect.exile_from_library', () => {
     // qualifies it for this tag.
     ['search your library for up to five land cards that have different names, exile them, then shuffle'],
     ['search your library for a card and exile it'],
+    // v0.18 — Frame E: "look at top N cards. you may exile a card from among
+    // them" (Make Your Own Luck, The Key to the Vault). The exile is opt-in
+    // and the source is "from among them" rather than naming the library
+    // again. Distinct from a pure look (no exile destination).
+    ['look at the top three cards of your library. you may exile a nonland card from among them'],
+    ['look at that many cards from the top of your library. you may exile a nonland card from among them'],
+    // v0.18 — Frame F: variable expression count "exile cards equal to X
+    // from the top of <library>" (Rakdos, the Muscle).
+    ["exile cards equal to its mana value from the top of target player's library"],
+    ['exile cards equal to the number of artifacts you control from the top of your library'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

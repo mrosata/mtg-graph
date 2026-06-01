@@ -495,28 +495,6 @@ Spree
 
 ---
 
-## Make Your Own Luck  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
-
-**Type:** Sorcery
-**Mana cost:** {3}{G}{U}
-
-**Oracle text:**
-
-```
-Look at the top three cards of your library. You may exile a nonland card from among them. If you do, it becomes plotted. Put the rest into your hand.
-```
-
-**Current tags:** `effect.cast_noncreature_spell`, `effect.has_plot`, `effect.is_instant_or_sorcery`, `effect.look_at_top_n`
-
-### Issues
-
-- **missing**: `effect.exile_from_library`
-  - **What's wrong:** Rule should fire on "You may exile a nonland card from among them" (where "them" = the top three cards of your library). Library → exile movement. Currently not firing.
-  - **Evidence vs reality:** "exile a nonland card from among them" with prior anchor "look at the top three cards of your library" is exactly library-to-exile. Rule likely only handles direct frames ("exile the top N cards of your library") and misses the look-then-pick variant.
-  - **Suggested fix:** Loosen `pipeline/rules/effect.exile_from_library.ts` to handle the "look ... exile ... from among them" pattern. Add `\bexile (?:a |an |any |up to \w+ )?card[s]? from among them\b` after a `look at the top` anchor. Add Make Your Own Luck regression.
-
----
-
 ## Miriam, Herd Whisperer  <!-- audited 2026-05-29, ruleVersion v0.8.0 -->
 
 **Type:** Legendary Creature — Human Druid
@@ -781,31 +759,6 @@ Whenever Satoru and/or one or more other nontoken creatures you control enter, i
 
 ---
 
-## Shepherd of the Clouds  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
-
-**Type:** Creature — Pegasus
-**Mana cost:** {4}{W}
-
-**Oracle text:**
-
-```
-Flying, vigilance
-When this creature enters, return target permanent card with mana value 3 or less from your graveyard to your hand. Return that card to the battlefield instead if you control a Mount.
-```
-
-**Current tags:** `condition.cares_low_mana_value`, `effect.has_flying`, `effect.has_vigilance`, `effect.return_from_graveyard_to_hand`, `trigger.self_etb`
-
-### Issues
-
-- **missing**: `effect.reanimate`
-  - **What's wrong:** Rule should fire on "Return that card to the battlefield instead if you control a Mount" — conditional reanimation upgrade. The previous sentence sets up the "that card" referent as a graveyard card; the second sentence is a graveyard-to-battlefield return. Currently not firing.
-  - **Evidence vs reality:** Substring `return that card to the battlefield instead` is a graveyard-to-battlefield return (the antecedent of "that card" is the graveyard card from the prior sentence). Rule probably requires a literal `from your graveyard` adjacent to the `to the battlefield` clause and misses the cross-sentence anaphoric reference.
-  - **Suggested fix:** Loosen `pipeline/rules/effect.reanimate.ts` to recognize an anaphoric `return that card to the battlefield` when a preceding clause sets up a `from your graveyard` referent. Or accept the gap — this is a rare modal-graveyard-upgrade pattern (mainly OTJ Mount cards). Add Shepherd regression.
-
-- **missing**: `condition.cares_subtype.mount` — third instance of the Mount coverage gap (see Miriam entry above).
-
----
-
 ## Smuggler's Surprise  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
 
 **Type:** Instant
@@ -978,35 +931,6 @@ Equip {2}{U}
   - **What's wrong:** Card does the canonical impulse-shape (look-N, exile-one, may-cast) — but rule likely scopes to `exile the top N cards of your library` rather than `look ... You may exile ... from among them`.
   - **Evidence vs reality:** oracle clauses `"look at that many cards from the top of your library"` then `"You may exile a nonland card from among them"` chain into a net library→exile zone move.
   - **Suggested fix:** broaden `effect.exile_from_library` to recognize the look-then-exile-from-among shape. Same family as Outpost Siege / Robber of the Rich. Not impulse_draw (cast is unbounded, not "this turn").
-
----
-
-## Three Steps Ahead  <!-- audited 2026-05-30, ruleVersion v0.8.0 -->
-
-**Type:** Instant
-**Mana cost:** {U}
-
-**Oracle text:**
-
-```
-Spree (Choose one or more additional costs.)
-+ {1}{U} — Counter target spell.
-+ {3} — Create a token that's a copy of target artifact or creature you control.
-+ {2} — Draw two cards, then discard a card.
-```
-
-**Current tags:** `condition.cares_artifacts`, `effect.cast_noncreature_spell`, `effect.copy_permanent_token`, `effect.counterspell`, `effect.create_token`, `effect.draws_or_discards`, `effect.is_instant_or_sorcery`
-
-### Issues
-
-- **false-positive**: `condition.cares_artifacts`
-  - **What's wrong:** Evidence is `"artifact or creature you control"` — the disjunctive target restriction in a copy-effect ("copy target artifact OR creature you control"). The rule treats this as artifact-cares, but it's not a payoff for artifact-matters decks; the card targets EITHER. Recurring shape across copy spells (Sakashima's Will, Saheeli copy effects).
-  - **Evidence vs reality:** "artifact or creature you control" in a target clause = disjunctive target restriction, not artifact-care. The semantic test: would an artifact-deck deckbuilder want this card *because* of the artifact mention? No — they'd want it because it's a copy spell.
-  - **Suggested fix:** narrow `condition.cares_artifacts` to exclude `artifact or creature you control` (and `artifact or creature` generally) in target clauses — the disjunction signals "any one of these types", not artifact-specific care. Same shape applies to `condition.cares_enchantments` (cards mentioning "creature or enchantment").
-- **missing**: `effect.has_spree` (no such tag exists — coverage gap)
-  - **What's wrong:** Spree is an OTJ keyword. Multi-card family (Three Steps Ahead, Bovine Intervention, Skullcap Snail, Final Showdown). No tag flags either the keyword or the modal-additional-costs shape.
-  - **Evidence vs reality:** oracle `"Spree (Choose one or more additional costs.)"` is the keyword line.
-  - **Suggested fix:** add `effect.has_spree` (mirrors `effect.has_kicker`).
 
 ---
 

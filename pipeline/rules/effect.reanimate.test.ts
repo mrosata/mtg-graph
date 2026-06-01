@@ -38,6 +38,13 @@ describe('effect.reanimate', () => {
     // battlefield target nonland permanent card in your graveyard ...".
     ['return to the battlefield target nonland permanent card in your graveyard with mana value less than or equal to the number of permanent cards in your graveyard'],
     ['put onto the battlefield target creature card in your graveyard'],
+    // v0.18 — anaphoric "return that card to the battlefield" after a
+    // graveyard-source antecedent (Shepherd of the Clouds) or after a
+    // dies-trigger antecedent (Vraska, the Silencer). The "that card"
+    // refers back to the graveyard-derived antecedent across a sentence
+    // boundary.
+    ['return target permanent card with mana value 3 or less from your graveyard to your hand. return that card to the battlefield instead if you control a mount'],
+    ['whenever a nontoken creature an opponent controls dies, you may pay {1}. if you do, return that card to the battlefield tapped under your control'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
