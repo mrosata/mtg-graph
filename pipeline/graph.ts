@@ -32,7 +32,6 @@ function satisfies(
 export function buildEdges(cards: Card[], catalog: TagDef[]): InteractionEdge[] {
   const tagDefById = new Map(catalog.map((t) => [t.tagId, t]));
   const edges: InteractionEdge[] = [];
-  const seen = new Set<string>();
 
   // Index cards by every tag they have, regardless of axis. In the same pass,
   // collect the union of creature types each card's `effect.create_creature_token`
@@ -140,9 +139,6 @@ export function buildEdges(cards: Card[], catalog: TagDef[]): InteractionEdge[] 
         }
         if (requiresOnSource && !satisfies(tagSetByOracleId.get(source), requiresOnSource, requiresMode)) continue;
         if (requiresOnTarget && !satisfies(tagSetByOracleId.get(target), requiresOnTarget, requiresMode)) continue;
-        const key = `${source}|${target}|${effectId}|${consumerId}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
         edges.push({
           source,
           target,
