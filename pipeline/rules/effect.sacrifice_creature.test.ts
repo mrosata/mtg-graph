@@ -74,6 +74,23 @@ describe('effect.sacrifice_creature', () => {
     ['flying ward—sacrifice a creature. whenever a creature dies, target opponent loses 2 life and you gain 2 life.'],
     ['ward—sacrifice a creature.'],
     ['ward—sacrifice another creature, then draw a card.'],
+    // Wave-2 Win 6 (2026-06-01 audit) — Pox Plague: the "each player ...,
+    // then ..., then sacrifices ... permanents" frame is a multi-clause edict;
+    // the verb is separated from "each player" by intermediate clauses
+    // ("loses life", "discards"). NEGATIVE_EDICT must span those.
+    ['each player loses half their life, then discards half the cards in their hand, then sacrifices half the permanents they control of their choice. round down each time.'],
+    // Wave-2 Win 6 (Zodiark, Umbral God) — observer trigger frame: a third
+    // party ("a player") performs the sacrifice and this card just watches.
+    // Same exclusion semantic as the "whenever you sacrifice" frame.
+    ['whenever a player sacrifices another creature, put a +1/+1 counter on __self__.'],
+    ['whenever an opponent sacrifices a creature, draw a card.'],
+    ['whenever any player sacrifices a creature, you gain 1 life.'],
+    // Wave-2 / FIX 2 (FP-4) — Desecration Demon: "any opponent may sacrifice a
+    // creature of their choice. if a player does, tap __self__ and put a
+    // +1/+1 counter on it." `any opponent may sacrifice` is an edict-shape
+    // forced choice on the opponent, NOT a controller sacrifice. Same
+    // exclusion semantic as `each opponent may` / `target opponent may`.
+    ['at the beginning of each combat, any opponent may sacrifice a creature of their choice. if a player does, tap __self__ and put a +1/+1 counter on it.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

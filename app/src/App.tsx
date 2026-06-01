@@ -29,7 +29,7 @@ export default function App() {
   return (
     <WizardProvider>
       <div className="flex h-screen flex-col bg-ink-bg text-vellum">
-        <nav className="relative flex shrink-0 items-center gap-5 bg-ink-bg/85 px-5 py-3 backdrop-blur">
+        <nav className="relative z-40 flex shrink-0 items-center gap-5 bg-ink-bg/85 px-5 py-3 backdrop-blur">
           <BrandMark />
           <span aria-hidden="true" className="h-5 w-px bg-ink-line" />
           <div className="flex items-center gap-1 text-sm">

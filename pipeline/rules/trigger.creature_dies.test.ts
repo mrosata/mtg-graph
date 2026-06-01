@@ -43,6 +43,11 @@ describe('trigger.creature_dies', () => {
     ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],
     // Variant — RAW with "an opponent's graveyard" qualifier.
     ["whenever a creature is put into an opponent's graveyard from the battlefield, draw a card."],
+    // FIX 15 (BR-10) — Crossway Troublemakers: "whenever a Vampire you
+    // control dies". Tribal-subtype dies trigger — the subject is a creature
+    // subtype rather than the generic "creature". Restricted to THEME_TRIBES
+    // alternation to avoid false-firing on non-tribe nouns.
+    ['attacking vampires you control have deathtouch and lifelink.\nwhenever a vampire you control dies, you may pay 2 life. if you do, draw a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -54,7 +54,15 @@ function buildGrantRegex(kw: string): RegExp {
       // generic "creatures". Require the plural-`s` suffix to keep this
       // narrow (excludes singular oddities), and limit to subjects following
       // "other" or starting fresh after a sentence boundary.
-      `(?:^|[.,:\\n—] ?|\\bother\\s+)[a-z][\\w\\-]+s\\s+you control\\s+(?:has|have)\\s+${kw}\\b`,
+      // FIX 14 (BR-9) — admit a state adjective ("attacking", "blocking",
+      // "tapped", "untapped", "enchanted") before the tribe noun. Crossway
+      // Troublemakers: "attacking vampires you control have deathtouch".
+      `(?:^|[.,:\\n—] ?|\\bother\\s+|\\b(?:attacking|blocking|tapped|untapped|enchanted)\\s+)[a-z][\\w\\-]+s\\s+you control\\s+(?:has|have)\\s+${kw}\\b`,
+      // FIX 14 (BR-9) — "get +N/+N and have <kw>" anthem continuation.
+      // Death Baron: "skeletons you control and other zombies you control
+      // get +1/+1 and have deathtouch". The verb chain follows a +N/+N
+      // pump rather than the bare anthem verb.
+      `\\bget\\s+\\+(?:\\d+|x)\\/\\+(?:\\d+|x)\\s+and\\s+(?:has|have|gains?)\\s+${kw}\\b`,
       // Frame (d): bare __SELF__ subject. Limit filler to 50 chars to avoid
       // crossing sentence boundaries via "and/with" chains.
       `\\b__self__[^.]{0,50}?(?:has|have|gains?)\\s+${kw}\\b`,
@@ -209,6 +217,23 @@ function makeRule(slug: string, spelling: string): Rule {
         return m ? { evidence: m[0] } : false;
       },
       nearMiss: { anchors: [kw, 'double strike'], proximity: ['gain', 'have', 'has'], window: 4 },
+    };
+  }
+
+  // FIX 17 (BR-12) — hexproof can be granted to PLAYERS (Crystal Barricade:
+  // "you have hexproof"). Other keywords don't apply to players, so this
+  // arm is restricted to slug === 'hexproof'.
+  if (slug === 'hexproof') {
+    const playerHexproofRe = /\byou\s+(?:have|has|gain|gains)\s+hexproof\b/;
+    return {
+      id: `effect.grants_${slug}`,
+      axis: 'effect',
+      match: (t) => {
+        const cleaned = stripSpellGrants(stripSelfAnaphor(t));
+        const m = cleaned.match(re) ?? cleaned.match(playerHexproofRe);
+        return m ? { evidence: m[0] } : false;
+      },
+      nearMiss: { anchors: [kw], proximity: ['gain', 'have', 'has'], window: 4 },
     };
   }
 

@@ -134,8 +134,8 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   }, [activeDeck, graphCards, tagCatalog, libraryAvailable]);
 
   const baseFiltered = useMemo(
-    () => applyFilter(cards, value, libraryFilter),
-    [cards, value, libraryFilter],
+    () => applyFilter(cards, value, libraryFilter, tagCatalog),
+    [cards, value, libraryFilter, tagCatalog],
   );
   const themeZeroResult = useMemo(() => {
     const cache = new Map<string, boolean>();
@@ -394,6 +394,13 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
           })}
           onToggle={toggleTag}
           storageKey={INTERACTIONS_STORAGE_KEY}
+          mode={value.interactionTagsMode ?? 'and'}
+          onModeChange={(m) =>
+            onChange({
+              ...value,
+              interactionTagsMode: m === 'and' ? undefined : m,
+            })
+          }
         />
       </section>
 
@@ -406,6 +413,13 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
           onToggle={toggleTag}
           zeroResultPreview={themeZeroResult}
           storageKey={THEMES_STORAGE_KEY}
+          mode={value.themeTagsMode ?? 'and'}
+          onModeChange={(m) =>
+            onChange({
+              ...value,
+              themeTagsMode: m === 'and' ? undefined : m,
+            })
+          }
         />
       </section>
 

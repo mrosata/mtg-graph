@@ -10,7 +10,9 @@ export const tagDef: TagDef = {
   pairsWith: [],
 };
 
-const NUM = '(?:\\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|twenty)';
+// FIX 12 (BR-7) — Dread Summons: "each player mills x cards". Admit the
+// literal `x` variable alongside digits and word numerals.
+const NUM = '(?:\\d+|x|a|an|one|two|three|four|five|six|seven|eight|nine|ten|twenty)';
 
 export const rule: Rule = {
   id: 'effect.mill',
@@ -37,7 +39,12 @@ export const rule: Rule = {
       // for a card, put it into your graveyard, then shuffle". Bounded
       // fillers keep the match localized — the tutored card lands in
       // graveyard, functionally a self-mill.
-      `|\\bsearch [\\w\\s']+? library for (?:a|an|target)\\s+(?:[^.]{0,60}?\\s+)?cards?[^.]{0,60}?,?\\s+put (?:it|that card|them|those cards) into (?:your|their) graveyard\\b`,
+      `|\\bsearch [\\w\\s']+? library for (?:a|an|target)\\s+(?:[^.]{0,60}?\\s+)?cards?[^.]{0,60}?,?\\s+put (?:it|that card|them|those cards) into (?:your|their) graveyard\\b` +
+      // FIX 12 (BR-7) — Consuming Aberration: reveal-until-land mill. Each
+      // opponent reveals from library until a land, then puts those cards
+      // into their graveyard. Net effect is graveyard fill — same axis as
+      // numeric mill.
+      `|\\breveals?\\s+cards?\\s+from the top of\\s+[\\w\\s']+?\\s+library\\s+until\\s+(?:they|you)\\s+reveal\\s+a\\s+land\\s+card[^.]{0,80}?puts?\\s+(?:them|those\\s+cards|that\\s+card)\\s+into\\s+[\\w\\s']+?\\s+graveyard`,
     );
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;

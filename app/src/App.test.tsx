@@ -47,7 +47,7 @@ function renderApp() {
   );
 }
 
-describe('App — active deck breadcrumb', () => {
+describe('App - active deck breadcrumb', () => {
   it('does not render the breadcrumb when no deck is active', () => {
     renderApp();
     expect(screen.queryByLabelText(/Active deck:/)).not.toBeInTheDocument();

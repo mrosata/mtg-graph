@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLibraryStore } from '../stores/libraryStore';
+import { TOUR_IDS } from '../wizard/selectors';
 import ImportLibraryModal from './ImportLibraryModal';
 import LibraryImportSummary from './LibraryImportSummary';
 
@@ -15,7 +16,7 @@ export default function LibrarySection() {
 
   if (!owned) {
     return (
-      <section className="mb-4 rounded-lg border border-ink-line bg-ink-raised p-3">
+      <section className="mb-4 rounded-lg border border-ink-line bg-ink-raised p-3" data-tour-id={TOUR_IDS.librarySection}>
         <h4 className="eyebrow">Library</h4>
         <p className="mt-1.5 text-xs text-vellum-mute">Import a Manabox CSV backup.</p>
         <button
@@ -36,7 +37,7 @@ export default function LibrarySection() {
   const importedDate = meta ? new Date(meta.importedAt).toLocaleDateString() : '';
 
   return (
-    <section className="mb-4 rounded-lg border border-ink-line bg-ink-raised p-3">
+    <section className="mb-4 rounded-lg border border-ink-line bg-ink-raised p-3" data-tour-id={TOUR_IDS.librarySection}>
       <h4 className="eyebrow">Library</h4>
       <p className="mt-1.5 font-mono tabular text-xs text-vellum">
         {cardCount.toLocaleString()} cards · {copyCount.toLocaleString()} copies

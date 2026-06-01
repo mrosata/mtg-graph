@@ -80,6 +80,16 @@ describe('effect.exile_creature', () => {
     expect(rule.match!(text)).toBe(false);
   });
 
+  // FIX 8 (BR-3) — Abyssal Harvester: "exile all other Nightmare tokens you
+  // control". Token-sweep on a creature subtype is a creature exile by token
+  // type. Gated on THEME_TRIBES alternation so artifact-token sweeps
+  // (Treasure / Food / Clue / Map) don't FP.
+  it.each([
+    ["{t}: exile target creature card from a graveyard that was put there this turn. create a token that's a copy of it, except it's a nightmare in addition to its other types. then exile all other nightmare tokens you control."],
+  ])('matches token-subtype sweep: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
   // Regression (Unyielding Gatekeeper): "exile another target nonland
   // permanent. if you controlled it, return it to the battlefield tapped.
   // otherwise, ..." — split-mode punisher, NOT a flicker. The "if you

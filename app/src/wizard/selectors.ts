@@ -11,9 +11,11 @@ export const TOUR_IDS = {
   navDecks: 'nav-decks',
   navActiveDeck: 'nav-active-deck',
   navHelp: 'nav-help',
+  libraryStatusBadge: 'library-status-badge',
 
   // Browse page
   filterPanel: 'filter-panel',
+  librarySection: 'library-section',
   tagFilterSection: 'tag-filter-section',
   cardGrid: 'card-grid',
 

@@ -12,7 +12,10 @@ export const tagDef: TagDef = {
 
 const PATTERNS = [
   // direct put: "put a/N +1/+1 counter(s) on ..."
-  /\bputs? (?:a |an |another |\d+ |that many |x |one |two |three |four |five |six |seven |eight |target |any number of |up to (?:a |an |\d+ |one |two |three )?)?\+1\/\+1 counters? on/,
+  // v0.24 — admits a trailing "and a/N <X> counter(s)" tail before "on" so
+  // DSK keyword-counter cards ("put a +1/+1 counter and a trample counter on
+  // target creature") still match. Champion of Dusan, Kheru Goldkeeper.
+  /\bputs? (?:a |an |another |\d+ |that many |x |one |two |three |four |five |six |seven |eight |target |any number of |up to (?:a |an |\d+ |one |two |three )?)?\+1\/\+1 counters?(?:\s+and\s+(?:a |an |\d+ |one |two |three )?\w+ counters?)? on/,
   // variable-count: "put a number of +1/+1 counters equal to … on …" (Gruff Triplets)
   /\bputs? a number of \+1\/\+1 counters? (?:equal to |on )/,
   // multi-target distribute: "distribute N +1/+1 counters among <targets>"

@@ -65,6 +65,27 @@ const PERMANENT_TYPES = ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planesw
 // Those zones aren't "this permanent has an activated ability" semantics.
 const BATTLEFIELD_ACTIVATED_KEYWORDS = new Set(['Equip', 'Crew']);
 
+// v0.24 — strip leading keyword tokens from the normalized text.
+// Normalization collapses `\n` to space, erasing the boundary between a
+// keyword block ("Reach", "Flying, vigilance", "Start your engines!") and
+// the first prose-cost activation that follows. The PROSE pattern anchors
+// on a sentence-like boundary which a collapsed keyword line doesn't
+// provide. Pre-stripping the keyword block restores the `^` anchor.
+function stripLeadingKeywords(text: string, keywords: string[]): string {
+  if (keywords.length === 0) return text;
+  const escaped = keywords
+    .map((k) => k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  // Each keyword token may carry an optional `{mana-cost}` suffix
+  // (Ward {1}, Equip {2}) and an optional trailing comma before the next
+  // keyword. The block ends at the first non-keyword token.
+  const leading = new RegExp(
+    `^(?:(?:${escaped})(?:\\s*\\{[^}]+\\})?(?:\\s*,\\s*)?\\s*)+`,
+    'i',
+  );
+  return text.replace(leading, '');
+}
+
 export const rule: Rule = {
   id: 'effect.has_activated_ability',
   axis: 'effect',
@@ -73,7 +94,8 @@ export const rule: Rule = {
     const kw = card.keywords.find((k) => BATTLEFIELD_ACTIVATED_KEYWORDS.has(k));
     if (kw) return { evidence: kw.toLowerCase() };
     const normalized = normalizeOracleText(card.oracleText, card.name);
-    const m = normalized.match(SYMBOL_ACTIVATED_PATTERN) ?? normalized.match(PROSE_ACTIVATED_PATTERN);
+    const stripped = stripLeadingKeywords(normalized, card.keywords);
+    const m = stripped.match(SYMBOL_ACTIVATED_PATTERN) ?? stripped.match(PROSE_ACTIVATED_PATTERN);
     return m ? { evidence: m[0].trim() } : false;
   },
 };

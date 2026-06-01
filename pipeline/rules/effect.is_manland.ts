@@ -25,12 +25,19 @@ export const tagDef: TagDef = {
 // "this land becomes" anchor is reliable.
 const PATTERN = /\b(?:this land|__self__)\s+(?:is|becomes)\s+(?:a|an)\b[^.]*?\bcreature\b/;
 
+// FIX 16 (BR-11) — Crawling Barrens: "you may have it become a 0/0
+// elemental creature until end of turn." Anaphoric "have it become a
+// <stats> creature" frame — same self-animation semantic, just with the
+// subject expressed via the anaphor "it" (bound to "this land" earlier
+// in the text).
+const PATTERN_HAVE_IT_BECOME = /\bhave it become\s+(?:a|an)\b[^.]*?\bcreature\b/;
+
 export const rule: Rule = {
   id: 'effect.is_manland',
   axis: 'effect',
   matchCard: (card, normalizedText) => {
     if (!card.types.includes('Land')) return false;
-    const m = normalizedText.match(PATTERN);
+    const m = normalizedText.match(PATTERN) ?? normalizedText.match(PATTERN_HAVE_IT_BECOME);
     return m ? { evidence: m[0].slice(0, 80) } : false;
   },
 };

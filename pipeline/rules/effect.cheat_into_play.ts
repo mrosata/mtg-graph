@@ -31,8 +31,16 @@ const SEARCH_PUT =
 // Pattern B: look at top + put onto battlefield. [\s\S]{0,300} allows
 // spanning sentence boundaries (Break Out is 3 sentences). Face-down /
 // cloak spans are rejected by the post-match filter in match().
+// v0.22.0 — admit the "put a <type> card [with ...] from among them onto
+// the battlefield" templating (Aang, at the Crossroads). The earlier
+// pronoun-only form ("put it/them/that card") missed cards that re-name
+// the cheated-in card with a typed noun phrase.
+// FIX 10 (BR-5) — Wickerfolk Thresher: singular "look at the top card of
+// your library ... you may put it onto the battlefield". Relax the
+// quantifier before `cards?` to optional `\w+ ` so the singular "top card"
+// form reaches the put-onto-battlefield anchor.
 const LOOK_PUT =
-  /\blook at the top \w+ cards? of your library\b[\s\S]{0,300}\bput (?:it|them|that card|those cards) onto the battlefield\b/;
+  /\blook at the top (?:\w+ )?cards? of your library\b[\s\S]{0,300}\bput (?:(?:it|them|that card|those cards)|(?:a |an |one |any number of )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|card)s?\s+(?:with [^.]{0,60}?)?from among them) onto the battlefield\b/;
 
 // Pattern C: exiled cards → battlefield. Anchors on the
 // "exiled cards"/"cards exiled"/"exiled creature card" reference.
@@ -43,8 +51,11 @@ const EXILED_PUT =
 // on explicit permanent type token (NOT bare "card") to avoid the land-play
 // templating "play a land from your hand". A-Kona, Rescue Beastie uses
 // "put a permanent card from your hand onto the battlefield".
+// v0.22.0 — admit a "with <restriction>" interpolation between "card" and
+// "from your hand" (Kinscaer Sentry: "put a creature card with mana value X
+// or less from your hand onto the battlefield tapped and attacking").
 const HAND_PUT =
-  /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+from your hand onto the battlefield\b/;
+  /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
 
 const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, EXILED_PUT, HAND_PUT];
 

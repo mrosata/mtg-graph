@@ -11600,3 +11600,440 @@ Shipped together: 14 new tags + 10 rule broadenings + 1 narrowing + 1 keyword-se
 ## Deferred (see `CARD_ISSUES.md`)
 
 - **Tale of Katara and Toph** + **Citanul Hierophants** — anthem-grant quote-strip leaves these two cards with zero tags. The fix needs a pipeline-level enhancement (tag forwarding from grant interior to source). Deferred — not a single-rule narrowing.
+# Card tag-audit issues
+
+Logged by `mtg-graph-card-tag-audit`. Each entry = one card with at least one tag accuracy issue. Consume entries via `mtg-graph-narrow-tag-rule` (precision fixes) or by authoring a new rule (coverage gaps).
+
+Resolved entries are moved to `CARD_ISSUES_RESOLVED.md`.
+
+---
+
+## Tale of Katara and Toph  <!-- deferred from 2026-06-01 audit; needs pipeline-level enhancement -->
+
+**Type:** Enchantment
+**Mana cost:** {2}{G}
+
+**Oracle text:**
+
+```
+Creatures you control have "Whenever this creature becomes tapped for the first time during each of your turns, put a +1/+1 counter on it."
+```
+
+**Current tags:** `(none — card is currently UNTAGGED)`
+
+### Issues
+
+- **missing-all**: zero tags due to anthem-style grant-quote strip — **NOT a single-rule fix**.
+  - **What's wrong:** v0.13.4 normalization strips paired `"…"` granted-ability quotes before rules run, so the entire mechanical body of this card disappears. After strip the rule machinery sees only `creatures you control have .` — nothing to match.
+  - **Sibling impact:** Citanul Hierophants has the same shape (`Creatures you control have "{T}: Add {G}."`) and is also zero-tagged. Audit 2026-06-01 grep found these two cards plus 17 other anthem-grant cards that DO get some tags from outside the quotes; only these two get nothing.
+  - **Suggested fix:** Pipeline-level enhancement. Detect the anthem-grant frame `<subject> (?:has|have) "<inner>"` BEFORE the quote-strip step. Run the rule extractor on the inner span with an explicit "granted via anthem" marker (e.g. `evidence: 'granted: <inner-evidence>'`) and forward applicable tag matches onto the source card. Simpler interim: if the inner grant contains a recognized keyword frame (mana ability `{T}: Add {X}`, counter trigger, ETB trigger, etc.), forward just that one tag.
+
+  This pattern is the dominant remaining source of "real card, zero tags" artifacts. Worth a focused design pass before shipping — naïve forwarding can over-tag (e.g. "Creatures you control have flying" shouldn't make the source card itself fly).
+
+EOF
+
+
+# v0.26.0 audit batch (2026-06-01, 150-card scan)
+
+17 cards resolved by the 20-fix narrow-tag-rule batch. See commit body for full rule list.
+
+---
+
+## Abyssal Harvester  <!-- audited 2026-06-01, ruleVersion v0.25.0 -->
+
+**Type:** Creature — Demon Warlock
+**Mana cost:** {1}{B}{B}
+
+**Oracle text:**
+
+```
+{T}: Exile target creature card from a graveyard that was put there this turn. Create a token that's a copy of it, except it's a Nightmare in addition to its other types. Then exile all other Nightmare tokens you control.
+```
+
+**Current tags:** `condition.cares_tokens`, `effect.copy_permanent_token`, `effect.create_creature_token`, `effect.create_token`, `effect.exile_from_graveyard`, `effect.has_activated_ability`
+
+### Issues
+
+- **missing**: `effect.exile_from_battlefield` / `effect.exile_creature`
+  - **What's wrong:** "exile all other Nightmare tokens you control" exiles permanents from the battlefield.
+  - **Evidence vs reality:** "exile all other Nightmare tokens you control" is a battlefield-zone exile; only `effect.exile_from_graveyard` is tagged.
+  - **Suggested fix:** Broaden `effect.exile_from_battlefield` / `effect.exile_creature` rules to catch "exile all other ... tokens you control".
+---
+
+## Aetherize  <!-- audited 2026-06-01, ruleVersion v0.25.0 -->
+
+**Type:** Instant
+**Mana cost:** {3}{U}
+
+**Oracle text:**
+
+```
+Return all attacking creatures to their owner's hand.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** Card returns creatures from the battlefield to their owners' hands — the canonical bounce shape; only the spell-type tags fired.
+  - **Evidence vs reality:** "return all attacking creatures to their owner's hand" cleanly matches `effect.bounce_creature` ("Returns a creature ... to its owner's hand"), but no bounce tag fired.
+  - **Suggested fix:** Broaden `effect.bounce_creature` regex to catch "return all attacking creatures to their owner's hand" (and likely the broader "return all <qualifier> creatures to their owners' hand" frame).
+---
+
+## Angelic Destiny  <!-- audited 2026-06-01, ruleVersion v0.25.0 -->
+
+**Type:** Enchantment — Aura
+**Mana cost:** {2}{W}{W}
+
+**Oracle text:**
+
+```
+Enchant creature
+Enchanted creature gets +4/+4, has flying and first strike, and is an Angel in addition to its other types.
+When enchanted creature dies, return this card to its owner's hand.
+```
+
+**Current tags:** `condition.cares_tribe.angel`, `effect.grants_evasion`, `effect.grants_first_strike`, `effect.grants_stat_buff`, `trigger.creature_dies`
+
+### Issues
+
+- **missing**: `effect.bounce_enchantment` (self-bounce variant)
+  - **What's wrong:** Card returns itself (an enchantment) to its owner's hand on the death trigger; no bounce tag fired.
+  - **Evidence vs reality:** "return this card to its owner's hand" applied to a self-targeted enchantment matches `effect.bounce_enchantment` ("Returns an enchantment to hand"), but rule did not fire on the self-bounce frame.
+  - **Suggested fix:** Broaden `effect.bounce_enchantment` to include the self-bounce frame "return this card to its owner's hand" when the card is itself an enchantment.
+---
+
+## An Offer You Can't Refuse  <!-- audited 2026-06-01, ruleVersion v0.25.0 -->
+
+**Type:** Instant
+**Mana cost:** {U}
+
+**Oracle text:**
+
+```
+Counter target noncreature spell. Its controller creates two Treasure tokens. (They're artifacts with "{T}, Sacrifice this token: Add one mana of any color.")
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.counterspell`, `effect.create_token`, `effect.create_treasure`, `effect.is_instant_or_sorcery`, `effect.add_mana`, `effect.ramp_nonland`
+
+### Issues
+
+- **false-positive**: `effect.add_mana`, `effect.ramp_nonland`
+  - **What's wrong:** The two Treasure tokens go to the OPPONENT (the countered spell's controller). Tagging this card as a self-ramp source is misleading — it's an opponent-ramp side effect of a counterspell.
+  - **Evidence vs reality:** evidence reads `"granted: add one mana of any"` — appears to be a synthetic marker derived from Treasure token granted-abilities, but the rule does not condition on whose treasures (the card text says "Its controller creates" referring to the countered spell's controller).
+  - **Suggested fix:** Narrow the Treasure-derived add_mana / ramp_nonland injection to fire only when the create_treasure clause grants to "you" (skip when subject is "its controller" / "opponent" / "each opponent").
+---
+
+## Arcanis the Omnipotent  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Wizard
+**Mana cost:** {3}{U}{U}{U}
+
+**Oracle text:**
+
+```
+{T}: Draw three cards.
+{2}{U}{U}: Return Arcanis to its owner's hand.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`
+
+### Issues
+
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** Self-bounce activated ability ("Return Arcanis to its owner's hand", normalized to `Return __SELF__ to its owner's hand`) isn't matched by the rule. PATTERN_RETURN_OWN handles "Return this creature..." form (per the v0.14.10 comment), but not __SELF__ token form.
+  - **Evidence vs reality:** evidence would be `"Return __SELF__ to its owner's hand"`, which is mechanically a self-bounce (re-triggers ETB) — the tagDef description covers self-bounce per v0.14.10.
+  - **Suggested fix:** add a self-bounce arm: `/\breturn(?:s)?\s+__SELF__\s+to (?:its owner's|your)\s+hand\b/`
+---
+
+## Ballyrush Banneret  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Kithkin Soldier
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Kithkin spells and Soldier spells you cast cost {1} less to cast.
+```
+
+**Current tags:** `condition.cares_tribe.kithkin`, `effect.cost_reduction`
+
+### Issues
+
+- **missing**: no `condition.cares_tribe.soldier` exists
+  - **What's wrong:** Card references Soldier spells but Soldier is not in `THEME_TRIBES`.
+  - **Evidence vs reality:** evidence would be `"soldier spells"`, but the parametric `condition.cares_tribe` rule only emits one tag per tribe in the THEME_TRIBES list. Soldier is a very common Standard/Bloomburrow tribe (cf. Bishop's Soldier in this same audit chunk).
+  - **Suggested fix:** add `'soldier'` to `THEME_TRIBES` in `pipeline/themes.ts`.
+---
+
+## Bloodthirsty Conqueror  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Vampire Knight
+**Mana cost:** {3}{B}{B}
+
+**Oracle text:**
+
+```
+Flying, deathtouch
+Whenever an opponent loses life, you gain that much life. (Damage causes loss of life.)
+```
+
+**Current tags:** `condition.cares_lifeloss`, `effect.has_deathtouch`, `effect.has_flying`, `trigger.life_changed`
+
+### Issues
+
+- **missing**: `effect.life_changed`
+  - **What's wrong:** "you gain that much life" should fire `effect.life_changed`. The THAT_MUCH arm only covers `loses that much life`; the REPLACEMENT_GAIN arm requires the trailing `plus N instead`. Pure anaphoric "gain that much life" falls through.
+  - **Evidence vs reality:** evidence would be `"you gain that much life"`, which is mechanically lifegain (Soul Warden / Sanguine Bond family).
+  - **Suggested fix:** broaden THAT_MUCH (or add a new arm) to match `\byou\s+gains?\s+that much life\b` as standalone (no "plus N instead" required).
+---
+
+## Consuming Aberration  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Horror
+**Mana cost:** {3}{U}{B}
+
+**Oracle text:**
+
+```
+Consuming Aberration's power and toughness are each equal to the number of cards in your opponents' graveyards.
+Whenever you cast a spell, each opponent reveals cards from the top of their library until they reveal a land card, then puts those cards into their graveyard.
+```
+
+**Current tags:** `trigger.spell_cast`
+
+### Issues
+
+- **missing**: `effect.mill`
+  - **What's wrong:** Opponent reveals cards from their library and puts them in their graveyard — that's mill.
+  - **Evidence vs reality:** clause "reveals cards from the top of their library ... then puts those cards into their graveyard" matches mill's description (puts cards from a library into a graveyard).
+  - **Suggested fix:** broaden mill regex to recognize the reveal-until-land milling pattern.
+
+- **missing**: `condition.cares_graveyard`
+  - **What's wrong:** P/T equals "number of cards in your opponents' graveyards" — direct graveyard-size scaling.
+  - **Evidence vs reality:** clause "power and toughness are each equal to the number of cards in your opponents' graveyards" matches "scales off graveyard size or content."
+  - **Suggested fix:** add a near-miss / broadening for "equal to the number of cards in [...] graveyards" P/T modifiers.
+---
+
+## Corsair Captain  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Human Pirate
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+When this creature enters, create a Treasure token. (It's an artifact with "{T}, Sacrifice this token: Add one mana of any color.")
+Other Pirates you control get +1/+1.
+```
+
+**Current tags:** `condition.cares_tribe.pirate`, `effect.create_token`, `effect.create_treasure`, `effect.grants_stat_buff`, `trigger.self_etb`, `effect.add_mana`, `effect.ramp_nonland`
+
+### Issues
+
+- **false-positive**: `effect.add_mana`
+  - **What's wrong:** The "add one mana of any color" is the Treasure token's granted activated ability, not an ability of Corsair Captain itself. The reminder-text frame was stripped but the granted-ability clause survives because Treasures' template text isn't parenthesized when included verbatim. The card doesn't add mana.
+  - **Evidence vs reality:** evidence was `"granted: add one mana of any"`, but the description requires the card itself add mana — Corsair Captain just creates a Treasure (already captured by `effect.create_treasure`).
+  - **Suggested fix:** narrow add_mana regex to exclude granted-ability frames ("granted:", or inside quoted activated-ability bodies on token-creation clauses).
+
+- **false-positive**: `effect.ramp_nonland`
+  - **What's wrong:** Same issue — the granted Treasure ability triggers the rule, but Corsair Captain itself is not a ramp card. `effect.create_treasure` already covers the Treasure axis.
+  - **Evidence vs reality:** evidence was `"granted: add one mana of any"`, but the description says non-Land card that adds mana OR fetches a basic land directly into play.
+  - **Suggested fix:** narrow ramp_nonland to exclude granted-ability frames; rely on `effect.create_treasure` for Treasure ramp.
+---
+
+## Crawling Barrens  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Land
+**Mana cost:** (none)
+
+**Oracle text:**
+
+```
+{T}: Add {C}.
+{4}: Put two +1/+1 counters on this land. Then you may have it become a 0/0 Elemental creature until end of turn. It's still a land.
+```
+
+**Current tags:** `effect.add_mana`, `effect.counter_modified`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `effect.is_manland`
+  - **What's wrong:** This is a textbook manland — pays mana to become a 0/0 Elemental creature.
+  - **Evidence vs reality:** clause "you may have it become a 0/0 Elemental creature until end of turn" matches the manland description (land that animates itself into a creature via an activated ability).
+  - **Suggested fix:** broaden manland regex to match "have it become a N/N <subtype> creature until end of turn" (the Zendikar Rising self-animate template).
+---
+
+## Crossway Troublemakers  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Vampire
+**Mana cost:** {5}{B}
+
+**Oracle text:**
+
+```
+Attacking Vampires you control have deathtouch and lifelink. (Any amount of damage they deal to a creature is enough to destroy it. Damage dealt by those creatures also causes their controller to gain that much life.)
+Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.
+```
+
+**Current tags:** `condition.cares_tribe.vampire`, `effect.draws_or_discards`, `effect.grants_lifelink`, `effect.life_changed`
+
+### Issues
+
+- **missing**: `effect.grants_deathtouch`
+  - **What's wrong:** Grants deathtouch to attacking Vampires alongside lifelink, but only lifelink was tagged.
+  - **Evidence vs reality:** clause "Attacking Vampires you control have deathtouch and lifelink" matches grants_deathtouch description.
+  - **Suggested fix:** broaden grants_deathtouch regex to recognize "have deathtouch and lifelink" / "have <other> and deathtouch" coordination patterns.
+
+- **missing**: `trigger.creature_dies`
+  - **What's wrong:** Has a dies trigger on Vampires; no trigger.creature_dies tag fired.
+  - **Evidence vs reality:** clause "Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card." matches "ability that triggers when a creature dies."
+  - **Suggested fix:** broaden trigger.creature_dies to match "whenever a <subtype> you control dies" tribal variants.
+---
+
+## Crystal Barricade  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Artifact Creature — Wall
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Defender (This creature can't attack.)
+You have hexproof. (You can't be the target of spells or abilities your opponents control.)
+Prevent all noncombat damage that would be dealt to other creatures you control.
+```
+
+**Current tags:** `effect.has_defender`
+
+### Issues
+
+- **missing**: `effect.grants_hexproof`
+  - **What's wrong:** "You have hexproof" grants hexproof to the player; grants_protection-family covers grants to the player per description.
+  - **Evidence vs reality:** clause "You have hexproof." matches grants_hexproof description (Grants the hexproof keyword to one or more creatures or to the player).
+  - **Suggested fix:** broaden grants_hexproof regex to recognize "you have hexproof" (player-target frame).
+
+- **missing**: `effect.prevent_damage`
+  - **What's wrong:** Prevents noncombat damage to other creatures you control — direct Fog/Holy Day family.
+  - **Evidence vs reality:** clause "Prevent all noncombat damage that would be dealt to other creatures you control." matches the prevent_damage description.
+  - **Suggested fix:** broaden prevent_damage regex to match "prevent all noncombat damage that would be dealt to <X>" template.
+---
+
+## Darksteel Colossus  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Artifact Creature — Golem
+**Mana cost:** {11}
+
+**Oracle text:**
+
+```
+Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)
+Indestructible (Damage and effects that say "destroy" don't destroy this creature.)
+If Darksteel Colossus would be put into a graveyard from anywhere, reveal Darksteel Colossus and shuffle it into its owner's library instead.
+```
+
+**Current tags:** `effect.has_indestructible`, `effect.has_trample`, `effect.tuck_to_library`
+
+### Issues
+
+- **false-positive**: `effect.tuck_to_library`
+  - **What's wrong:** The "shuffle into owner's library" is a self-replacement effect on the card itself (anti-graveyard protection), not a soft-bounce removal effect targeting another permanent.
+  - **Evidence vs reality:** evidence was `"shuffle it into its owner's library"`, but tagDef describes removal: "Puts a card from the battlefield or graveyard onto the top or bottom of a library — soft-bounce removal." This card's clause replaces its own graveyard placement.
+  - **Suggested fix:** narrow tuck_to_library to exclude self-shuffle replacement clauses ("if SELF would be put into a graveyard ... shuffle it into its owner's library instead").
+---
+
+## Death Baron  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Zombie Wizard
+**Mana cost:** {1}{B}{B}
+
+**Oracle text:**
+
+```
+Skeletons you control and other Zombies you control get +1/+1 and have deathtouch. (Any amount of damage they deal to a creature is enough to destroy it.)
+```
+
+**Current tags:** `condition.cares_tribe.skeleton`, `condition.cares_tribe.zombie`, `effect.grants_stat_buff`
+
+### Issues
+
+- **missing**: `effect.grants_deathtouch`
+  - **What's wrong:** Skeletons and Zombies you control "have deathtouch" — a static anthem-style deathtouch grant.
+  - **Evidence vs reality:** clause "...get +1/+1 and have deathtouch" matches grants_deathtouch description (grants deathtouch keyword to one or more creatures).
+  - **Suggested fix:** broaden grants_deathtouch regex to recognize "have deathtouch" inside compound static anthems ("get +N/+N and have deathtouch").
+---
+
+## Desecration Demon  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Demon
+**Mana cost:** {2}{B}{B}
+
+**Oracle text:**
+
+```
+Flying
+At the beginning of each combat, any opponent may sacrifice a creature of their choice. If a player does, tap this creature and put a +1/+1 counter on it.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.has_flying`, `effect.plus_one_counter`, `effect.sacrifice_creature`, `trigger.beginning_of_combat`
+
+### Issues
+
+- **false-positive**: `effect.sacrifice_creature`
+  - **What's wrong:** This is an opponent-sacrifices edict effect, not Desecration Demon sacrificing a creature it controls (the tagDef's "as part of its cost or effect" frame for you-sacrifices).
+  - **Evidence vs reality:** evidence was `"sacrifice a creature"`, but tagDef intent is "you sacrifice"; this clause says "any opponent may sacrifice" — that's `effect.edict` territory.
+  - **Suggested fix:** narrow `effect.sacrifice_creature` to exclude "any opponent may sacrifice" / "each opponent sacrifices" frames (edicts).
+
+- **missing**: `effect.edict`
+  - **What's wrong:** Opponent-sacrifice clause is the edict family but no edict tag fired.
+  - **Evidence vs reality:** clause "any opponent may sacrifice a creature of their choice" matches the edict description (Forces an opponent to sacrifice a creature or permanent).
+  - **Suggested fix:** broaden edict regex to recognize "any opponent may sacrifice a creature of their choice" (optional/may variant of forced sacrifice).
+---
+
+## Dread Summons  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {X}{B}{B}
+
+**Oracle text:**
+
+```
+Each player mills X cards. For each creature card put into a graveyard this way, you create a tapped 2/2 black Zombie creature token.
+```
+
+**Current tags:** `condition.has_x_in_cost`, `effect.cast_noncreature_spell`, `effect.create_creature_token`, `effect.create_token`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.mill`
+  - **What's wrong:** "Each player mills X cards" is a textbook mill effect — puts cards from libraries into graveyards.
+  - **Evidence vs reality:** Oracle says "Each player mills X cards" explicitly, yet no mill tag fires.
+  - **Suggested fix:** Broaden `effect.mill` regex to match "each player mills".
+---
+
+## Elenda, Saint of Dusk  <!-- audited 2026-06-01, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Vampire Knight
+**Mana cost:** {2}{W}{B}
+
+**Oracle text:**
+
+```
+Lifelink, hexproof from instants
+As long as your life total is greater than your starting life total, Elenda gets +1/+1 and has menace. Elenda gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.
+```
+
+**Current tags:** `effect.gains_keyword_self_conditional`, `effect.grants_evasion`, `effect.has_hexproof`, `effect.has_lifelink`
+
+### Issues
+
+- **false-positive**: `effect.grants_evasion`
+  - **What's wrong:** Menace is a self-conditional gain (`as long as ... __self__ ... has menace`) and is already captured by `effect.gains_keyword_self_conditional`. Per the v0.21 design, evasion self-conditionals move off `grants_evasion` to avoid double-tagging.
+  - **Evidence vs reality:** evidence was `"has menace"` inside an "as long as ... __self__ gets +1/+1 and has menace" clause — that is the same clause that already produced `gains_keyword_self_conditional`. `grants_evasion` is supposed to be anthem-style grants to other creatures or to tokens.
+  - **Suggested fix:** Narrow `effect.grants_evasion` to exclude self-conditional gains (skip `__self__ ... has menace/flying/intimidate` patterns under "as long as / while / if" gates).
+
+### Possible catalog gap (not flagged as missing)
+
+- Hexproof from instants is a printed intrinsic, but it's a hexproof-with-quality variant. `effect.has_hexproof` did fire — fine.

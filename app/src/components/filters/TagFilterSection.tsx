@@ -13,6 +13,8 @@ type Props = {
   onToggle: (tagId: string) => void;
   zeroResultPreview?: (tagId: string) => boolean;
   storageKey?: string;
+  mode?: 'and' | 'or';
+  onModeChange?: (next: 'and' | 'or') => void;
 };
 
 const AXIS_ORDER: TagAxis[] = ['trigger', 'effect', 'condition'];
@@ -51,6 +53,7 @@ function useDebounced<T>(value: T, ms: number): T {
 
 export default function TagFilterSection({
   title, tags, groupByAxis, pinnedTagIds, selected, onToggle, zeroResultPreview, storageKey,
+  mode, onModeChange,
 }: Props) {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounced(search, 150);
@@ -168,6 +171,35 @@ export default function TagFilterSection({
             </span>
           )}
         </button>
+        {mode !== undefined && onModeChange && selected.length >= 2 && (
+          <div
+            role="radiogroup"
+            aria-label={`${title} match mode`}
+            className="flex rounded-md border border-ink-line bg-ink-raised p-0.5"
+          >
+            {(['and', 'or'] as const).map((m) => {
+              const active = mode === m;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  aria-label={m.toUpperCase()}
+                  onClick={() => { if (!active) onModeChange(m); }}
+                  className={
+                    'focus-brass rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors ' +
+                    (active
+                      ? 'bg-brass/20 text-brass-hi shadow-[inset_0_0_0_1px_rgba(212,164,74,0.35)]'
+                      : 'text-vellum-dim hover:text-vellum')
+                  }
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
       <SelectedTagChips
         selected={selected}

@@ -10,21 +10,26 @@ export const tagDef: TagDef = {
   pairsWith: ['effect.mill', 'effect.reanimate'],
 };
 
+// FIX 13 (BR-8) — Consuming Aberration: "number of cards in your opponents'
+// graveyards" — the possessive plural `opponents'` introduces an apostrophe
+// inside the filler between `in` and `graveyards?`. Extend the inner filler
+// char class `[\w\s]` → `[\w\s']` everywhere it appears immediately before
+// `graveyards?` so possessive owner phrases are admitted.
 const PATTERNS = [
   // "for each card in [a/your/all] graveyard(s)" — graveyard-size scaling.
   // v0.19 — optional possessive between "cards?" and "in" (Huskburster
   // Swarm: "for each creature card you own in exile and in your graveyard").
   // The Cosmogoyf / Slime Against Humanity-style "you own / you control /
   // owned by you" qualifier is a common Bloomburrow / OTJ templating.
-  /\bfor each (?:[\w\s\-]+? )?cards? (?:you own |you control |owned by you )?in [\w\s]+?graveyards?\b/,
+  /\bfor each (?:[\w\s\-]+? )?cards? (?:you own |you control |owned by you )?in [\w\s']+?graveyards?\b/,
   // "number of [type] cards in [a/your/all] graveyard(s)"
-  /\bnumber of (?:[\w\s\-]+? )?cards? in [\w\s]+?graveyards?\b/,
+  /\bnumber of (?:[\w\s\-]+? )?cards? in [\w\s']+?graveyards?\b/,
   // "cards in your graveyard" / "cards in graveyards" / "cards in all graveyards"
   /\bcards? in (?:your |an opponent's |all |a )?graveyards?\b/,
   // "if there are [N or more] cards in [a/your] graveyard"
-  /\bif there are (?:[\d]+ or more |[\w\s\-]+ )?cards? in [\w\s]+?graveyards?\b/,
+  /\bif there are (?:[\d]+ or more |[\w\s\-]+ )?cards? in [\w\s']+?graveyards?\b/,
   // "whenever a [type] card is put into a graveyard"
-  /\bwhenever (?:a |an |another )?(?:[\w\-]+ )?card is put into [\w\s]+?graveyards?\b/,
+  /\bwhenever (?:a |an |another )?(?:[\w\-]+ )?card is put into [\w\s']+?graveyards?\b/,
   // v0.14.7 — cast-from-graveyard as a graveyard-cares reference. Casting
   // out of a graveyard uses graveyard contents as a resource — distinct
   // from removal effects like "exile target card from a graveyard" (which

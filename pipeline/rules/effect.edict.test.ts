@@ -41,6 +41,11 @@ describe('effect.edict', () => {
     // sacrifice is non-creature/permanent; the second is the creature. The
     // chained-edict arm picks up the creature sacrifice in the second clause.
     ['each opponent sacrifices a nontoken enchantment of their choice, then sacrifices a nontoken creature of their choice.'],
+    // FIX 18 (BR-13) — Desecration Demon: "any opponent may sacrifice a
+    // creature of their choice." Edict-shape forced sacrifice on the
+    // opponent; same opponent-side semantic as `each opponent` / `target
+    // opponent`. Coupled with FIX 2 (sacrifice_creature FP exclusion).
+    ['flying\nat the beginning of each combat, any opponent may sacrifice a creature of their choice. if a player does, tap __self__ and put a +1/+1 counter on it.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

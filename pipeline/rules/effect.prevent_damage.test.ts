@@ -19,6 +19,11 @@ describe('effect.prevent_damage', () => {
     // gated by `would deal damage` antecedent.
     ['if a source you control would deal damage to an opponent, prevent that damage and each opponent mills that many cards.'],
     ['if a creature would deal combat damage to you, prevent that damage.'],
+    // FIX 19 (BR-14) — Crystal Barricade: "prevent all noncombat damage that
+    // would be dealt to other creatures you control." The previous PATTERN
+    // admitted `(?:combat\s+)?` only; admit `(?:non)?combat` so the
+    // `noncombat` modifier also matches.
+    ['defender\nyou have hexproof.\nprevent all noncombat damage that would be dealt to other creatures you control.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

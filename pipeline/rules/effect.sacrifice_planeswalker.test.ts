@@ -27,6 +27,15 @@ describe('effect.sacrifice_planeswalker', () => {
     // Regression (Ward—Sacrifice pattern): Ward cost is paid by the
     // OPPONENT targeting this card. Handled via NEGATIVE_WARD span.
     ['ward—sacrifice a planeswalker.'],
+    // Wave-2 Win 6 (2026-06-01 audit) — Pox Plague: multi-clause "each
+    // player ... sacrifices ... permanents" edict.
+    ['each player loses half their life, then discards half the cards in their hand, then sacrifices half the permanents they control of their choice. round down each time.'],
+    // Wave-2 Win 6 — observer trigger frames.
+    ['whenever a player sacrifices a planeswalker, draw a card.'],
+    ['whenever an opponent sacrifices a permanent, you gain 1 life.'],
+    // Plain `target player` / `each player` edicts.
+    ['target player sacrifices a planeswalker.'],
+    ['each player sacrifices a permanent.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

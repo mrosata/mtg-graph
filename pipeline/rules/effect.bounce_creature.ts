@@ -5,8 +5,8 @@ import type { TagDef } from '../../shared/types';
 export const tagDef: TagDef = {
   tagId: 'effect.bounce_creature',
   axis: 'effect',
-  label: 'Bounces or blinks a creature',
-  description: 'Returns a creature to hand, or exiles and returns it (re-triggering ETB).',
+  label: 'Bounces a creature to hand',
+  description: 'Returns a creature (or broad permanent) to its owner\'s hand. Exile + return-to-battlefield is owned by `effect.blink` (immediate) or `effect.flicker` (delayed); this tag is bounce-to-hand only.',
   pairsWith: ['trigger.creature_dies', 'trigger.creature_leaves_battlefield', 'trigger.another_creature_etb'],
 };
 
@@ -31,12 +31,12 @@ export const tagDef: TagDef = {
 // automatically — the object-type gate is `creatures?` and the regex matches
 // each disjunct independently (the parallel bounce_enchantment rule fires
 // for the enchantment side).
+// FIX 6 (BR-1) — Aetherize: singular "their owner's hand" destination on a
+// sweep. Original tail only admitted `their owners'` plural; admit the
+// singular template `their owner's` too. The plural form still wins on
+// multi-target frames.
 const PATTERN_RETURN_OWN =
-  /\breturn(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:this\s+|another\s+|target\s+|those\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,5}?creatures?\b(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)\s[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
-
-// Matches blink: "exile target creature, then return" or "exile target creature. return"
-const PATTERN_BLINK_OWN =
-  /\bexile(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?:[\w\-]+[,\s]+){0,5}?creatures?[^.]*?(?:,\s*then\s+return|\.\s*return)/;
+  /\breturn(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:this\s+|another\s+|target\s+|those\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,5}?creatures?\b(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)\s[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?|their\s+owner'?s)\s+hands?\b/;
 
 // Matches broad permanent bounce ("return target permanent to its owner's hand",
 // "return target nonland permanent to its owner's hand") but NOT noncreature.
@@ -51,19 +51,13 @@ const PATTERN_BROAD =
 
 // v0.14.6 — delayed-trigger blink-back template (Anzrag's Rampage). Spells
 // that cheat a creature onto the battlefield and create a delayed end-step
-// trigger to return it to hand. Anchor on "return it to <owner>'s hand at
+// trigger to return it to HAND. Anchor on "return it to <owner>'s hand at
 // the beginning of <X> end step" — the delayed-trigger phrasing is distinct
 // enough to be safe (regular ETB+bounce uses "return that creature").
+// NOTE: destination is HAND. The mirror "return ... to the battlefield at
+// the beginning of the next end step" is FLICKER, handled by effect.flicker.
 const PATTERN_DELAYED_BLINKBACK =
   /\breturn (?:it|them)\s+to (?:your|its owner's|their owners')\s+hands?\s+at the beginning of (?:the next|the next player's|your|each)?\s*end step\b/;
-
-// v0.19 — pronoun-anchored flicker (Gossip's Talent level 3): "whenever a
-// creature ... deals combat damage ..., you may exile it, then return it to
-// the battlefield". The "it" antecedent is the creature in the trigger
-// clause. Gated on "creature" appearing earlier in the same sentence so
-// artifact/enchantment flickers (which have their own axes) don't leak.
-const PATTERN_BLINK_PRONOUN =
-  /\bcreature[^.]{1,160}?\bexile (?:it|them)[,.]\s*(?:then\s+)?return\s+(?:it|them)\s+to the battlefield\b/;
 
 // v0.20 — "those creatures" anaphoric bounce (Run Away Together: "Choose two
 // target creatures controlled by different players. Return those creatures
@@ -73,29 +67,31 @@ const PATTERN_BLINK_PRONOUN =
 const PATTERN_RETURN_THOSE =
   /\btarget [^.]{0,80}? creatures\b[^.]*\.\s*return those creatures [^.]*?\bto (?:their owners'?|its owner's) hands?/;
 
-// v0.21.0 — Niko, Light of Hope: exile + delayed end-step return-to-
-// battlefield with intervening sentences. Parallel to PATTERN_BLINK_OWN but
-// admits sentence boundaries between exile and return, and allows the "to
-// the battlefield" destination (PATTERN_BLINK_OWN uses verb-adjacent
-// "return"). Anchored on the "beginning of the next end step" delayed
-// trigger to keep this tight. Allows multiple intervening sentences via
-// the `(?:\.[^.]{0,200}?)*` repeated period-bridge group.
-const PATTERN_EXILE_DELAYED_RETURN =
-  /\bexile\s+target\s+(?:[\w\-]+\s+)?creatures?\s+you\s+control\b[^.]*\.[^.]{0,200}?(?:\.[^.]{0,200}?)*\breturn\s+(?:it|them|that creature)\s+to the battlefield(?:\s+under\s+(?:its|their)\s+owner'?s\s+control)?\s+at\s+the\s+beginning\s+of\s+the\s+next\s+end\s+step\b/;
+// FIX 6 (BR-1) — Arcanis the Omnipotent: self-name bounce ("return __self__
+// to its owner's hand"). Self-bounce re-triggers ETB and is mechanically a
+// creature bounce on the same axis as `return this creature to its owner's
+// hand`. The existing PATTERN_RETURN_OWN requires a `creature` noun anchor,
+// so __self__ on its own (no "creature" word) didn't reach the tail.
+const PATTERN_RETURN_SELF =
+  /\breturn(?:s)?\s+__self__\s+to\s+(?:its\s+owner'?s|your)\s+hand\b/;
 
+// 2026-06-01 audit Wave 2 — the prior PATTERN_BLINK_OWN, PATTERN_BLINK_PRONOUN,
+// and PATTERN_EXILE_DELAYED_RETURN arms moved out of this rule. They matched
+// "exile <creature> ... return ... to the battlefield" frames which are
+// blink (immediate) or flicker (delayed end-step), NOT bounce-to-hand.
+// Those cases are now owned by `effect.blink` and `effect.flicker`. This
+// rule's surviving arms ALL anchor the destination as "hand".
 export const rule: Rule = {
   id: 'effect.bounce_creature',
   axis: 'effect',
   match: (t) => {
     const m =
       t.match(PATTERN_RETURN_OWN) ??
-      t.match(PATTERN_BLINK_OWN) ??
       t.match(PATTERN_BROAD) ??
       t.match(PATTERN_DELAYED_BLINKBACK) ??
-      t.match(PATTERN_BLINK_PRONOUN) ??
       t.match(PATTERN_RETURN_THOSE) ??
-      t.match(PATTERN_EXILE_DELAYED_RETURN);
+      t.match(PATTERN_RETURN_SELF);
     return m ? { evidence: m[0] } : false;
   },
-  nearMiss: { anchors: ['return', 'exile'], proximity: ['creature', 'permanent', 'hand'], window: 12 },
+  nearMiss: { anchors: ['return'], proximity: ['creature', 'permanent', 'hand'], window: 12 },
 };

@@ -38,6 +38,15 @@ describe('effect.mill', () => {
     ['menace whenever __self__ deals combat damage to a player, you mill that many cards'],
     ['target player mills that many cards'],
     ['each player mills that many cards'],
+    // FIX 12 (BR-7) — Dread Summons: "each player mills x cards". The amount
+    // is the literal `x` variable; NUM needed to admit `x` alongside digits
+    // and word numerals.
+    ['each player mills x cards. for each creature card put into a graveyard this way, you create a tapped 2/2 black zombie creature token.'],
+    // FIX 12 (BR-7) — Consuming Aberration: reveal-until-land mill. Each
+    // opponent reveals from the top of library until they reveal a land,
+    // then puts the revealed cards into their graveyard. Same axis as
+    // "mill N cards" — net effect is graveyard fill.
+    ["__self__'s power and toughness are each equal to the number of cards in your opponents' graveyards.\nwhenever you cast a spell, each opponent reveals cards from the top of their library until they reveal a land card, then puts those cards into their graveyard."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

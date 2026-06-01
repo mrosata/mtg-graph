@@ -37,8 +37,10 @@ export const tagDef: TagDef = {
 //   (b) "may <X> or sacrifice ..." with an explicit `or` arm (Zoyowa-style).
 // Also extended the noun-qualifier filler to admit commas so "nonland,
 // nontoken permanents" parses as a single qualifier list.
+// FIX 18 (BR-13) — Desecration Demon: "any opponent may sacrifice ...".
+// Add `any opponent` to the subject alternation alongside `each` / `target`.
 const PATTERN =
-  /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player)\s+(?:may\s+(?:[^.]{0,40}?\s+or\s+)?)?sacrifices?\s+(?:a\s+|an\s+|two\s+|three\s+|x\s+|that\s+many\s+|half\s+(?:the\s+)?(?:non-?\w+\s+)?)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent)s?\b/;
+  /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player|any\s+opponent)\s+(?:may\s+(?:[^.]{0,40}?\s+or\s+)?)?sacrifices?\s+(?:a\s+|an\s+|two\s+|three\s+|x\s+|that\s+many\s+|half\s+(?:the\s+)?(?:non-?\w+\s+)?)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent)s?\b/;
 
 // v0.20 — "unless <opponent> sacrifices" punisher-edict (Rottenmouth Viper:
 // "each opponent loses 4 life unless that player sacrifices a nonland

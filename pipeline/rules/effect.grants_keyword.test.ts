@@ -489,4 +489,41 @@ describe('effect.grants_keyword parametric', () => {
       ).toBeTruthy();
     });
   });
+
+  // FIX 17 (BR-12) — Crystal Barricade: "you have hexproof". Player-target
+  // hexproof grant. Restricted to slug === 'hexproof' (most keywords like
+  // haste / deathtouch / etc. don't grant to players).
+  describe('grants_hexproof player-target "you have hexproof" (BR-12)', () => {
+    it('grants_hexproof matches "you have hexproof"', () => {
+      const r = ruleFor('effect.grants_hexproof');
+      expect(
+        r.match('defender\nyou have hexproof.\nprevent all noncombat damage that would be dealt to other creatures you control.'),
+      ).toBeTruthy();
+    });
+
+    it('grants_deathtouch does NOT broadcast the player-target frame', () => {
+      const r = ruleFor('effect.grants_deathtouch');
+      expect(r.match('you have deathtouch.')).toBe(false);
+    });
+  });
+
+  // FIX 14 (BR-9) — compound static frames on tribal anthems.
+  // Crossway Troublemakers: "attacking vampires you control have deathtouch
+  // and lifelink" — the tribal subject has a state adjective ("attacking")
+  // before the tribe noun. Death Baron: "skeletons you control and other
+  // zombies you control get +1/+1 and have deathtouch" — anthem grant
+  // expressed as "get +N/+N and have <kw>".
+  describe('compound static frame and "get +N/+N and have <kw>" anthem (BR-9)', () => {
+    it('grants_deathtouch matches "attacking vampires you control have deathtouch and lifelink"', () => {
+      const r = ruleFor('effect.grants_deathtouch');
+      expect(r.match('attacking vampires you control have deathtouch and lifelink.')).toBeTruthy();
+    });
+
+    it('grants_deathtouch matches "skeletons you control and other zombies you control get +1/+1 and have deathtouch"', () => {
+      const r = ruleFor('effect.grants_deathtouch');
+      expect(
+        r.match('skeletons you control and other zombies you control get +1/+1 and have deathtouch.'),
+      ).toBeTruthy();
+    });
+  });
 });

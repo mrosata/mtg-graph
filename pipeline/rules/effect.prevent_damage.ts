@@ -20,7 +20,10 @@ export const tagDef: TagDef = {
 // both Fog-style (all combat damage) and Healing-Salve-style (next N damage
 // to target). The "that would be dealt" is the disambiguating anchor — it
 // distinguishes prevention from damage-dealing or damage-replacement text.
-const PATTERN = /\bprevents?\s+(?:all|the next \d+)\s+(?:combat\s+)?damage that would be dealt\b/;
+// FIX 19 (BR-14) — Crystal Barricade: "prevent all noncombat damage that
+// would be dealt". Admit `noncombat` alongside `combat` in the optional
+// modifier slot.
+const PATTERN = /\bprevents?\s+(?:all|the next \d+)\s+(?:(?:non)?combat\s+)?damage that would be dealt\b/;
 
 // v0.22.0 — The Mindskinner: "if a source ... would deal damage to ..., prevent
 // that damage". Replacement-effect form. The `would deal damage` antecedent

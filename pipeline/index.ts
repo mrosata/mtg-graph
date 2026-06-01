@@ -9,12 +9,14 @@ import { DEFAULT_CACHE_DIR } from './cache';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { normalizeOracleText } from './normalize';
+import { extractGrantedInnerTexts, normalizeInnerGrantText } from './grant-extraction';
 import { applyRules } from './rules/runner';
 import { getAllRules } from './rules';
 import { getTagCatalog, RULE_VERSION } from './catalog';
 import { expandChildren } from './tag-expansion';
 import { mergeCardsAcrossSets } from './merge';
 import { writeArtifact } from './emit';
+import type { CardTag } from '../shared/types';
 
 function hasCachedSet(setCode: string): boolean {
   return existsSync(join(DEFAULT_CACHE_DIR, `${setCode}.json`));
@@ -62,6 +64,29 @@ function parseArgs(argv: string[]): Args {
   );
 }
 
+// Forwarding filter for inner-grant tags. The host card grants its
+// permanents the inner ability — we forward the inner's TRIGGER and
+// EFFECT axes (minus intrinsic `has_*` keyword tags) so the host shows up
+// as a source of those abilities in the graph. We do NOT forward:
+//   - `effect.has_*` — intrinsic-keyword axes. "Creatures you control have
+//     flying" doesn't make the source card fly.
+//   - `condition.*` — gating/scaling axes describe what the GRANTED
+//     permanent cares about, not what the source cares about.
+function isForwardable(tag: CardTag, hostTagIds: Set<string>): boolean {
+  if (tag.tagId.startsWith('effect.has_')) return false;
+  if (tag.axis === 'condition') return false;
+  // Treasure tokens grant an intrinsic mana ability; the host card "creates"
+  // those tokens but does not itself add mana / ramp. The host is already
+  // tagged via effect.create_treasure on the create-token clause.
+  if (
+    (tag.tagId === 'effect.add_mana' || tag.tagId === 'effect.ramp_nonland') &&
+    hostTagIds.has('effect.create_treasure')
+  ) {
+    return false;
+  }
+  return true;
+}
+
 function tagCards(cards: Card[]): Card[] {
   const catalog = getTagCatalog();
   const rules = getAllRules();
@@ -71,7 +96,27 @@ function tagCards(cards: Card[]): Card[] {
   return cards.map((c) => {
     const isLegendary = c.supertypes?.includes('Legendary') ?? false;
     const normalized = normalizeOracleText(c.oracleText, c.name, isLegendary);
-    const tags = expandChildren(applyRules(normalized, c, rules), tagDefById);
+    const hostTags = applyRules(normalized, c, rules);
+
+    // v0.24 — anthem-grant inner-ability forwarding. Extract the inner
+    // bodies BEFORE `stripQuotedAbilities` erases them, re-tag, forward
+    // a filtered subset onto the host.
+    const grantedTags: CardTag[] = [];
+    const hostTagIds = new Set(hostTags.map((t) => t.tagId));
+    for (const inner of extractGrantedInnerTexts(c.oracleText)) {
+      const innerNorm = normalizeInnerGrantText(inner);
+      for (const innerTag of applyRules(innerNorm, c, rules)) {
+        if (!isForwardable(innerTag, hostTagIds)) continue;
+        if (hostTagIds.has(innerTag.tagId)) continue; // dedupe vs host
+        hostTagIds.add(innerTag.tagId);
+        grantedTags.push({
+          ...innerTag,
+          evidence: `granted: ${innerTag.evidence}`,
+        });
+      }
+    }
+
+    const tags = expandChildren([...hostTags, ...grantedTags], tagDefById);
     return { ...c, tags };
   });
 }

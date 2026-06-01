@@ -28,8 +28,19 @@ const PATTERN_BROAD =
 // v0.22.0 — Sporogenic Infection: `target player sacrifices` is the same edict
 // semantic as `target opponent sacrifices`. Extend the subject alt to admit
 // `players?` alongside `opponents?`.
-const NEGATIVE_EDICT = /(?:(?:each|target)\s+(?:opponents?|players?)|an?\s+opponents?)\s+(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?/g;
-const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you\s+)?sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
+// Wave-2 Win 6 (2026-06-01) — Pox Plague: multi-clause edict "each player
+// loses life, then discards, then sacrifices permanents". The subject and
+// verb are separated by intermediate clauses; widen the gap to `[^.]{0,180}?`
+// so we bridge across `, then ...` lists without crossing a sentence
+// boundary. Pox also wants `an?\s+players?` so we admit "an opponent / a
+// player sacrifices" forms.
+const NEGATIVE_EDICT = /(?:each|target|an?|any)\s+(?:opponents?|players?)\s+(?:[^.]{0,180}?\bsacrifices?|(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?|may\s+sacrifices?)/g;
+// Wave-2 Win 6 (Zodiark, Umbral God) — observer trigger frame "whenever a
+// player sacrifices another creature". Same exclusion semantic as the
+// existing `whenever you sacrifice` frame; the controller is observing a
+// third-party sacrifice, not performing one. Subject admits
+// (a|an|each|any|another) (player|opponent).
+const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you|(?:a|an|each|any|another)\s+(?:players?|opponents?))\s+sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
 // v0.14.31 — "unless they sacrifice" punisher (Polygraph Orb): "Each opponent
 // loses 3 life unless they discard a card or sacrifice a creature." Same
 // edict semantic as the "may X or sacrifice" punisher (Zoyowa) — the

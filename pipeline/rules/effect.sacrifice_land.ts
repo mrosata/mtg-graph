@@ -20,8 +20,13 @@ const PATTERN_BROAD =
 // NOT be tagged as a controller-side typed sacrifice. Inline copies per
 // AGREED PLAN; see effect.sacrifice_artifact.ts for rationale.
 // v0.14.6 — punisher edict template (Zoyowa Lava-Tongue).
-const NEGATIVE_EDICT = /(?:each|target|an?)\s+opponents?\s+(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?/g;
-const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you\s+)?sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
+// Wave-2 Win 6 (2026-06-01) — Pox Plague: multi-clause edict (see
+// effect.sacrifice_artifact.ts header). Bridge across `, then ...` lists,
+// admit `players?` alongside `opponents?`.
+const NEGATIVE_EDICT = /(?:each|target|an?)\s+(?:opponents?|players?)\s+(?:[^.]{0,180}?\bsacrifices?|(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?)/g;
+// Wave-2 Win 6 (Zodiark, Umbral God) — observer trigger frame "whenever a
+// player sacrifices ...".
+const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you|(?:a|an|each|any|another)\s+(?:players?|opponents?))\s+sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
 // v0.14.31 — "unless they sacrifice" punisher frame (Polygraph Orb shape).
 const NEGATIVE_UNLESS = /(?:each|target|an?)\s+opponents?\s+[^.]{0,80}?\bunless\s+(?:they|he or she|that player)\s+(?:[^.]{0,40}?\s+or\s+)?sacrifices?/g;
 // v0.14.36 — Ward action-cost suffix (Vein Ripper-shape): paid by the

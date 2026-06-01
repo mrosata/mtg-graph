@@ -35,6 +35,15 @@ describe('effect.plus_one_counter', () => {
     // (return-with) arm.
     ['other creatures you control enter with an additional +1/+1 counter on them for each opponent who lost life this turn'],
     ['this creature enters with an additional +1/+1 counter on it'],
+    // v0.24 — DSK keyword-counter family: "+1/+1 counter and a <X> counter"
+    // tail. The "on <target>" anchor needs to admit a second counter clause
+    // between the count and the anchor.
+    // Champion of Dusan
+    ['put a +1/+1 counter and a trample counter on target creature'],
+    // Kheru Goldkeeper
+    ['put two +1/+1 counters and a flying counter on target creature you control'],
+    // Plural-second-counter form
+    ['put a +1/+1 counter and two hexproof counters on target creature'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

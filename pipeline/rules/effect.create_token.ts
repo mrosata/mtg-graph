@@ -29,12 +29,22 @@ const PATTERNS: RegExp[] = [
   /\binvestigates?\b/,
 ];
 
+// FIX 4 (FP-6) — Doubling Season-style replacement effects: "if an effect
+// would create one or more tokens ..., it creates twice that many ...".
+// The card AMPLIFIES other token-creating effects but does not itself
+// create tokens. Pre-strip the entire replacement clause before pattern
+// matching so neither the antecedent "would create" nor the consequent
+// "it creates twice ... tokens" FPs as a producer.
+const DOUBLING_REPLACEMENT =
+  /\bif an effect would create [^.]*?\bit creates? [^.]*?\btokens?\b[^.]*?(?:instead)?[^.]*?\./g;
+
 export const rule: Rule = {
   id: 'effect.create_token',
   axis: 'effect',
   match: (t) => {
+    const cleaned = t.replace(DOUBLING_REPLACEMENT, '');
     for (const re of PATTERNS) {
-      const m = t.match(re);
+      const m = cleaned.match(re);
       if (m) return { evidence: m[0] };
     }
     return false;

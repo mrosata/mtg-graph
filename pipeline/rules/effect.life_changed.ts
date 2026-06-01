@@ -51,6 +51,10 @@ export const rule: Rule = {
     // v0.21.0 — Leyline of Hope: replacement-effect lifegain upgrade ("you
     // gain that much life plus N instead"). Functionally a life-change.
     const REPLACEMENT_GAIN = /\byou gain that much life plus\s+\d+\s+instead\b/;
+    // FIX 11 (BR-6) — Bloodthirsty Conqueror: bare "you gain that much
+    // life" anaphoric to a prior opponent-loses-life trigger. The amount
+    // binds to the triggering loss; semantically lifegain.
+    const YOU_THAT_MUCH = /\byou gains?\s+that much life\b/;
     // v0.23 — variable PAY ("pay life equal to <X>" alt-cost — Eye of
     // Duskmantle, Valgavoth Terror Eater, Raubahn, Gwenom, Madame Null,
     // War Room, Marshland Bloodcaster, Nashi Moon Sage's Scion).
@@ -71,6 +75,7 @@ export const rule: Rule = {
       t.match(THAT_MUCH) ??
       t.match(FRACTIONAL) ??
       t.match(REPLACEMENT_GAIN) ??
+      t.match(YOU_THAT_MUCH) ??
       t.match(CAUSATIVE) ??
       t.match(CAUSATIVE_VARIABLE);
     return m ? { evidence: m[0] } : false;

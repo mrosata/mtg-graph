@@ -1,5 +1,6 @@
 // app/src/components/CheatsheetModal.tsx
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { FAMILIES } from '../lib/tagFamilies';
 import { useGraphStore } from '../stores/graphStore';
@@ -126,7 +127,7 @@ export default function CheatsheetModal({ onClose }: Props) {
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink-bg/80 backdrop-blur-sm"
       onClick={onClose}
@@ -207,6 +208,7 @@ export default function CheatsheetModal({ onClose }: Props) {
           </section>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

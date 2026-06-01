@@ -48,8 +48,16 @@ const ANAPHORIC_SELF_SAC = /\bsacrifices?\s+it\b/;
 // discard a card or sacrifice a permanent". Extend NEGATIVE_EDICT to span
 // from "each opponent" through the "sacrifice" verb so typed-sac patterns
 // suppress correctly.
-const NEGATIVE_EDICT = /(?:each|target|an?)\s+opponents?\s+(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?/g;
-const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you\s+)?sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
+// Wave-2 Win 6 (2026-06-01) — Pox Plague: multi-clause edict "each player
+// loses life, then discards, then sacrifices permanents". Widen the
+// subject/verb gap to `[^.]{0,180}?` so we bridge `, then ...` lists without
+// crossing a sentence boundary. Also admit `players?` alongside `opponents?`
+// (Pox uses "each player").
+const NEGATIVE_EDICT = /(?:each|target|an?)\s+(?:opponents?|players?)\s+(?:[^.]{0,180}?\bsacrifices?|(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?)/g;
+// Wave-2 Win 6 (Zodiark, Umbral God) — observer trigger frame "whenever a
+// player sacrifices ...". Same exclusion semantic as `whenever you
+// sacrifice`. Subject admits (a|an|each|any|another) (player|opponent).
+const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you|(?:a|an|each|any|another)\s+(?:players?|opponents?))\s+sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
 // v0.14.31 — "unless they sacrifice" punisher frame (Polygraph Orb shape).
 const NEGATIVE_UNLESS = /(?:each|target|an?)\s+opponents?\s+[^.]{0,80}?\bunless\s+(?:they|he or she|that player)\s+(?:[^.]{0,40}?\s+or\s+)?sacrifices?/g;
 // v0.14.36 — Ward action-cost suffix (Vein Ripper-shape): paid by the

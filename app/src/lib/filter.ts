@@ -1,4 +1,4 @@
-import type { Card, Color, Rarity } from '@shared/types';
+import type { Card, Color, Rarity, TagDef } from '@shared/types';
 import { STANDARD_SET_CODES, UPCOMING_SET_CODES, COMMANDER_SET_CODES } from '@shared/sets';
 
 // Standard ∪ Upcoming artifacts carry both; scope decides which the user sees.
@@ -24,6 +24,10 @@ export type Filter = {
   text?: string;
   name?: string;
   tags?: string[];
+  // Per-group tag matching mode. Default 'and'. Only consulted when applyFilter
+  // is called with a tagCatalog so it can partition tags by category.
+  interactionTagsMode?: 'and' | 'or';
+  themeTagsMode?: 'and' | 'or';
 };
 
 const STANDARD_SET_SET = new Set(STANDARD_SET_CODES);
@@ -34,7 +38,19 @@ export function applyFilter(
   cards: Card[],
   f: Filter,
   libraryFilter?: ReadonlySet<string>,
+  tagCatalog?: Map<string, TagDef>,
 ): Card[] {
+  let interactionIds: string[] | undefined;
+  let themeIds: string[] | undefined;
+  if (f.tags?.length && tagCatalog) {
+    interactionIds = [];
+    themeIds = [];
+    for (const id of f.tags) {
+      if (tagCatalog.get(id)?.category === 'theme') themeIds.push(id);
+      else interactionIds.push(id);
+    }
+  }
+
   return cards.filter((c) => {
     if (libraryFilter && !libraryFilter.has(c.oracleId)) return false;
     if (f.scope === 'standard' && !c.printings.some((p) => STANDARD_SET_SET.has(p))) return false;
@@ -61,7 +77,24 @@ export function applyFilter(
     if (f.name && !c.name.toLowerCase().includes(f.name.toLowerCase())) return false;
     if (f.tags?.length) {
       const cardTagIds = new Set(c.tags.map((t) => t.tagId));
-      if (!f.tags.every((id) => cardTagIds.has(id))) return false;
+      if (!tagCatalog) {
+        if (!f.tags.every((id) => cardTagIds.has(id))) return false;
+      } else {
+        if (interactionIds!.length) {
+          const mode = f.interactionTagsMode ?? 'and';
+          const ok = mode === 'or'
+            ? interactionIds!.some((id) => cardTagIds.has(id))
+            : interactionIds!.every((id) => cardTagIds.has(id));
+          if (!ok) return false;
+        }
+        if (themeIds!.length) {
+          const mode = f.themeTagsMode ?? 'and';
+          const ok = mode === 'or'
+            ? themeIds!.some((id) => cardTagIds.has(id))
+            : themeIds!.every((id) => cardTagIds.has(id));
+          if (!ok) return false;
+        }
+      }
     }
     return true;
   });

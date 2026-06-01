@@ -73,6 +73,11 @@ describe('effect.life_changed', () => {
     ['whenever another creature enters under an opponent\'s control, you may have that player lose 1 life.'],
     // Causative variable "have <X> lose life equal to" (Gempalm Polluter).
     ['when you cycle this card, you may have target player lose life equal to the number of zombies on the battlefield.'],
+    // FIX 11 (BR-6) — Bloodthirsty Conqueror: bare "you gain that much life"
+    // anaphoric to a prior opponent-loses-life trigger. The amount is bound
+    // to the triggering loss; semantically lifegain. The previous
+    // REPLACEMENT_GAIN required " plus N instead"; this admits the bare form.
+    ['flying, deathtouch\nwhenever an opponent loses life, you gain that much life.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

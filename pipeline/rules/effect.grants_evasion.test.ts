@@ -77,6 +77,21 @@ describe('effect.grants_evasion', () => {
     // have a flying counter on it" — self-referential conditional, not a
     // grant. The strip catches the if/while form.
     ['if this creature doesn\'t have a flying counter on it, put a flying counter on it.'],
+    // v0.24 — Max speed self-conditional grant (DSK Start Your Engines!).
+    // Gastal Raider: "Max speed — This creature gets +1/+1 and has menace."
+    // The menace is granted to SELF only while the controller is at max
+    // speed — a self-conditional axis, not an anthem. Belongs in
+    // gains_keyword_self_conditional, NOT grants_evasion.
+    ['max speed — this creature gets +1/+1 and has menace.'],
+    ['max speed — __self__ has menace.'],
+    ['max speed — this creature has flying.'],
+    // FIX 5 (FP-8) — Elenda, Saint of Dusk: "as long as your life total is
+    // greater than your starting life total, __self__ gets +1/+1 and has
+    // menace." The menace is gated on a self-conditional life-total
+    // comparison; that's gains_keyword_self_conditional territory, NOT a
+    // grants/anthem. The strip needed to accept the `gets` verb in the post-
+    // comma subject slot (currently only handles `has/have/gains`).
+    ['lifelink, hexproof from instants\nas long as your life total is greater than your starting life total, __self__ gets +1/+1 and has menace. __self__ gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

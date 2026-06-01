@@ -43,6 +43,12 @@ describe('condition.cares_lands', () => {
     // your library" is a typed land-count payoff (mill-into-play). Distinct
     // from "land card in your graveyard" (static gate) but same semantics.
     ['whenever one or more land cards are put into your graveyard from your library, put them onto the battlefield tapped'],
+    // FIX 9 (BR-4) — Wickerfolk Thresher: library-top reveal gated on
+    // "if it's a land card". The library-top branch is a land-cares
+    // condition because the effect's payoff varies based on whether the
+    // revealed card is a land. Bounded antecedent (look-at/reveal top N
+    // ... if it's a land card) avoids generic-look FPs.
+    ['delirium — whenever __self__ attacks, if there are four or more card types among cards in your graveyard, look at the top card of your library. if it\'s a land card, you may put it onto the battlefield. if you don\'t put the card onto the battlefield, put it into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

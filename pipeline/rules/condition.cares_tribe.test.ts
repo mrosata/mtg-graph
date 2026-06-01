@@ -3,7 +3,7 @@ import { rules, tagDefs } from './condition.cares_tribe';
 
 describe('condition.cares_tribe parametric', () => {
   it('exports a rule per tribe', () => {
-    expect(rules.length).toBe(31);
+    expect(rules.length).toBe(37);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -23,7 +23,7 @@ describe('condition.cares_tribe parametric', () => {
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(31);
+    expect(tagDefs.length).toBe(37);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');

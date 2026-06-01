@@ -1,6 +1,7 @@
 // pipeline/rules/effect.exile_creature.ts
 import type { Rule } from './types';
 import type { TagDef } from '../../shared/types';
+import { THEME_TRIBES, tribePattern } from '../themes';
 
 export const tagDef: TagDef = {
   tagId: 'effect.exile_creature',
@@ -40,6 +41,21 @@ const PATTERN_ANAPHORIC =
 const PATTERN_ANAPHORIC_SAME_SENTENCE =
   /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\bexile (?:it|that creature|them)(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
 
+// FIX 8 (BR-3) — Token-sweep on a creature subtype (Abyssal Harvester:
+// "exile all other Nightmare tokens you control"). Most THEME_TRIBES entries
+// are creature subtypes; this prevents over-match on artifact-type tokens
+// (Treasure / Food / Clue / Map) by requiring the noun to be a known creature
+// tribe. Nightmare is added inline since it's the canonical case for this
+// arm and not currently in THEME_TRIBES (no `condition.cares_tribe.nightmare`
+// payoffs in Standard to warrant promotion).
+const TRIBE_ALT = [
+  ...THEME_TRIBES.map(tribePattern),
+  'nightmares?',
+].join('|');
+const PATTERN_TOKEN_SWEEP = new RegExp(
+  `\\bexiles?\\s+(?:another\\s+|target\\s+|each\\s+|all\\s+)(?:other\\s+)?(?:${TRIBE_ALT})\\s+tokens?\\s+you control\\b`,
+);
+
 // v0.21.0 — Anaphoric "you may exile it" with combat-verb antecedent on a
 // "creature you control" subject. The antecedent isn't an explicit "target
 // creature" — it's the creature that triggered the ability via attack/block/
@@ -78,7 +94,8 @@ export const rule: Rule = {
       t.match(PATTERN_DIES_EXILE) ??
       t.match(PATTERN_ANAPHORIC) ??
       t.match(PATTERN_ANAPHORIC_SAME_SENTENCE) ??
-      t.match(PATTERN_COMBAT_ANAPHORIC);
+      t.match(PATTERN_COMBAT_ANAPHORIC) ??
+      t.match(PATTERN_TOKEN_SWEEP);
     if (!m || m.index === undefined) return false;
     // Check the next ~200 chars after the match for a flicker tail.
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);

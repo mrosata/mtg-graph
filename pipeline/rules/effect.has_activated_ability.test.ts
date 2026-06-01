@@ -149,6 +149,25 @@ describe('effect.has_activated_ability', () => {
     expect(rule.matchCard!(card({ types: types as string[], typeLine, keywords: keywords as string[], oracleText }))).toBeTruthy();
   });
 
+  // v0.24 — newline collapse during normalization erases the boundary
+  // between a leading keyword block and the first ability clause.
+  // Thunderhead Gunner ("Reach\nDiscard a card: ...") and Zahur, Glory's
+  // Past ("Start your engines!\nSacrifice another creature: ...") both
+  // failed to fire pre-fix. Strip leading keyword tokens (from
+  // card.keywords) before applying the prose-activated regex.
+  it.each([
+    // Thunderhead Gunner — keyword "Reach" precedes a discard-cost activation.
+    [['Creature'], 'Creature — Shark Pirate', ['Reach'], 'Reach\nDiscard a card: Draw a card. Activate only as a sorcery and only once each turn.'],
+    // Zahur, Glory's Past — "Start your engines!" keyword (with `!` punctuation
+    // and a parenthetical reminder, both stripped by normalize) precedes a
+    // sacrifice-cost activation.
+    [['Creature'], 'Legendary Creature — Zombie Cat Warrior', ['Surveil', 'Max speed', 'Start your engines!'], 'Start your engines! (If you have no speed, it starts at 1. It increases once on each of your turns when an opponent loses life. Max speed is 4.)\nSacrifice another creature: Surveil 1. Activate only once each turn.\nMax speed — Whenever a nontoken creature you control dies, create a tapped 2/2 black Zombie creature token.'],
+    // Multi-keyword leading block (flying + vigilance, then prose cost)
+    [['Creature'], 'Creature — Angel', ['Flying', 'Vigilance'], 'Flying, vigilance\nDiscard a card: this creature gains indestructible until end of turn.'],
+  ])('strips leading keyword tokens before prose-cost match: keywords=%s', (types, typeLine, keywords, oracleText) => {
+    expect(rule.matchCard!(card({ types: types as string[], typeLine, keywords: keywords as string[], oracleText }))).toBeTruthy();
+  });
+
   it('does not match an Aura whose only activated-ability keyword is Enchant', () => {
     // "Enchant creature" is a static ability, not an activation. Make sure we
     // didn't accidentally pick up arbitrary keywords.

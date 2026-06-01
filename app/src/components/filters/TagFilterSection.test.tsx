@@ -119,4 +119,100 @@ describe('TagFilterSection', () => {
     expect(screen.getAllByText('Draw cards').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByRole('button', { name: /remove draw cards/i })).toBeInTheDocument();
   });
+
+  describe('mode toggle', () => {
+    it('renders AND/OR toggle when 2+ tags are selected and mode/onModeChange are provided', () => {
+      render(
+        <TagFilterSection
+          title="Interactions"
+          tags={interactionTags}
+          groupByAxis
+          selected={['effect.draw', 'effect.deal_damage']}
+          onToggle={() => {}}
+          mode="and"
+          onModeChange={() => {}}
+        />,
+      );
+      expect(screen.getByRole('radio', { name: /^and$/i })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /^or$/i })).toBeInTheDocument();
+    });
+
+    it('does not render the toggle when only 1 tag is selected', () => {
+      render(
+        <TagFilterSection
+          title="Interactions"
+          tags={interactionTags}
+          groupByAxis
+          selected={['effect.draw']}
+          onToggle={() => {}}
+          mode="and"
+          onModeChange={() => {}}
+        />,
+      );
+      expect(screen.queryByRole('radio', { name: /^and$/i })).not.toBeInTheDocument();
+    });
+
+    it('does not render the toggle when mode/onModeChange are omitted', () => {
+      render(
+        <TagFilterSection
+          title="Interactions"
+          tags={interactionTags}
+          groupByAxis
+          selected={['effect.draw', 'effect.deal_damage']}
+          onToggle={() => {}}
+        />,
+      );
+      expect(screen.queryByRole('radio', { name: /^or$/i })).not.toBeInTheDocument();
+    });
+
+    it('marks the active mode with aria-checked', () => {
+      render(
+        <TagFilterSection
+          title="Interactions"
+          tags={interactionTags}
+          groupByAxis
+          selected={['effect.draw', 'effect.deal_damage']}
+          onToggle={() => {}}
+          mode="or"
+          onModeChange={() => {}}
+        />,
+      );
+      expect(screen.getByRole('radio', { name: /^or$/i })).toHaveAttribute('aria-checked', 'true');
+      expect(screen.getByRole('radio', { name: /^and$/i })).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('calls onModeChange with the clicked mode', () => {
+      const onModeChange = vi.fn();
+      render(
+        <TagFilterSection
+          title="Interactions"
+          tags={interactionTags}
+          groupByAxis
+          selected={['effect.draw', 'effect.deal_damage']}
+          onToggle={() => {}}
+          mode="and"
+          onModeChange={onModeChange}
+        />,
+      );
+      fireEvent.click(screen.getByRole('radio', { name: /^or$/i }));
+      expect(onModeChange).toHaveBeenCalledWith('or');
+    });
+
+    it('does not call onModeChange when the active side is clicked', () => {
+      const onModeChange = vi.fn();
+      render(
+        <TagFilterSection
+          title="Interactions"
+          tags={interactionTags}
+          groupByAxis
+          selected={['effect.draw', 'effect.deal_damage']}
+          onToggle={() => {}}
+          mode="and"
+          onModeChange={onModeChange}
+        />,
+      );
+      fireEvent.click(screen.getByRole('radio', { name: /^and$/i }));
+      expect(onModeChange).not.toHaveBeenCalled();
+    });
+  });
 });

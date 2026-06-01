@@ -47,6 +47,12 @@ describe('condition.cares_graveyard', () => {
     // pattern 1.
     ['this spell costs {1} less to cast for each creature card you own in exile and in your graveyard'],
     ['for each card you own in your graveyard, this creature gets +1/+0'],
+    // FIX 13 (BR-8) — Consuming Aberration: power/toughness equal to "the
+    // number of cards in your opponents' graveyards" — possessive plural
+    // form. The inner filler char class needed to admit `'` so the
+    // apostrophe in `opponents'` doesn't break the regex anchor on
+    // "graveyards".
+    ["__self__'s power and toughness are each equal to the number of cards in your opponents' graveyards."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

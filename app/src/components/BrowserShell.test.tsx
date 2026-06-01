@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useSearchParams } from 'react-router-dom';
 import BrowserShell from './BrowserShell';
 import { useGraphStore } from '../stores/graphStore';
 import type { Card, TagDef } from '@shared/types';
 
 // jsdom doesn't ship ResizeObserver; BrowserShell's grid wrapper installs one
-// on mount. A no-op stub is enough — measureGrid still runs once synchronously
+// on mount. A no-op stub is enough, measureGrid still runs once synchronously
 // inside the callback ref, so width/height stay at 0 and CardGrid renders an
 // empty react-window container.
 class StubResizeObserver {
@@ -15,6 +15,11 @@ class StubResizeObserver {
   disconnect(): void {}
 }
 (globalThis as unknown as { ResizeObserver: typeof StubResizeObserver }).ResizeObserver = StubResizeObserver;
+
+function URLProbe() {
+  const [sp] = useSearchParams();
+  return <pre data-testid="url-params">{sp.toString()}</pre>;
+}
 
 function makeCard(id: string): Card {
   return {
@@ -119,5 +124,40 @@ describe('BrowserShell', () => {
     });
     fireEvent.click(screen.getByText('OPEN_A'));
     expect(invoked).toBe('clicked');
+  });
+
+  describe('tag mode URL persistence', () => {
+    function renderWith(initial: string) {
+      return render(
+        <MemoryRouter initialEntries={[initial]}>
+          <BrowserShell filter={{}} onFilterChange={() => {}} />
+          <URLProbe />
+        </MemoryRouter>,
+      );
+    }
+
+    it('preserves imode=or from the initial URL', () => {
+      const view = renderWith('/?imode=or');
+      expect(view.getByTestId('url-params').textContent).toContain('imode=or');
+    });
+
+    it('preserves tmode=or from the initial URL', () => {
+      const view = renderWith('/?tmode=or');
+      expect(view.getByTestId('url-params').textContent).toContain('tmode=or');
+    });
+
+    it('preserves imode and tmode independently', () => {
+      const view = renderWith('/?imode=or');
+      expect(view.getByTestId('url-params').textContent).toContain('imode=or');
+      expect(view.getByTestId('url-params').textContent).not.toContain('tmode=');
+    });
+
+    it('preserves imode alongside tags', () => {
+      const view = renderWith('/?imode=or&tag=x&tag=y');
+      const text = view.getByTestId('url-params').textContent ?? '';
+      expect(text).toContain('imode=or');
+      expect(text).toContain('tag=x');
+      expect(text).toContain('tag=y');
+    });
   });
 });

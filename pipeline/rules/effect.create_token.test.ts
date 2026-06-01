@@ -34,6 +34,12 @@ describe('effect.create_token', () => {
     ['when this creature enters, target opponent creates two 1/1 white dog creature tokens'],
     ['each opponent creates a 2/2 zombie creature token'],
     ['an opponent creates a treasure token'],
+    // FIX 4 (FP-6) — Doubling Season: "if an effect would create one or more
+    // tokens under your control, it creates twice that many of those tokens
+    // instead." This is a replacement effect that AMPLIFIES other tokens — the
+    // card itself does NOT create tokens. Tagging it as effect.create_token
+    // would FP it as a token producer.
+    ['if an effect would create one or more tokens under your control, it creates twice that many of those tokens instead.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

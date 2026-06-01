@@ -30,6 +30,9 @@ export const THEME_SUBTYPES = [
   // gating; Mount-cares cards (Miriam, Roxanne, lord-style anthems) need
   // a parametric cares_subtype.mount tag for tribal/care queries.
   'mount',
+  // v0.24 — FFI/EOE Town land subtype with "Towns you control" payoffs
+  // (PuPu UFO, Treno, Rabanastre, Ishgard, Gohn).
+  'town',
 ] as const;
 
 export type ThemeSubtype = (typeof THEME_SUBTYPES)[number];
@@ -64,6 +67,12 @@ export const THEME_TRIBES = [
   // families with regular reprint patterns. Wolf uses the irregular
   // F→ves plural ("wolves").
   'spirit', 'demon', 'angel', 'cat', 'dog', 'wolf',
+  // v0.24 — TMNT (Ninja, Mutant), Lorwyn revisit (Kithkin), Avatar (Ally),
+  // and FFI (Boar) tribal payoffs surfaced by the 2026-06-01 audit.
+  'ninja', 'kithkin', 'ally', 'boar', 'mutant',
+  // FIX 20 (PA-1) — v0.26.0 audit batch: Ballyrush Banneret and the many
+  // other Soldier-tribal Standard cards.
+  'soldier',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];
@@ -77,5 +86,7 @@ export function tribePattern(s: string): string {
   if (s === 'dwarf') return 'dwar(?:f|ves)';
   if (s === 'wolf') return 'wol(?:f|ves)';
   if (s === 'mouse') return '(?:mouse|mice)';
+  // v0.24 — ally → allies irregular y→ies plural.
+  if (s === 'ally') return 'all(?:y|ies)';
   return `${s}s?`;
 }

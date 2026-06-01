@@ -7,18 +7,75 @@ import { useAutoStartTour } from './useAutoStartTour';
 
 const JOYRIDE_STYLES = {
   options: {
-    backgroundColor: '#1a1a1a',
-    arrowColor: '#1a1a1a',
-    textColor: '#e5e5e5',
-    primaryColor: '#fafafa',
-    overlayColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: '#15131a',
+    arrowColor: '#3a3543',
+    textColor: '#ece4cf',
+    primaryColor: '#d4a44a',
+    overlayColor: 'rgba(8, 6, 10, 0.72)',
     zIndex: 10000,
   },
+  tooltip: {
+    borderRadius: 12,
+    padding: 20,
+    border: '1px solid #3a3543',
+    boxShadow:
+      '0 24px 48px -16px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(212, 164, 74, 0.08), inset 0 1px 0 rgba(240, 201, 122, 0.06)',
+    fontFamily: "'Manrope', ui-sans-serif, system-ui, sans-serif",
+  },
   tooltipContainer: { textAlign: 'left' as const },
-  buttonNext: { backgroundColor: '#fafafa', color: '#0a0a0a' },
-  buttonBack: { color: '#a3a3a3' },
-  buttonSkip: { color: '#737373' },
-  spotlight: { borderRadius: 6 },
+  tooltipTitle: {
+    fontFamily: "'Cormorant Garamond', 'Iowan Old Style', Palatino, serif",
+    fontSize: 22,
+    fontWeight: 600,
+    letterSpacing: '0.01em',
+    color: '#f0c97a',
+    margin: '0 0 8px',
+  },
+  tooltipContent: {
+    fontSize: 14,
+    lineHeight: 1.55,
+    color: '#ece4cf',
+    padding: '4px 0 12px',
+  },
+  tooltipFooter: { marginTop: 8 },
+  buttonNext: {
+    backgroundColor: '#d4a44a',
+    color: '#0c0a0d',
+    borderRadius: 8,
+    padding: '8px 16px',
+    fontSize: 13,
+    fontWeight: 600,
+    letterSpacing: '0.02em',
+    border: 'none',
+    boxShadow: '0 1px 0 rgba(240, 201, 122, 0.4) inset, 0 4px 10px -4px rgba(212, 164, 74, 0.5)',
+    transition: 'background-color 120ms ease',
+  },
+  buttonBack: {
+    color: '#b8af9a',
+    fontSize: 13,
+    fontWeight: 500,
+    padding: '8px 14px',
+    borderRadius: 8,
+    marginRight: 4,
+    transition: 'color 120ms ease, background-color 120ms ease',
+  },
+  buttonSkip: {
+    color: '#8a8295',
+    fontSize: 12,
+    fontWeight: 500,
+    letterSpacing: '0.02em',
+  },
+  buttonClose: { color: '#8a8295', width: 10, height: 10 },
+  spotlight: { borderRadius: 8 },
+  beacon: { transform: 'scale(1)' },
+};
+
+const JOYRIDE_LOCALE = {
+  back: 'Back',
+  close: 'Close',
+  last: 'Finish',
+  next: 'Next',
+  skip: 'Skip tour',
 };
 
 export default function WizardProvider({ children }: { children: ReactNode }) {
@@ -56,7 +113,8 @@ export default function WizardProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (type === EVENTS.STEP_AFTER) {
-        setStepIndex(index + 1);
+        const delta = action === ACTIONS.PREV ? -1 : 1;
+        setStepIndex(index + delta);
         return;
       }
       if (type === EVENTS.TARGET_NOT_FOUND) {
@@ -79,6 +137,7 @@ export default function WizardProvider({ children }: { children: ReactNode }) {
         showProgress
         disableScrolling
         styles={JOYRIDE_STYLES}
+        locale={JOYRIDE_LOCALE}
         callback={handleCallback}
       />
       {children}

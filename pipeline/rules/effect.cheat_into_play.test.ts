@@ -18,6 +18,16 @@ describe('effect.cheat_into_play', () => {
     ['survival — at the beginning of your second main phase, if kona is tapped, you may put a permanent card from your hand onto the battlefield.'],
     ['you may put a creature card from your hand onto the battlefield'],
     ['put an artifact card from your hand onto the battlefield'],
+    // Kinscaer Sentry — "from your hand onto the battlefield tapped and attacking"
+    ['whenever this creature attacks, you may put a creature card with mana value x or less from your hand onto the battlefield tapped and attacking, where x is the number of attacking creatures you control.'],
+    // Aang, at the Crossroads — Pattern B (look at top + put onto battlefield).
+    ['when aang enters, look at the top five cards of your library. you may put a creature card with mana value 4 or less from among them onto the battlefield. put the rest on the bottom of your library in a random order.'],
+    // FIX 10 (BR-5) — Wickerfolk Thresher: singular "look at the top card of
+    // your library. ... if it's a land card, you may put it onto the
+    // battlefield." The previous LOOK_PUT required a word-quantifier before
+    // "card" ("top six cards", "top five cards"); the singular form ("top
+    // card") didn't reach the put-onto-battlefield anchor.
+    ['delirium — whenever __self__ attacks, if there are four or more card types among cards in your graveyard, look at the top card of your library. if it\'s a land card, you may put it onto the battlefield. if you don\'t put the card onto the battlefield, put it into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -45,6 +55,8 @@ describe('effect.cheat_into_play', () => {
     // v0.20.0 — bare "card from your hand" must NOT match the new Pattern D
     // (would FP on basic-land-play and card-draw templating).
     ['you may put a card from your hand onto the battlefield'],
+    // Tutor-to-hand (Hoarding Dragon style) is NOT cheat-into-play.
+    ['when this creature dies, search your library for an artifact card, reveal it, put it into your hand, then shuffle.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

@@ -229,6 +229,86 @@ describe('applyFilter', () => {
     expect(applyFilter(cards, { cmcMin: 2, cmcMax: 4 }).map((c) => c.oracleId))
       .toEqual(['three']);
   });
+
+  describe('tag mode (interaction / theme)', () => {
+    const catalog = new Map<string, import('@shared/types').TagDef>([
+      ['i1', { tagId: 'i1', axis: 'effect', label: 'i1', description: '', pairsWith: [] }],
+      ['i2', { tagId: 'i2', axis: 'effect', label: 'i2', description: '', pairsWith: [] }],
+      ['t1', { tagId: 't1', axis: 'effect', label: 't1', description: '', pairsWith: [], category: 'theme' }],
+      ['t2', { tagId: 't2', axis: 'effect', label: 't2', description: '', pairsWith: [], category: 'theme' }],
+    ]);
+
+    function withTags(id: string, tagIds: string[]) {
+      return card({
+        oracleId: id,
+        tags: tagIds.map((tid) => ({ tagId: tid, axis: 'effect' as const, evidence: '' })),
+      });
+    }
+
+    const cards = [
+      withTags('a', ['i1']),
+      withTags('b', ['i2']),
+      withTags('c', ['i1', 'i2']),
+      withTags('d', ['i1', 't1']),
+      withTags('e', ['i1', 'i2', 't1', 't2']),
+    ];
+
+    it('without tagCatalog, ANDs all f.tags together (back-compat)', () => {
+      const f: Filter = { tags: ['i1', 'i2'] };
+      const out = applyFilter(cards, f);
+      expect(out.map((c) => c.oracleId)).toEqual(['c', 'e']);
+    });
+
+    it('with tagCatalog, default (no mode) ANDs within interactions', () => {
+      const f: Filter = { tags: ['i1', 'i2'] };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['c', 'e']);
+    });
+
+    it('interactionTagsMode=or matches any selected interaction', () => {
+      const f: Filter = { tags: ['i1', 'i2'], interactionTagsMode: 'or' };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['a', 'b', 'c', 'd', 'e']);
+    });
+
+    it('themeTagsMode=or matches any selected theme', () => {
+      const f: Filter = { tags: ['t1', 't2'], themeTagsMode: 'or' };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['d', 'e']);
+    });
+
+    it('themeTagsMode=and (default) requires all themes', () => {
+      const f: Filter = { tags: ['t1', 't2'] };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['e']);
+    });
+
+    it('mixed: interactions OR, themes AND (groups ANDed)', () => {
+      const f: Filter = {
+        tags: ['i1', 'i2', 't1', 't2'],
+        interactionTagsMode: 'or',
+        themeTagsMode: 'and',
+      };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['e']);
+    });
+
+    it('mixed: interactions AND, themes OR', () => {
+      const f: Filter = {
+        tags: ['i1', 'i2', 't1'],
+        interactionTagsMode: 'and',
+        themeTagsMode: 'or',
+      };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['e']);
+    });
+
+    it('tags missing from the catalog are treated as interactions', () => {
+      const f: Filter = { tags: ['i1', 'unknown'], interactionTagsMode: 'or' };
+      const out = applyFilter(cards, f, undefined, catalog);
+      expect(out.map((c) => c.oracleId)).toEqual(['a', 'c', 'd', 'e']);
+    });
+  });
 });
 
 describe('applyFilter with libraryFilter', () => {

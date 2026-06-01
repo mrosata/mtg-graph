@@ -89,6 +89,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.bounce_or_blink': 'bounce-blink',
   'effect.bounce_planeswalker': 'bounce-blink',
   'effect.tuck_to_library': 'bounce-blink',
+  'effect.blink': 'bounce-blink',
+  'effect.flicker': 'bounce-blink',
 
   // resources
   'effect.add_mana': 'resources',
@@ -124,6 +126,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.cost_reduction': 'spellslinger',
   'effect.is_instant_or_sorcery': 'spellslinger',
   'trigger.spell_cast': 'spellslinger',
+  'condition.cares_spells_cast_this_turn': 'spellslinger',
 
   // card-selection
   'effect.draws_or_discards': 'card-selection',
@@ -135,6 +138,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.surveil': 'card-selection',
   'effect.targeted_discard': 'card-selection',
   'effect.tutor_any': 'card-selection',
+  'effect.tutors_artifact': 'card-selection',
   'effect.tutors_creature': 'card-selection',
   'effect.tutors_subtype': 'card-selection',
   'trigger.card_drawn_discarded': 'card-selection',
@@ -156,6 +160,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.life_changed': 'lifegain',
   'trigger.life_changed': 'lifegain',
   'effect.drain': 'lifegain',
+  'effect.cant_lose': 'lifegain',
 
   // themes
   'condition.adventure_matters': 'themes',
@@ -192,6 +197,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'condition.cares_planeswalkers': 'themes',
   'condition.cares_excess_damage': 'themes',
   'effect.amplifies_triggers': 'themes',
+  'condition.cares_colors_among_permanents': 'themes',
+  'condition.threshold': 'themes',
 
   // set-mechanics
   'condition.cares_bending': 'set-mechanics',
@@ -246,6 +253,16 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.has_sneak': 'set-mechanics',
   'effect.has_renew': 'set-mechanics',
   'effect.has_job_select': 'set-mechanics',
+  // v0.24 — DSK Mobilize, EOE Station, TDM Behold a Dragon, Lorwyn-revisit
+  // Wither/Persist, Avatar Blight, MTG-evergreen Convoke/Changeling.
+  'effect.has_mobilize': 'set-mechanics',
+  'effect.has_station': 'set-mechanics',
+  'effect.has_behold': 'set-mechanics',
+  'effect.has_wither': 'set-mechanics',
+  'effect.has_persist': 'set-mechanics',
+  'effect.has_blight': 'set-mechanics',
+  'effect.has_convoke': 'set-mechanics',
+  'effect.has_changeling': 'set-mechanics',
   // DSK Endure keyword action.
   'effect.endure': 'set-mechanics',
   // Energy counter mechanic.
@@ -270,6 +287,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.has_mana_activated_ability': 'keywords',
   'effect.has_cycling': 'keywords',
   'effect.has_deathtouch': 'keywords',
+  'effect.has_defender': 'keywords',
   'effect.grants_deathtouch': 'keywords',
   'effect.grants_double_strike': 'keywords',
   'effect.grants_first_strike': 'keywords',

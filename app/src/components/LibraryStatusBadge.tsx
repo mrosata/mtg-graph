@@ -1,4 +1,5 @@
 import { useLibraryStore } from '../stores/libraryStore';
+import { TOUR_IDS } from '../wizard/selectors';
 
 export default function LibraryStatusBadge() {
   const owned = useLibraryStore((s) => s.owned);
@@ -6,7 +7,11 @@ export default function LibraryStatusBadge() {
 
   if (!owned) {
     return (
-      <span className="eyebrow text-vellum-dim/70" aria-label="No library loaded">
+      <span
+        className="eyebrow text-vellum-dim/70"
+        aria-label="No library loaded"
+        data-tour-id={TOUR_IDS.libraryStatusBadge}
+      >
         no library
       </span>
     );
@@ -14,6 +19,7 @@ export default function LibraryStatusBadge() {
   return (
     <span
       aria-label={enabled ? 'Library active' : 'Library loaded but inactive'}
+      data-tour-id={TOUR_IDS.libraryStatusBadge}
       className={
         'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors ' +
         (enabled

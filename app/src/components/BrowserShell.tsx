@@ -17,10 +17,10 @@ type RightRailCtx = {
   drawerOpen: boolean;
 };
 
-// `filter` carries only non-tag state. Tags are owned by the URL — see
-// urlTags / setUrlTags below — so deep links survive across pages and clicking
-// a theme chip in InteractionsPanel can update tags without clobbering local
-// filter state.
+// `filter` carries only non-URL state. Tags and tag modes are owned by the
+// URL — see urlTags / urlInteractionMode / urlThemeMode below — so deep
+// links survive across pages and clicking a theme chip in InteractionsPanel
+// can update tags without clobbering local filter state.
 type Props = {
   filter: Filter;
   onFilterChange: (next: Filter) => void;
@@ -47,33 +47,60 @@ export default function BrowserShell({
 
   const urlTags = useMemo(() => searchParams.getAll('tag'), [searchParams]);
 
-  const setUrlTags = useCallback((tags: string[]) => {
+  const urlInteractionMode = useMemo<'and' | 'or'>(
+    () => (searchParams.get('imode') === 'or' ? 'or' : 'and'),
+    [searchParams],
+  );
+  const urlThemeMode = useMemo<'and' | 'or'>(
+    () => (searchParams.get('tmode') === 'or' ? 'or' : 'and'),
+    [searchParams],
+  );
+
+  const removeUrlTag = useCallback((tagId: string) => {
     setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete('tag');
-      for (const t of tags) next.append('tag', t);
-      return next;
+      const sp = new URLSearchParams(prev);
+      const remaining = sp.getAll('tag').filter((t) => t !== tagId);
+      sp.delete('tag');
+      for (const t of remaining) sp.append('tag', t);
+      return sp;
     });
   }, [setSearchParams]);
 
-  const removeUrlTag = useCallback((tagId: string) => {
-    setUrlTags(urlTags.filter((t) => t !== tagId));
-  }, [urlTags, setUrlTags]);
-
   const filterForPanel: Filter = useMemo(
-    () => ({ ...filter, tags: urlTags }),
-    [filter, urlTags],
+    () => ({
+      ...filter,
+      tags: urlTags,
+      interactionTagsMode: urlInteractionMode === 'and' ? undefined : urlInteractionMode,
+      themeTagsMode: urlThemeMode === 'and' ? undefined : urlThemeMode,
+    }),
+    [filter, urlTags, urlInteractionMode, urlThemeMode],
   );
 
   const handleFilterChange = useCallback((next: Filter) => {
     const nextTags = next.tags ?? [];
-    const same =
+    const sameTags =
       nextTags.length === urlTags.length &&
       nextTags.every((t, i) => t === urlTags[i]);
-    if (!same) setUrlTags(nextTags);
-    const { tags: _omit, ...rest } = next;
+    const nextIMode = next.interactionTagsMode ?? 'and';
+    const nextTMode = next.themeTagsMode ?? 'and';
+    const sameModes = nextIMode === urlInteractionMode && nextTMode === urlThemeMode;
+    if (!sameTags || !sameModes) {
+      setSearchParams((prev) => {
+        const sp = new URLSearchParams(prev);
+        if (!sameTags) {
+          sp.delete('tag');
+          for (const t of nextTags) sp.append('tag', t);
+        }
+        if (nextIMode === 'or') sp.set('imode', 'or');
+        else sp.delete('imode');
+        if (nextTMode === 'or') sp.set('tmode', 'or');
+        else sp.delete('tmode');
+        return sp;
+      });
+    }
+    const { tags: _omitTags, interactionTagsMode: _omitI, themeTagsMode: _omitT, ...rest } = next;
     onFilterChange(rest);
-  }, [urlTags, setUrlTags, onFilterChange]);
+  }, [urlTags, urlInteractionMode, urlThemeMode, setSearchParams, onFilterChange]);
 
   const [gridSize, setGridSize] = useState({ width: 0, height: 0 });
   const [hoveredCard, setHoveredCard] = useState<Card | null>(null);
@@ -133,8 +160,8 @@ export default function BrowserShell({
   }, [libraryEnabled, libraryOwned]);
 
   const filtered = useMemo(
-    () => applyFilter(cards, filterForPanel, libraryFilter),
-    [cards, filterForPanel, libraryFilter],
+    () => applyFilter(cards, filterForPanel, libraryFilter, tagCatalog),
+    [cards, filterForPanel, libraryFilter, tagCatalog],
   );
 
   if (status === 'loading') {

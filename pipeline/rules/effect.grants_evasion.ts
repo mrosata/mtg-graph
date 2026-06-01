@@ -75,7 +75,11 @@ const TRIGGERED_SELF_BUFF = new RegExp(
 function stripSelfAnaphor(t: string): string {
   return t
     .replace(
-      /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?)\s+[^.]*?\./g,
+      // FIX 5 (FP-8) — verb alternation extended to include `gets?` so
+      // "as long as ..., __self__ gets +1/+1 and has menace" (Elenda,
+      // Saint of Dusk) matches the strip span. Mirrors the parallel
+      // alternation already present in gains_keyword_self_conditional.ts.
+      /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?|gets?)\s+[^.]*?\./g,
       '',
     )
     .replace(TRIGGERED_SELF_BUFF, '')
@@ -96,7 +100,14 @@ function stripSelfAnaphor(t: string): string {
     .replace(
       /\b(?:if|while|when|whenever|as long as)\s+[^.]*?\bthis\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)\b[^.]*?,\s*put a (?:flying|menace|intimidate) counter on it\b[^.]*\./g,
       '',
-    );
+    )
+    // v0.24 — DSK "Max speed —" ability-word self-conditional grant.
+    // Gastal Raider: "Max speed — This creature gets +1/+1 and has menace."
+    // The em-dash separator + verbose "gets X and has Y" chain isn't caught
+    // by the as-long-as/while/if/during strip. The clause is bounded by
+    // the next sentence period. Always self-scoped by Max speed's
+    // mechanic-design so safe to strip the whole sentence.
+    .replace(/\bmax speed\s*—\s*[^.]*?\./g, '');
 }
 
 export const rule: Rule = {

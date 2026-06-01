@@ -60,6 +60,12 @@ describe('effect.tuck_to_library', () => {
     ['then shuffle your library'],
     // Multi-card no-target library shuffle (search/dig effect).
     ['reveal cards until you reveal a land card. shuffle the rest into your library'],
+    // FIX 3 (FP-5) — Darksteel Colossus: "if __self__ would be put into a
+    // graveyard from anywhere, reveal __self__ and shuffle it into its owner's
+    // library instead". This is a self-replacement (death-replacement) clause
+    // — the card replaces its own graveyard-bound move with a tuck. The card
+    // does NOT tuck another permanent; it's a self-only protective ability.
+    ["trample\nindestructible\nif __self__ would be put into a graveyard from anywhere, reveal __self__ and shuffle it into its owner's library instead."],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

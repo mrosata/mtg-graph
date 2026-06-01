@@ -125,6 +125,118 @@ describe('FilterPanel', () => {
     expect(tokens!.getAttribute('aria-disabled')).toBe('true');
   });
 
+  it('renders the Interactions AND/OR toggle when 2+ interaction tags are selected', () => {
+    const catalogWithTwo = new Map<string, TagDef>([
+      ['effect.draw', { tagId: 'effect.draw', axis: 'effect', label: 'Draw cards', description: '', pairsWith: [] }],
+      ['effect.burn', { tagId: 'effect.burn', axis: 'effect', label: 'Burn', description: '', pairsWith: [] }],
+    ]);
+    render(
+      <FilterPanel
+        value={{ tags: ['effect.draw', 'effect.burn'] }}
+        onChange={() => {}}
+        cards={[]}
+        tagCatalog={catalogWithTwo}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /interactions/i }));
+    expect(screen.getByRole('radiogroup', { name: /interactions match mode/i })).toBeInTheDocument();
+  });
+
+  it('does not render the Interactions toggle when only 1 interaction tag is selected', () => {
+    const catalogWithOne = new Map<string, TagDef>([
+      ['effect.draw', { tagId: 'effect.draw', axis: 'effect', label: 'Draw cards', description: '', pairsWith: [] }],
+    ]);
+    render(
+      <FilterPanel
+        value={{ tags: ['effect.draw'] }}
+        onChange={() => {}}
+        cards={[]}
+        tagCatalog={catalogWithOne}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /interactions/i }));
+    expect(screen.queryByRole('radiogroup', { name: /interactions match mode/i })).not.toBeInTheDocument();
+  });
+
+  it('clicking OR in the Interactions toggle emits interactionTagsMode=or', () => {
+    const onChange = vi.fn();
+    const catalogWithTwo = new Map<string, TagDef>([
+      ['effect.draw', { tagId: 'effect.draw', axis: 'effect', label: 'Draw cards', description: '', pairsWith: [] }],
+      ['effect.burn', { tagId: 'effect.burn', axis: 'effect', label: 'Burn', description: '', pairsWith: [] }],
+    ]);
+    render(
+      <FilterPanel
+        value={{ tags: ['effect.draw', 'effect.burn'] }}
+        onChange={onChange}
+        cards={[]}
+        tagCatalog={catalogWithTwo}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /interactions/i }));
+    const orBtn = screen
+      .getAllByRole('radio', { name: /^or$/i })
+      .find((el) => el.closest('[aria-label*="Interactions match mode" i]'));
+    expect(orBtn).toBeDefined();
+    fireEvent.click(orBtn!);
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ interactionTagsMode: 'or' }),
+    );
+  });
+
+  it('clicking AND when OR is active emits interactionTagsMode=undefined (default)', () => {
+    const onChange = vi.fn();
+    const catalogWithTwo = new Map<string, TagDef>([
+      ['effect.draw', { tagId: 'effect.draw', axis: 'effect', label: 'Draw cards', description: '', pairsWith: [] }],
+      ['effect.burn', { tagId: 'effect.burn', axis: 'effect', label: 'Burn', description: '', pairsWith: [] }],
+    ]);
+    render(
+      <FilterPanel
+        value={{ tags: ['effect.draw', 'effect.burn'], interactionTagsMode: 'or' }}
+        onChange={onChange}
+        cards={[]}
+        tagCatalog={catalogWithTwo}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /interactions/i }));
+    const andBtn = screen
+      .getAllByRole('radio', { name: /^and$/i })
+      .find((el) => el.closest('[aria-label*="Interactions match mode" i]'));
+    expect(andBtn).toBeDefined();
+    fireEvent.click(andBtn!);
+    const last = onChange.mock.calls.at(-1)?.[0];
+    expect(last).toBeDefined();
+    expect(last.interactionTagsMode).toBeUndefined();
+  });
+
+  it('toggling the Themes mode does not affect interactionTagsMode', () => {
+    const onChange = vi.fn();
+    const catalogMixed = new Map<string, TagDef>([
+      ['effect.draw', { tagId: 'effect.draw', axis: 'effect', label: 'Draw cards', description: '', pairsWith: [] }],
+      ['theme.tokens', { tagId: 'theme.tokens', axis: 'effect', label: 'Tokens', description: '', pairsWith: [], category: 'theme' }],
+      ['theme.lifegain', { tagId: 'theme.lifegain', axis: 'effect', label: 'Lifegain', description: '', pairsWith: [], category: 'theme' }],
+    ]);
+    render(
+      <FilterPanel
+        value={{
+          tags: ['theme.tokens', 'theme.lifegain'],
+          interactionTagsMode: 'or',
+        }}
+        onChange={onChange}
+        cards={[]}
+        tagCatalog={catalogMixed}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /deck themes/i }));
+    const orBtn = screen
+      .getAllByRole('radio', { name: /^or$/i })
+      .find((el) => el.closest('[aria-label*="Deck themes match mode" i]'));
+    expect(orBtn).toBeDefined();
+    fireEvent.click(orBtn!);
+    const last = onChange.mock.calls.at(-1)?.[0];
+    expect(last.themeTagsMode).toBe('or');
+    expect(last.interactionTagsMode).toBe('or');
+  });
+
   describe('library-aware filter narrowing', () => {
     it('hides interaction tags absent from the library when library is enabled', () => {
       const owned = makeCard({

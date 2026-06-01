@@ -1,6 +1,7 @@
 // pipeline/rules/trigger.creature_dies.ts
 import type { Rule } from './types';
 import type { TagDef } from '../../shared/types';
+import { THEME_TRIBES, tribePattern } from '../themes';
 
 export const tagDef: TagDef = {
   tagId: 'trigger.creature_dies',
@@ -9,6 +10,15 @@ export const tagDef: TagDef = {
   description: 'Has an ability that triggers when a creature dies.',
   pairsWith: ['effect.sacrifice_permanent', 'effect.deals_damage', 'effect.exile_from_battlefield'],
 };
+
+// FIX 15 (BR-10) — Crossway Troublemakers: tribal-subtype dies trigger
+// ("whenever a Vampire you control dies"). The subject is a known creature
+// tribe rather than the generic "creature" noun. Restricted to THEME_TRIBES
+// alternation so unrelated nouns can't fire this arm.
+const TRIBE_ALT = THEME_TRIBES.map(tribePattern).join('|');
+const TRIBAL_DIES = new RegExp(
+  `\\bwhen(?:ever)?\\s+(?:a|an|another)\\s+(?:${TRIBE_ALT})\\s+you control(?:s)?\\s+dies\\b`,
+);
 
 export const rule: Rule = {
   id: 'trigger.creature_dies',
@@ -64,6 +74,9 @@ export const rule: Rule = {
       /\bwhen(?:ever)?\s+(?:a |an |another |this |one or more )?(?:[\w\- ]{0,30}?\s+)?creatures?(?:\s+[\w'+\/\-]+){0,10}\s+(?:is|are) put into (?:a|your|an opponent's|its owner's|that player's) graveyard from the battlefield\b/,
     );
     if (putGraveyard) return { evidence: putGraveyard[0] };
+    // FIX 15 (BR-10) — tribal-subtype dies trigger (Crossway Troublemakers).
+    const tribal = t.match(TRIBAL_DIES);
+    if (tribal) return { evidence: tribal[0] };
     return false;
   },
 };

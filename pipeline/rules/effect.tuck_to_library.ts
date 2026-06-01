@@ -30,10 +30,21 @@ const LIBRARY_OWNER = '(?:its owner\'s|the owner\'s|your|target opponent\'s|thei
 // Frame D ownership phrases — excludes plain "your library" (would catch self-shuffles).
 const LIBRARY_OWNER_D = "(?:their|its owner[''\\u2019]?s)";
 
+// FIX 3 (FP-5) — Darksteel Colossus self-replacement guard. The card has a
+// death-replacement clause ("if __self__ would be put into a graveyard from
+// anywhere, ... shuffle it into its owner's library instead"). That's a
+// self-only protective ability, NOT a tuck of another permanent. Strip the
+// self-replacement span before running the existing tuck patterns so the
+// "shuffle it into its owner's library" inside the replacement clause
+// doesn't FP via Frame D2.
+const SELF_GRAVEYARD_REPLACEMENT =
+  /\bif __self__ would be put into a graveyard\b[^.]*?\bshuffle (?:it|__self__) into (?:its owner'?s|their owners?'?) library instead/g;
+
 export const rule: Rule = {
   id: 'effect.tuck_to_library',
   axis: 'effect',
   match: (t) => {
+    const cleaned = t.replace(SELF_GRAVEYARD_REPLACEMENT, '');
     const re = new RegExp(
       // Frame A: "the owner of target X puts it on (their choice of the)? top|bottom of (their|its owner's) library"
       `\\b(?:the )?owner of target [^.]+? puts? (?:it|them) on (?:their|its) (?:choice of ${TOP_OR_BOTTOM}|${TOP_OR_BOTTOM}) of (?:their|its owner's|your|the owner's) library\\b`
@@ -56,7 +67,7 @@ export const rule: Rule = {
       // self-shuffle FPs ("shuffle the rest into your library").
       + `|\\bshuffles?\\s+(?:this\\s+(?:creature|permanent)|[^.]{0,80}?target\\s+\\w+[^.]{0,80}?)\\s+(?:and\\s+[^.]{0,40}?\\s+)?into\\s+(?:its owner's|their owners'|target opponent's)\\s+librar(?:y|ies)\\b`,
     );
-    const m = t.match(re);
+    const m = cleaned.match(re);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['top', 'bottom', 'shuffles'], proximity: ['library', 'owner'], window: 6 },

@@ -27,11 +27,23 @@ const PATTERN_BLINK_OWN =
 const PATTERN_BROAD =
   /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}nonenchantment\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
 
+// FIX 7 (BR-2) — Angelic Destiny: aura with a death-trigger self-bounce.
+// "When enchanted creature dies, return this card to its owner's hand." The
+// `this card` reference is a self-bounce of the enchantment. Type-gated via
+// matchCard to Enchantment so the same templating on a creature (Bramble
+// Familiar) doesn't FP this enchantment-axis tag.
+const PATTERN_THIS_CARD = /\breturn(?:s)?\s+this card to\s+(?:its owner'?s|your)\s+hand\b/;
+
 export const rule: Rule = {
   id: 'effect.bounce_enchantment',
   axis: 'effect',
   match: (t) => {
     const m = t.match(PATTERN_RETURN_OWN) ?? t.match(PATTERN_BLINK_OWN) ?? t.match(PATTERN_BROAD);
+    return m ? { evidence: m[0] } : false;
+  },
+  matchCard: (card, t) => {
+    if (!card.types.includes('Enchantment')) return false;
+    const m = t.match(PATTERN_THIS_CARD);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['return', 'exile'], proximity: ['enchantment', 'permanent', 'hand'], window: 12 },

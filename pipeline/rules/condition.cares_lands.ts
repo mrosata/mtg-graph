@@ -72,12 +72,24 @@ const SUBTYPE_PATTERN = new RegExp(
 // cost span before running PATTERNS.
 const ADDITIONAL_COST_LANDS = /\bas an additional cost[^.]*?\btap\s+(?:two|three|\d+)\s+(?:untapped\s+)?creatures?\s+(?:and\/or\s+)?lands?\s+you\s+control\b/g;
 
+// FIX 9 (BR-4) — Wickerfolk Thresher: library-top reveal gated on land card
+// classification ("look at the top card of your library. if it's a land card,
+// you may put it onto the battlefield"). The card cares about lands because
+// the effect's payoff varies based on whether the revealed card is a land.
+// The 200-char window between the reveal and the "if it's a land card"
+// branch keeps the arm bounded.
+const LIBRARY_TOP_LAND_BRANCH =
+  /\b(?:look at|reveal)\s+the\s+top\s+(?:\w+\s+)?cards?\s+of\s+(?:your|target\s+[^.]*?)\s+library\b[\s\S]{0,200}?\bif\s+(?:it'?s|that\s+card\s+is)\s+a\s+land\s+card\b/;
+
 export const rule: Rule = {
   id: 'condition.cares_lands',
   axis: 'condition',
   match: (t) => {
     const stripped = t.replace(ADDITIONAL_COST_LANDS, '');
-    const m = stripped.match(PATTERN) ?? stripped.match(SUBTYPE_PATTERN);
+    const m =
+      stripped.match(PATTERN) ??
+      stripped.match(SUBTYPE_PATTERN) ??
+      stripped.match(LIBRARY_TOP_LAND_BRANCH);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['land'], proximity: ['you control', 'graveyard', 'each', 'or more'], window: 4 },

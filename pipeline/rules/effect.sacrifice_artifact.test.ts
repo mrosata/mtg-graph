@@ -62,6 +62,18 @@ describe('effect.sacrifice_artifact', () => {
     // exclusion shape as edicts — handled via NEGATIVE_WARD span.
     ['ward—sacrifice an artifact.'],
     ['ward—sacrifice a treasure, then draw a card.'],
+    // Wave-2 Win 6 (2026-06-01 audit) — Pox Plague: multi-clause "each
+    // player ... sacrifices ... permanents" edict. The verb is detached from
+    // the subject by intermediate clauses; NEGATIVE_EDICT span must bridge.
+    ['each player loses half their life, then discards half the cards in their hand, then sacrifices half the permanents they control of their choice. round down each time.'],
+    // Wave-2 Win 6 — observer trigger frames. "whenever a player / an
+    // opponent sacrifices X" — the controller observes, doesn't cause.
+    ['whenever a player sacrifices another artifact, draw a card.'],
+    ['whenever an opponent sacrifices an artifact, you gain 1 life.'],
+    // Plain `target player` / `each player` edicts (parallel to the existing
+    // `target opponent` / `each opponent` cases above).
+    ['target player sacrifices an artifact.'],
+    ['each player sacrifices a permanent.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

@@ -18,6 +18,11 @@ describe('effect.is_manland', () => {
     ['{u}{r}: until end of turn, this land becomes a 2/1 blue and red elemental creature'],
     ['{3}{g}{u}: until end of turn, this land becomes a 5/5 green and blue plant creature with trample'],
     ['{2}: this land becomes a 3/3 elemental creature until end of turn'],
+    // FIX 16 (BR-11) — Crawling Barrens: "you may have it become a 0/0
+    // elemental creature until end of turn." Anaphoric "have it become a
+    // <stats> creature" frame — the existing PATTERN requires "this land"
+    // or "__self__" as the explicit subject of `is/becomes`.
+    ['{t}: add {c}.\n{4}: put two +1/+1 counters on this land. then you may have it become a 0/0 elemental creature until end of turn. it\'s still a land.'],
   ])('matches lands that become creatures: %s', (text) => {
     expect(rule.matchCard!(card(['Land'], text), text)).toBeTruthy();
   });
