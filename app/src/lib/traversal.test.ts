@@ -3,9 +3,9 @@ import { getNeighbors, type Neighbor } from './traversal';
 import type { InteractionEdge } from '@shared/types';
 
 const edges: InteractionEdge[] = [
-  { source: 'A', target: 'B', reason: { sourceTagId: 'effect.create_token', targetTagId: 'trigger.creature_etb', direction: 'source_produces_for_target' } },
-  { source: 'A', target: 'C', reason: { sourceTagId: 'effect.create_token', targetTagId: 'trigger.token_created', direction: 'source_produces_for_target' } },
-  { source: 'B', target: 'A', reason: { sourceTagId: 'effect.reanimate', targetTagId: 'trigger.creature_etb', direction: 'source_produces_for_target' } },
+  { source: 'A', target: 'B', sourceTagId: 'effect.create_token', targetTagId: 'trigger.creature_etb' },
+  { source: 'A', target: 'C', sourceTagId: 'effect.create_token', targetTagId: 'trigger.token_created' },
+  { source: 'B', target: 'A', sourceTagId: 'effect.reanimate', targetTagId: 'trigger.creature_etb' },
 ];
 
 const outbound = new Map<string, InteractionEdge[]>();

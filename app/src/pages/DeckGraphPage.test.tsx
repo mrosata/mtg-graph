@@ -35,14 +35,11 @@ function makeEdge(source: string, target: string): InteractionEdge {
   return {
     source,
     target,
-    reason: {
-      // Both tagIds resolve to the `destruction` family via FAMILIES, so
-      // edgeFamily(e) returns a defined family id and the edge survives the
-      // family filter in buildDeckGraph.
-      sourceTagId: 'effect.destroy_creature',
-      targetTagId: 'trigger.creature_dies',
-      direction: 'source_produces_for_target',
-    },
+    // Both tagIds resolve to the `destruction` family via FAMILIES, so
+    // edgeFamily(e) returns a defined family id and the edge survives the
+    // family filter in buildDeckGraph.
+    sourceTagId: 'effect.destroy_creature',
+    targetTagId: 'trigger.creature_dies',
   };
 }
 

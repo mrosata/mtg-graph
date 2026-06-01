@@ -20,12 +20,12 @@ export function getNeighbors(
 
   for (const e of outbound.get(oracleId) ?? []) {
     const list = byNeighbor.get(e.target) ?? [];
-    list.push({ direction: 'outbound', sourceTagId: e.reason.sourceTagId, targetTagId: e.reason.targetTagId });
+    list.push({ direction: 'outbound', sourceTagId: e.sourceTagId, targetTagId: e.targetTagId });
     byNeighbor.set(e.target, list);
   }
   for (const e of inbound.get(oracleId) ?? []) {
     const list = byNeighbor.get(e.source) ?? [];
-    list.push({ direction: 'inbound', sourceTagId: e.reason.sourceTagId, targetTagId: e.reason.targetTagId });
+    list.push({ direction: 'inbound', sourceTagId: e.sourceTagId, targetTagId: e.targetTagId });
     byNeighbor.set(e.source, list);
   }
 

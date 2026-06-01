@@ -22,7 +22,7 @@ export type CandidateScoreInput = {
 
 function edgeFamily(e: InteractionEdge): FamilyId | undefined {
   // Use the source tag's family — pipeline pairings are family-coherent.
-  return familyFor(e.reason.sourceTagId)?.id;
+  return familyFor(e.sourceTagId)?.id;
 }
 
 function colorAllowed(card: Card, onColors: Set<ColorFilter>): boolean {
@@ -171,7 +171,7 @@ export function buildDeckGraph(input: GraphInput): GraphOutput {
   const edgeAccs = new Map<string, EdgeAcc>();
 
   function recordEdge(a: string, b: string, e: InteractionEdge) {
-    const fam = familyFor(e.reason.sourceTagId)?.id;
+    const fam = familyFor(e.sourceTagId)?.id;
     if (!fam) return;
     if (input.filters.offFamilies.has(fam)) return;
     const pk = pairKey(a, b);
@@ -197,7 +197,7 @@ export function buildDeckGraph(input: GraphInput): GraphOutput {
       if (!a || !b) continue;
       const deckId = a === candId ? b : a;
       for (const e of edges) {
-        const fam = familyFor(e.reason.sourceTagId)?.id;
+        const fam = familyFor(e.sourceTagId)?.id;
         if (!fam || input.filters.offFamilies.has(fam)) continue;
         recordEdge(candId, deckId, e);
       }
@@ -362,10 +362,10 @@ export function expandWithBridges(input: BridgeExpansionInput): GraphOutput {
     candidateIds.add(other);
   }
   for (const e of outbound.get(selectedId) ?? []) {
-    collectFromEdge(e.target, familyFor(e.reason.sourceTagId)?.id);
+    collectFromEdge(e.target, familyFor(e.sourceTagId)?.id);
   }
   for (const e of inbound.get(selectedId) ?? []) {
-    collectFromEdge(e.source, familyFor(e.reason.sourceTagId)?.id);
+    collectFromEdge(e.source, familyFor(e.sourceTagId)?.id);
   }
 
   type BridgeData = {
@@ -399,7 +399,7 @@ export function expandWithBridges(input: BridgeExpansionInput): GraphOutput {
       selFamCounts.set(fam, (selFamCounts.get(fam) ?? 0) + 1);
     };
     for (const e of selEdgesByNeighbor.get(bridgeId) ?? []) {
-      tallySel(familyFor(e.reason.sourceTagId)?.id);
+      tallySel(familyFor(e.sourceTagId)?.id);
     }
     if (selFamCounts.size === 0) continue;
 
@@ -416,10 +416,10 @@ export function expandWithBridges(input: BridgeExpansionInput): GraphOutput {
       m.set(fam, (m.get(fam) ?? 0) + 1);
     };
     for (const e of outbound.get(bridgeId) ?? []) {
-      tallyDeck(e.target, familyFor(e.reason.sourceTagId)?.id);
+      tallyDeck(e.target, familyFor(e.sourceTagId)?.id);
     }
     for (const e of inbound.get(bridgeId) ?? []) {
-      tallyDeck(e.source, familyFor(e.reason.sourceTagId)?.id);
+      tallyDeck(e.source, familyFor(e.sourceTagId)?.id);
     }
     if (deckFamCounts.size === 0) continue;
 
@@ -509,10 +509,10 @@ export function expandWithBridges(input: BridgeExpansionInput): GraphOutput {
         m.set(fam, (m.get(fam) ?? 0) + 1);
       };
       for (const e of outbound.get(selectedId) ?? []) {
-        tallySelectedToDeck(e.target, familyFor(e.reason.sourceTagId)?.id);
+        tallySelectedToDeck(e.target, familyFor(e.sourceTagId)?.id);
       }
       for (const e of inbound.get(selectedId) ?? []) {
-        tallySelectedToDeck(e.source, familyFor(e.reason.sourceTagId)?.id);
+        tallySelectedToDeck(e.source, familyFor(e.sourceTagId)?.id);
       }
       for (const [deckId, fams] of selectedToDeck) {
         bridgeEdges.push(buildBridgeEdge(selectedId, deckId, fams));

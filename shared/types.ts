@@ -55,11 +55,8 @@ export type Card = {
 export type InteractionEdge = {
   source: string;
   target: string;
-  reason: {
-    sourceTagId: string;
-    targetTagId: string;
-    direction: 'source_produces_for_target';
-  };
+  sourceTagId: string;
+  targetTagId: string;
 };
 
 export type TagCategory = 'interaction' | 'theme';

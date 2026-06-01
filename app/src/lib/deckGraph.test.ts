@@ -40,10 +40,7 @@ function card(id: string, colorIdentity: Card['colorIdentity'] = []): Card {
 }
 
 function edge(source: string, target: string, sourceTagId: string, targetTagId: string): InteractionEdge {
-  return {
-    source, target,
-    reason: { sourceTagId, targetTagId, direction: 'source_produces_for_target' },
-  };
+  return { source, target, sourceTagId, targetTagId };
 }
 
 const noFilter: FilterState = {

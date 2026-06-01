@@ -29,15 +29,15 @@ function card(
 
 const edge: InteractionEdge = {
   source: 'A', target: 'B',
-  reason: { sourceTagId: 'effect.create_token', targetTagId: 'trigger.creature_etb', direction: 'source_produces_for_target' },
+  sourceTagId: 'effect.create_token', targetTagId: 'trigger.creature_etb',
 };
 const edge2: InteractionEdge = {
   source: 'A', target: 'C',
-  reason: { sourceTagId: 'effect.life_changed', targetTagId: 'trigger.life_changed', direction: 'source_produces_for_target' },
+  sourceTagId: 'effect.life_changed', targetTagId: 'trigger.life_changed',
 };
 const themeEdge: InteractionEdge = {
   source: 'A', target: 'D',
-  reason: { sourceTagId: 'effect.tutors_subtype.shrine', targetTagId: 'condition.cares_subtype.shrine', direction: 'source_produces_for_target' },
+  sourceTagId: 'effect.tutors_subtype.shrine', targetTagId: 'condition.cares_subtype.shrine',
 };
 const tagDefs: TagDef[] = [
   { tagId: 'effect.create_token', axis: 'effect', label: 'Creates tokens', description: '', pairsWith: [] },

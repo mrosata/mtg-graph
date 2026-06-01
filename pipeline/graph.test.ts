@@ -32,11 +32,8 @@ describe('buildEdges', () => {
     expect(edges).toHaveLength(1);
     expect(edges[0].source).toBe('A');
     expect(edges[0].target).toBe('B');
-    expect(edges[0].reason).toEqual({
-      sourceTagId: 'effect.create_token',
-      targetTagId: 'trigger.creature_etb',
-      direction: 'source_produces_for_target',
-    });
+    expect(edges[0].sourceTagId).toBe('effect.create_token');
+    expect(edges[0].targetTagId).toBe('trigger.creature_etb');
   });
 
   it('creates bidirectional edges when both cards have both axes', () => {
@@ -76,7 +73,7 @@ describe('buildEdges', () => {
     expect(edges).toHaveLength(1);
     expect(edges[0].source).toBe('A');
     expect(edges[0].target).toBe('B');
-    expect(edges[0].reason.targetTagId).toBe('condition.cares_plus_one_counter');
+    expect(edges[0].targetTagId).toBe('condition.cares_plus_one_counter');
   });
 
   it('produces no duplicate edges for the same tag pair', () => {
@@ -103,7 +100,8 @@ describe('buildEdges', () => {
     expect(edges[0]).toMatchObject({
       source: 'A',
       target: 'B',
-      reason: { sourceTagId: 'effect.life_changed', targetTagId: 'condition.cares_lifegain' },
+      sourceTagId: 'effect.life_changed',
+      targetTagId: 'condition.cares_lifegain',
     });
   });
 
@@ -159,7 +157,7 @@ describe('buildEdges', () => {
         pairsWith: ['effect.create_creature_token'] },
     ];
     const edges = buildEdges([humansMaker, zombiesMaker, humansPayoff], tribeCatalog);
-    const tribeEdges = edges.filter((e) => e.reason.targetTagId === 'condition.cares_tribe.human');
+    const tribeEdges = edges.filter((e) => e.targetTagId === 'condition.cares_tribe.human');
     expect(tribeEdges).toHaveLength(1);
     expect(tribeEdges[0]?.source).toBe('humans-maker');
   });
@@ -205,7 +203,7 @@ describe('buildEdges', () => {
     ];
     const edges = buildEdges([faerieMaker, zombieMaker, obyra], gateCatalog);
     const triggerEdges = edges.filter(
-      (e) => e.target === 'obyra' && e.reason.targetTagId === 'trigger.another_creature_etb',
+      (e) => e.target === 'obyra' && e.targetTagId === 'trigger.another_creature_etb',
     );
     expect(triggerEdges).toHaveLength(1);
     expect(triggerEdges[0]?.source).toBe('faerie-maker');
@@ -236,7 +234,7 @@ describe('buildEdges', () => {
     ];
     const edges = buildEdges([reanimator, obyra], cat);
     const triggerEdges = edges.filter(
-      (e) => e.target === 'obyra' && e.reason.targetTagId === 'trigger.another_creature_etb',
+      (e) => e.target === 'obyra' && e.targetTagId === 'trigger.another_creature_etb',
     );
     expect(triggerEdges).toHaveLength(1);
     expect(triggerEdges[0]?.source).toBe('reanimator');
@@ -293,7 +291,7 @@ describe('buildEdges', () => {
       cat,
     );
     const diesEdges = edges.filter(
-      (e) => e.target === 'faerie-death-lord' && e.reason.targetTagId === 'trigger.creature_dies',
+      (e) => e.target === 'faerie-death-lord' && e.targetTagId === 'trigger.creature_dies',
     );
     expect(new Set(diesEdges.map((e) => e.source))).toEqual(
       new Set(['faerie-maker', 'sac-outlet']),
@@ -336,7 +334,7 @@ describe('buildEdges', () => {
     ];
     const edges = buildEdges([faerieMaker, zombieMaker, plainLord], gateCatalog);
     const triggerEdges = edges.filter(
-      (e) => e.target === 'plain-lord' && e.reason.targetTagId === 'trigger.another_creature_etb',
+      (e) => e.target === 'plain-lord' && e.targetTagId === 'trigger.another_creature_etb',
     );
     expect(triggerEdges).toHaveLength(2);
     expect(new Set(triggerEdges.map((e) => e.source))).toEqual(
@@ -383,8 +381,8 @@ describe('buildEdges', () => {
       const edges = buildEdges([tokenAndSac, morbid], gatedCatalog);
       const gatedEdge = edges.find(
         (e) =>
-          e.reason.sourceTagId === 'effect.create_creature_token' &&
-          e.reason.targetTagId === 'condition.cares_creatures_died_this_turn',
+          e.sourceTagId === 'effect.create_creature_token' &&
+          e.targetTagId === 'condition.cares_creatures_died_this_turn',
       );
       expect(gatedEdge).toBeDefined();
       expect(gatedEdge!.source).toBe('tokenAndSac');
@@ -401,7 +399,7 @@ describe('buildEdges', () => {
       ]);
       const edges = buildEdges([tokenAndPermSac, morbid], gatedCatalog);
       const gatedEdge = edges.find(
-        (e) => e.reason.sourceTagId === 'effect.create_creature_token',
+        (e) => e.sourceTagId === 'effect.create_creature_token',
       );
       expect(gatedEdge).toBeDefined();
     });
@@ -438,7 +436,7 @@ describe('buildEdges', () => {
       const edges = buildEdges([onlyCreatureSac, both, morbid], allModeCatalog);
       const sources = new Set(
         edges
-          .filter((e) => e.reason.sourceTagId === 'effect.create_creature_token')
+          .filter((e) => e.sourceTagId === 'effect.create_creature_token')
           .map((e) => e.source),
       );
       expect(sources.has('both')).toBe(true);
@@ -494,7 +492,7 @@ describe('buildEdges', () => {
       const effectIds = new Set(
         edges
           .filter((e) => e.source === 'aristocrat' && e.target === 'morbid')
-          .map((e) => e.reason.sourceTagId),
+          .map((e) => e.sourceTagId),
       );
       expect(effectIds.has('effect.sacrifice_creature')).toBe(true);
       expect(effectIds.has('effect.create_creature_token')).toBe(true);

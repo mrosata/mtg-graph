@@ -41,8 +41,8 @@ describe('pipeline end-to-end (fixture)', () => {
       (e) => e.source === tokenMaker.oracleId && e.target === etbWatcher.oracleId,
     );
     expect(tokenToWatcher).toBeDefined();
-    expect(tokenToWatcher!.reason.sourceTagId).toBe('effect.create_creature_token');
-    expect(tokenToWatcher!.reason.targetTagId).toBe('trigger.another_creature_etb');
+    expect(tokenToWatcher!.sourceTagId).toBe('effect.create_creature_token');
+    expect(tokenToWatcher!.targetTagId).toBe('trigger.another_creature_etb');
 
     // shape sanity: serializable
     expect(() => JSON.stringify({ cards, edges, tagCatalog: catalog, generatedAt: 'frozen', sourceSet: 'tdm', sourceSets: ['tdm'], ruleVersion: RULE_VERSION } satisfies Artifact))

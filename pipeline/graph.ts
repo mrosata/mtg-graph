@@ -142,11 +142,8 @@ export function buildEdges(cards: Card[], catalog: TagDef[]): InteractionEdge[] 
         edges.push({
           source,
           target,
-          reason: {
-            sourceTagId: effectId,
-            targetTagId: consumerId,
-            direction: 'source_produces_for_target',
-          },
+          sourceTagId: effectId,
+          targetTagId: consumerId,
         });
       }
     }

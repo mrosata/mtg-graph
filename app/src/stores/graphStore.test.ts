@@ -183,11 +183,8 @@ describe('graphStore.hydrate', () => {
     expect(outbound?.[0]).toEqual({
       source: 'a',
       target: 'b',
-      reason: {
-        sourceTagId: 'effect.create_token',
-        targetTagId: 'trigger.token_created',
-        direction: 'source_produces_for_target',
-      },
+      sourceTagId: 'effect.create_token',
+      targetTagId: 'trigger.token_created',
     });
     const inbound = useGraphStore.getState().edgesInbound.get('b');
     expect(inbound).toHaveLength(1);
