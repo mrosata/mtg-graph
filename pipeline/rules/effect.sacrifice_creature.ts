@@ -25,7 +25,10 @@ const PATTERN_BROAD =
 // normalize-layer mask would also break effect.edict.ts and
 // trigger.permanent_sacrificed.ts.
 // v0.14.6 — punisher edict template (Zoyowa Lava-Tongue).
-const NEGATIVE_EDICT = /(?:each|target|an?)\s+opponents?\s+(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?/g;
+// v0.22.0 — Sporogenic Infection: `target player sacrifices` is the same edict
+// semantic as `target opponent sacrifices`. Extend the subject alt to admit
+// `players?` alongside `opponents?`.
+const NEGATIVE_EDICT = /(?:(?:each|target)\s+(?:opponents?|players?)|an?\s+opponents?)\s+(?:may\s+[^.]{0,40}?\s+or\s+)?sacrifices?/g;
 const NEGATIVE_TRIGGER = /\bwhen(?:ever)?\s+(?:you\s+)?sacrifices?|\bwhen(?:ever)?\s+(?:a |an |another )?[\w\s\-]{0,30}?\bis sacrificed/g;
 // v0.14.31 — "unless they sacrifice" punisher (Polygraph Orb): "Each opponent
 // loses 3 life unless they discard a card or sacrifice a creature." Same

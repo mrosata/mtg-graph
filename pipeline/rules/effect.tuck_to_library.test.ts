@@ -32,6 +32,11 @@ describe('effect.tuck_to_library', () => {
     ["shuffle equipped creature into its owner's library"],
     // Attached creature variant.
     ["shuffle attached creature into its owner's library"],
+    // v0.21.0 — Floodpits Drowner: multi-subject shuffle ("this creature
+    // and target creature with a stun counter on it") tucked into multiple
+    // owners' libraries ("their owners' libraries"). Frame D3 — anchored on
+    // possessive/multi-owner phrasing to avoid self-shuffle FPs.
+    ["shuffle this creature and target creature with a stun counter on it into their owners' libraries"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

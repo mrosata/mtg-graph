@@ -21,6 +21,11 @@ describe('effect.debuff_minus_n', () => {
     ['target creature gets +0/+1 until end of turn'],
     ['put a +1/+1 counter on target creature'],
     ['target creature gets +x/+x until end of turn'],
+    // v0.22.0 — Patched Plaything: "enters with two -1/-1 counters on it".
+    // The "-N/-N counters" form is the counter-as-noun, not a debuff verb.
+    ['double strike this creature enters with two -1/-1 counters on it if you cast it from your hand.'],
+    ['enters with two -1/-1 counters on it'],
+    ['put a -1/-1 counter on target creature'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

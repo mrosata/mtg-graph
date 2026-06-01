@@ -23,6 +23,13 @@ describe('effect.gains_keyword_self_conditional', () => {
     // bridge the second `has` between the in-clause stat boost and the
     // keyword. Also needs to admit "/" in the filler for "10/10".
     ['as long as there are no cards in your library, this creature has base power and toughness 10/10 and has flying and vigilance.'],
+    // v0.21.0 — Fear of the Dark: triggered self-buff that grants menace +
+    // deathtouch. Pattern 2's gate-before-subject form already admits "if
+    // <gate>, it gains menace ..." — verify it matches.
+    ['whenever this creature attacks, if defending player controls no glimmer creatures, it gains menace and deathtouch until end of turn.'],
+    // v0.21.0 — Hand That Feeds: "gets +2/+0 and gains menace" — Pattern 2
+    // leading verb needs to admit `gets?` followed by `and gains?` continuation.
+    ['delirium — whenever this creature attacks while there are four or more card types among cards in your graveyard, it gets +2/+0 and gains menace until end of turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

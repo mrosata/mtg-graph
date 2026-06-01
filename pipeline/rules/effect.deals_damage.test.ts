@@ -45,6 +45,11 @@ describe('effect.deals_damage', () => {
     ['if __self__ would deal damage to a creature you control'],
     ['target creature deals 2 damage to any target'], // other creature, not self
     ['create a 2/2 creature token. it deals 2 damage'], // token, not self
+    // v0.20.0 — Valley Flamecaller FP: "would deal ... it deals that much
+    // damage plus N instead" is a damage-replacement effect, not a damage
+    // source on this card. The G26 mask suppresses the "it deals that much
+    // damage" span before PATTERNS runs.
+    ['if a lizard, mouse, otter, or raccoon you control would deal damage to a permanent or player, it deals that much damage plus 1 instead.'],
   ])('does not match (triggers, prevented damage, other creatures): %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
@@ -68,6 +73,18 @@ describe('effect.deals_damage', () => {
     ['when this artifact enters, it deals 2 damage to any target.'],
     ['when this vehicle enters, it deals 5 damage to target creature an opponent controls.'],
   ])('matches comma-it ETB self-references: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
+  // v0.20.0 — "and it" antecedent (Cursed Recording, Vivi Ornitier). The
+  // IT lookbehind admits `and ` (in addition to `: ` and `, `) so chained
+  // damage-effect lists like "remove those counters and it deals 20 damage"
+  // bind correctly. Paired with the G26 mask, this does not introduce a
+  // Valley Flamecaller FP (no `and` precedes `it` in Valley Flamecaller).
+  it.each([
+    ['whenever you cast an instant or sorcery spell, put a time counter on this artifact. then if there are seven or more time counters on it, remove those counters and it deals 20 damage to you.'],
+    ["{0}: add x mana in any combination of {u} and/or {r}, where x is __self__'s power. activate only during your turn and only once each turn. whenever you cast a noncreature spell, put a +1/+1 counter on __self__ and it deals 1 damage to each opponent."],
+  ])('matches "and it deals" chained-list antecedent: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
 

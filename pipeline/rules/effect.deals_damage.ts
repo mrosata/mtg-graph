@@ -32,7 +32,12 @@ const SELF = '(?:__self__|this (?:room|creature|artifact|enchantment|land|perman
 // damage" (Idol of the Deep King, Magmatic Galleon). Period-prefixed "it"
 // ("create a 2/2 token. it deals 2 damage") is still excluded because the
 // referent is a token, not the host.
-const IT = '(?<=: |, )it';
+// v0.20.0 — G13: admit `and ` lookbehind alongside `: ` and `, ` so
+// chained-list antecedents like "remove those counters and it deals 20
+// damage" (Cursed Recording, Vivi Ornitier) bind correctly. The Valley
+// Flamecaller damage-replacement FP is suppressed by the G26 mask in the
+// match function (no `and` precedes `it` in that card anyway).
+const IT = '(?<=: |, |and )it';
 const SUBJ = `(?:${SELF}|${IT})`;
 
 // Multiplier-prefix slot: "twice", "thrice", or "N times" between `deals`
@@ -54,12 +59,19 @@ const PATTERNS = [
   new RegExp(`\\b${SUBJ} deals that (?:much|many) (?:combat )?damage\\b`),
 ];
 
+// v0.20.0 — G26: mask the damage-replacement frame "would deal damage ...
+// it deals that much damage plus N instead" so the SUBJ patterns (and the
+// IT lookbehind in particular) don't pick up Valley Flamecaller's
+// replacement-effect "it deals that much damage" as a damage source.
+const REPLACEMENT_MASK = /\bwould deal damage[^.]*?\bit deals that (?:much|many) damage plus [^.]+\binstead\b/g;
+
 export const rule: Rule = {
   id: 'effect.deals_damage',
   axis: 'effect',
   match: (t) => {
+    const masked = t.replace(REPLACEMENT_MASK, '');
     for (const re of PATTERNS) {
-      const m = t.match(re);
+      const m = masked.match(re);
       if (m) return { evidence: m[0] };
     }
     return false;

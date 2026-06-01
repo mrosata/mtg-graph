@@ -82,7 +82,10 @@ function buildGrantRegex(kw: string): RegExp {
       // Each list item is a single word (optionally "<kw> strike"), comma-
       // separated, with optional "and" before the final item. Anchored on the
       // verb to avoid matching bare printed-keyword lines like "flying, trample".
-      `\\b(?:has|have|gains?)\\s+[a-z]+(?:\\s+strike)?\\s*,\\s+(?:[a-z]+(?:\\s+strike)?\\s*,\\s+)?(?:and\\s+)?${kw}\\b`,
+      // v0.20 — bumped inner pre-item filler from {0,1}? to {0,4}? so 4+ item
+      // lists work (Sword of Vengeance: "has first strike, vigilance, trample,
+      // and haste" — haste sits at position 4). Benefits all keyword grants.
+      `\\b(?:has|have|gains?)\\s+[a-z]+(?:\\s+strike)?\\s*,\\s+(?:[a-z]+(?:\\s+strike)?\\s*,\\s+){0,4}?(?:and\\s+)?${kw}\\b`,
       // Frame (f2): 2-item list joined by bare "and" (no comma) — Water Wings
       // ("gains flying and hexproof"). Same verb anchor as Frame (f), but the
       // separator is "<kw> and" rather than "<kw>, [...,] and".
@@ -143,18 +146,31 @@ function buildGrantRegex(kw: string): RegExp {
 // `whenever` gate; the safety lookahead aborts the strip if the trailing
 // clause contains an anthem subject so mixed self+anthem triggers retain
 // their grants_<kw> match on the anthem half.
+//
+// v0.21.0 — PRESERVE the clause if it contains a non-evasion grantable
+// keyword. Rationale: evasion keywords (flying/menace/intimidate) have a
+// dedicated `effect.gains_keyword_self_conditional` axis, but non-evasion
+// grantable keywords (haste/trample/lifelink/deathtouch/first strike/double
+// strike/vigilance/hexproof/indestructible/reach/prowess) have NO companion
+// self-conditional tag — they must still fire grants_<kw> here. Cards:
+// Fear of the Dark ("it gains menace and deathtouch"), Hand That Feeds
+// ("it gets +2/+0 and gains menace"), Rot Farm Mortipede ("...gains menace
+// and lifelink"). The strip becomes evasion-only.
+const NON_EVASION_GRANTABLE = /\b(?:haste|trample|lifelink|deathtouch|first strike|double strike|vigilance|hexproof|indestructible|reach|prowess)\b/;
+
 const TRIGGERED_SELF_BUFF = new RegExp(
   String.raw`\b(?:when|whenever)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?|gets?)\s+(?:(?!\bother\s+creatures?\b|\bcreatures?\s+you\s+control\b)[^.])*?\.`,
   'g',
 );
 
+const AS_LONG_AS_SELF = /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?)\s+[^.]*?\./g;
+
 function stripSelfAnaphor(t: string): string {
-  return t
-    .replace(
-      /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?)\s+[^.]*?\./g,
-      '',
-    )
-    .replace(TRIGGERED_SELF_BUFF, '');
+  // v0.21.0 — preserve the matched span if it contains a non-evasion
+  // grantable keyword. Replacement callback returns '' to strip, or the
+  // matched span itself to keep it.
+  const keepIfNonEvasion = (m: string) => (NON_EVASION_GRANTABLE.test(m) ? m : '');
+  return t.replace(AS_LONG_AS_SELF, keepIfNonEvasion).replace(TRIGGERED_SELF_BUFF, keepIfNonEvasion);
 }
 
 // v0.14.9 — Judith, Carnage Connoisseur: "That spell gains deathtouch and

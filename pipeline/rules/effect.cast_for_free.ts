@@ -30,14 +30,24 @@ export const tagDef: TagDef = {
 // "cast target instant or sorcery card with mana value 4 or less from your
 // graveyard without paying its mana cost" — 14 word tokens between "cast"
 // and "without paying").
+// v0.20 — admit "rather than paying" alt-cost variant (The Infamous
+// Cruelclaw: "you may cast that card by discarding a card rather than paying
+// its mana cost"). The alt-cost is functionally a free cast in graph terms —
+// the mana cost is bypassed.
 const PATTERN =
-  /\bcast (?:[\w\-/']+\s+){1,16}?without paying (?:its|the|that spell's|their) mana costs?\b/;
+  /\bcast (?:[\w\-/']+\s+){1,24}?(?:without|rather than) paying (?:its|the|that spell's|their) mana costs?\b/;
+
+// v0.20.0 — Charred Foyer // Warped Space: "you may pay {0} rather than pay
+// the mana cost for a spell you cast from exile". The {0} alt-cost is the
+// cast-for-free signal; the existing PATTERN required the literal "cast" verb
+// before the filler, but here the cast verb comes AFTER ("a spell you cast").
+const PAY_ZERO_RATHER_THAN = /\bpay \{0\}\s+rather than pay (?:its|the) mana cost\b/;
 
 export const rule: Rule = {
   id: 'effect.cast_for_free',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN);
+    const m = t.match(PATTERN) ?? t.match(PAY_ZERO_RATHER_THAN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['without paying'], proximity: ['cast', 'mana cost'], window: 6 },

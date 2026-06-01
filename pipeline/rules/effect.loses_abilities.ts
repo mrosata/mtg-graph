@@ -20,8 +20,13 @@ export const tagDef: TagDef = {
 };
 
 const PATTERNS = [
-  // "<subject> loses all abilities" / "<subject> lose all abilities" (plural)
-  /\b(?:loses?|lose)\s+all\s+abilities\b/,
+  // "<subject> loses all abilities" / "<subject> lose all abilities" (plural).
+  // v0.20 — admit "loses all (other) card types and abilities" (Sugar Coat:
+  // "loses all other card types and abilities"). The card-types tail used by
+  // Sugar Coat-style aura clones swap the permanent's type then strip the
+  // existing abilities — same silencer semantic as the bare "loses all
+  // abilities" form.
+  /\b(?:loses?|lose)\s+all\s+(?:other\s+)?(?:card\s+types\s+and\s+)?abilities\b/,
   // "<subject> has no abilities" / "<subject> have no abilities"
   /\b(?:has|have)\s+no\s+abilities\b/,
 ];

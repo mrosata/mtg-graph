@@ -26,6 +26,11 @@ describe('trigger.damage_dealt', () => {
     ['whenever one or more face-down creatures you control deal combat damage to a player, draw a card'],
     ['whenever one or more creatures you control deal damage to an opponent'],
     ['whenever creatures you control deal combat damage to a player'],
+    // v0.20.0 — single-fire `when` trigger with "enchanted creature" subject
+    // (Cracked Skull aura). The subject slot already admits "enchanted
+    // creature" via `[^,.]*?`; broadening `whenever` → `when(?:ever)?`
+    // admits the single-fire form.
+    ['when enchanted creature is dealt damage, destroy it'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

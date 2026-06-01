@@ -14,6 +14,11 @@ describe('effect.prevent_damage', () => {
     ['prevent the next 5 damage that would be dealt to target creature or player this turn'],
     // Multi-target variant
     ['prevent all damage that would be dealt to target creature this turn'],
+    // v0.22.0 — The Mindskinner: "if a source you control would deal damage
+    // to an opponent, prevent that damage and ...". Replacement-effect form
+    // gated by `would deal damage` antecedent.
+    ['if a source you control would deal damage to an opponent, prevent that damage and each opponent mills that many cards.'],
+    ['if a creature would deal combat damage to you, prevent that damage.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

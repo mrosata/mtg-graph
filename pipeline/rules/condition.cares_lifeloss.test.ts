@@ -18,6 +18,11 @@ describe('condition.cares_lifeloss', () => {
     ['as long as an opponent has lost life this turn, this creature has menace'],
     // Variant with "an opponent" subject and "has lost".
     ['if any opponent has lost life this turn, deal 1 damage to that opponent'],
+    // v0.21.0 — Kaito, Bane of Nightmares: "for each opponent who lost life
+    // this turn" — relative-clause frame ("opponent WHO lost life") gates
+    // a per-opponent count. Same axis as the bare "opponent lost life" gate.
+    ['draw a card for each opponent who lost life this turn'],
+    ['target players who have lost life this turn'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

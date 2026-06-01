@@ -12,6 +12,12 @@ describe('effect.cheat_into_play', () => {
     // Pattern C — exiled cards → battlefield
     ['put any number of exiled cards with that name onto the battlefield.'],
     ['you may put an exiled creature card used to craft __self__ onto the battlefield.'],
+    // v0.20.0 — Pattern D: hand → battlefield with explicit permanent type
+    // (A-Kona, Rescue Beastie). Gate on explicit permanent type — NOT bare
+    // "card" — to avoid the land-play templating "play a land from your hand".
+    ['survival — at the beginning of your second main phase, if kona is tapped, you may put a permanent card from your hand onto the battlefield.'],
+    ['you may put a creature card from your hand onto the battlefield'],
+    ['put an artifact card from your hand onto the battlefield'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -36,6 +42,9 @@ describe('effect.cheat_into_play', () => {
     // Unrelated
     ['draw a card.'],
     ['destroy target creature.'],
+    // v0.20.0 — bare "card from your hand" must NOT match the new Pattern D
+    // (would FP on basic-land-play and card-draw templating).
+    ['you may put a card from your hand onto the battlefield'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

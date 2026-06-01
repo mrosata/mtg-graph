@@ -11,6 +11,11 @@ describe('condition.gift_promised', () => {
     // Active-voice variant.
     ['if you promised a gift, return it to its owner\'s hand'],
     ['if you promised the gift, this creature gets +2/+2 until end of turn'],
+    // v0.20 — positive polarity smoke check.
+    ['if the gift was promised, draw a card'],
+    // v0.20 — negative polarity (Nocturnal Hunger, Parting Gust).
+    ["if the gift wasn't promised, return it to its owner's hand instead"],
+    ['if the gift was not promised, gain 2 life'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

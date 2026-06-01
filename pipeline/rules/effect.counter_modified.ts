@@ -44,6 +44,25 @@ export const rule: Rule = {
     const player = t.match(
       /\b(?:(?:each |target |that |a |another |the )?(?:opponent|player)s?|you) gets? (?:a |an |\d+ |x |one |two |three |four |five |six |seven |eight |nine |ten )?(?:additional |another )?[a-z][a-z'\-]+ counters?\b/,
     );
-    return player ? { evidence: player[0] } : false;
+    if (player) return { evidence: player[0] };
+    // v0.20 — return-to-battlefield-with-counter (Parting Gust, Salvation Swan,
+    // Scavenger's Talent, Season of the Burrow): "return ... to the battlefield
+    // ... with a +1/+1 counter on it". Functionally equivalent to placing a
+    // counter; the existing "put/enters with" arms miss because the verb is
+    // "return" and the "with <counter>" clause is split from the verb by a
+    // creature reference + battlefield clause.
+    const returnWithCounter = t.match(
+      /\breturn(?:s)?\s+[^.]{0,80}?\bto the battlefield[^.]{0,60}?\bwith\s+(?:a |an |\d+ |x |one |two |three )?(?:\+1\/\+1 |-1\/-1 |[a-z][a-z\-']+ )?counters?\b/,
+    );
+    if (returnWithCounter) return { evidence: returnWithCounter[0] };
+    // v0.21.0 — Ghost Vacuum / Meathook Massacre II: "put/return ... (?:to the
+    // battlefield | under your control | under its owner's control) ... with
+    // <type> counter". Relaxes the requirement that "to the battlefield" must
+    // precede the counter — the "under <X> control" location phrase is
+    // equivalent. Counter type required (single-word, prevents anthem leaks).
+    const putReturnWithCounter = t.match(
+      /\b(?:put|return)(?:s)?\s+[^.]{0,80}?(?:to the battlefield|under (?:your|its owner'?s|their) control)[^.]{0,80}?\bwith\s+(?:a |an |\d+ |x |one |two |three )?[a-z][a-z\-']+\s+counters?\b/,
+    );
+    return putReturnWithCounter ? { evidence: putReturnWithCounter[0] } : false;
   },
 };

@@ -39,7 +39,14 @@ const LOOK_PUT =
 const EXILED_PUT =
   /\b(?:exiled cards?|cards? exiled (?:this way|with [\w\s'—]+)|exiled creature cards?)[^.]{0,80}\bonto the battlefield\b/;
 
-const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, EXILED_PUT];
+// Pattern D (v0.20.0): hand → battlefield with explicit permanent type. Gates
+// on explicit permanent type token (NOT bare "card") to avoid the land-play
+// templating "play a land from your hand". A-Kona, Rescue Beastie uses
+// "put a permanent card from your hand onto the battlefield".
+const HAND_PUT =
+  /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+from your hand onto the battlefield\b/;
+
+const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, EXILED_PUT, HAND_PUT];
 
 // Post-match filter: any of these substrings inside the matched span
 // indicate this is effect.cloak territory (face-down creation), not

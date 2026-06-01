@@ -40,7 +40,18 @@ export const rule: Rule = {
     // activation cost). Paying life is functionally life loss for the
     // controller. Allows X / digit / comma-amount.
     const PAY = /\bpay (?:[\d,]+|x) life\b/;
-    const m = t.match(QUANT) ?? t.match(VARIABLE) ?? t.match(PAY);
+    // v0.20.0 — anaphoric "that much life" (Enduring Tenacity: "whenever you
+    // gain life, target opponent loses that much life"). The amount is bound
+    // to the prior trigger condition rather than a digit/x quantifier.
+    const THAT_MUCH = /(?:(?:^|[.,:\n—] ?)(?:then |and )?)(?:target opponent|each opponent|each player|target player|that player|they)\s+loses\s+that much life\b/;
+    // v0.21.0 — Grievous Wound: fractional / catch-all life loss ("they lose
+    // half their life, rounded up"). The amount is "half/all/x [of] their
+    // life" — semantically still life_changed.
+    const FRACTIONAL = /(?:target opponent|each opponent|each player|target player|that player|they|enchanted player|you)\s+loses?\s+(?:half|all|x)\s+(?:of\s+)?their\s+life\b/;
+    // v0.21.0 — Leyline of Hope: replacement-effect lifegain upgrade ("you
+    // gain that much life plus N instead"). Functionally a life-change.
+    const REPLACEMENT_GAIN = /\byou gain that much life plus\s+\d+\s+instead\b/;
+    const m = t.match(QUANT) ?? t.match(VARIABLE) ?? t.match(PAY) ?? t.match(THAT_MUCH) ?? t.match(FRACTIONAL) ?? t.match(REPLACEMENT_GAIN);
     return m ? { evidence: m[0] } : false;
   },
 };

@@ -22,11 +22,17 @@ export const tagDef: TagDef = {
 // distinguishes prevention from damage-dealing or damage-replacement text.
 const PATTERN = /\bprevents?\s+(?:all|the next \d+)\s+(?:combat\s+)?damage that would be dealt\b/;
 
+// v0.22.0 — The Mindskinner: "if a source ... would deal damage to ..., prevent
+// that damage". Replacement-effect form. The `would deal damage` antecedent
+// anchors it to a damage-prevention semantic; bare "prevent that damage"
+// without the antecedent could appear in other contexts.
+const REPLACEMENT_PATTERN = /\bwould\s+deal[^.]{0,80}?\bdamage\b[^.]{0,40}?,\s*prevent that damage\b/;
+
 export const rule: Rule = {
   id: 'effect.prevent_damage',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN);
+    const m = t.match(PATTERN) ?? t.match(REPLACEMENT_PATTERN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['prevent'], proximity: ['damage', 'dealt'], window: 6 },

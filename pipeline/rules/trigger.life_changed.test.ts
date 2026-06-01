@@ -6,6 +6,8 @@ describe('trigger.life_changed', () => {
   it.each([
     ['whenever you gain life'],
     ['whenever an opponent loses life'],
+    // v0.20 — disjunction trigger (Moonstone Harbinger).
+    ['whenever you gain or lose life, put a +1/+1 counter on this creature.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

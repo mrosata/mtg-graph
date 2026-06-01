@@ -20,6 +20,12 @@ describe('effect.destroy_creature', () => {
     // blocking creature").
     ['__self__ deals 3 damage to target attacking or blocking creature. if this spell was bargained, destroy that creature instead'],
     ['destroy that creature'],
+    // v0.20.0 — antecedent-anchored "destroy it" (Cracked Skull aura).
+    // Sentence-bounded; bare "destroy it" still excluded.
+    ['enchant creature when this aura enters, look at target player\'s hand. you may choose a nonland card from it. that player discards that card. when enchanted creature is dealt damage, destroy it.'],
+    // v0.20.0 — "target creature ... . destroy it" sentence-bounded
+    // antecedent shape.
+    ['target creature gets -2/-2 until end of turn. destroy it.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

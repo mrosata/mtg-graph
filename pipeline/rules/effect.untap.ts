@@ -33,6 +33,21 @@ const PATTERN = /(?<!\bwhenever (?:you|a|an|another)\s)\buntap (?:up to (?:one|t
 // unrelated paragraphs.
 const PRONOUN_PATTERN = /\b(?:target (?:[\w\-]+\s+){0,4}creatures?|creatures? you control)[^.]*\.\s*untap (?:it|them)\b/;
 
+// v0.20.0 — tribal-list antecedent: "<tribe>s, <tribe>s, ..., and <tribe>s
+// you control get +X/+Y until end of turn. Untap them." Valley Floodcaller
+// uses a multi-tribe plural-list subject without the generic "creatures"
+// noun, so PRONOUN_PATTERN misses. Requires plural tribal nouns + "you
+// control" + a buff clause + sentence boundary + "untap them" — bare
+// "untap them" stays unmatched.
+const TRIBAL_LIST_PRONOUN_PATTERN = /\b[\w\-]+s(?:,\s+[\w\-]+s){0,4}(?:,?\s+and\s+[\w\-]+s)?\s+you control\s+get[^.]*\.\s*untap them\b/;
+
+// v0.20 — Threaten-shape chained-list (Reptilian Recruiter): "gain control of
+// [creature] [until end of turn,] untap it, and it gains haste". The untap
+// rides on a chained-clause list within the same sentence rather than across
+// a sentence boundary, so the pronoun pattern's `\.\s*` anchor misses. Narrow
+// to "gain control + untap" template only.
+const CHAINED_GAIN_CONTROL = /\bgain control of [^.]{0,60}?,\s*untap (?:it|that creature|them)\b/;
+
 // v0.14.1 — Vigilance-style static rider: "Untap this creature during (each
 // other player's )?untap step." Per AGREED PLAN, this static modifier on
 // combat untap is out of scope for effect.untap (Thousand Moons Infantry).
@@ -54,10 +69,18 @@ export const rule: Rule = {
       // narrow scope keeps the rider exclusion from masking unrelated effects
       // on the same card.
       const after = t.replace(STATIC_RIDER, '');
-      const m = after.match(PATTERN) ?? after.match(PRONOUN_PATTERN);
+      const m =
+        after.match(PATTERN) ??
+        after.match(PRONOUN_PATTERN) ??
+        after.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
+        after.match(CHAINED_GAIN_CONTROL);
       return m ? { evidence: m[0] } : false;
     }
-    const m = t.match(PATTERN) ?? t.match(PRONOUN_PATTERN);
+    const m =
+      t.match(PATTERN) ??
+      t.match(PRONOUN_PATTERN) ??
+      t.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
+      t.match(CHAINED_GAIN_CONTROL);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['untap'], proximity: ['creature', 'permanent', 'target', 'all'], window: 6 },

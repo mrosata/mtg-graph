@@ -25,6 +25,12 @@ describe('trigger.turned_face_up', () => {
     // (Pyrotechnic Performer). Disjunctive subject with self-half + tribal-half.
     ['whenever this creature or another creature you control is turned face up, that creature deals damage equal to its power to each opponent.'],
     ['whenever this creature or another detective you control is turned face up, draw a card.'],
+    // v0.21.0 — Growing Dread: active-voice "you turn a permanent face up".
+    // Same axis as the passive "is turned face up" — just framed from the
+    // controller's perspective.
+    ['flash when this enchantment enters, manifest dread. whenever you turn a permanent face up, put a +1/+1 counter on it.'],
+    ['whenever you turn a creature face up, draw a card.'],
+    ['when you turn another permanent face up, gain 1 life.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -8021,3 +8021,3532 @@ Draw a card.
   - **Evidence vs reality:** Card text: "target creature gains trample until end of turn. it also gets +1/+0 until end of turn if you control a mouse". Sentence-break between subject and grant. Pattern: `(?:creatures?|permanents?|attackers?|blockers?|target [a-z]+(?: [a-z]+)?)[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)` — period in `[^.]` filler prevents bridging across sentences anyway. Even within-sentence "it" subject isn't matched.
   - **Suggested fix:** Add `\bit\b` to the subject alternation: `(?:creatures?|permanents?|attackers?|blockers?|target [a-z]+(?: [a-z]+)?|it)[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)`. Gate on context if "it" causes leaks (likely safe — the "+N/+N" predicate is highly specific).
 
+---
+
+# v0.20.0 batch — card-tag-audit punch list (shipped 2026-05-31)
+
+23 fixes shipped after dual-reviewer + tiebreaker process. Test count: 3130 pass (+30 regression rows). Coverage: 99.2% unchanged. See `mtg-graph-narrow-tag-rule` "Batch mode" for the multi-agent flow.
+
+**Shipped:**
+- `effect.draws_or_discards` — third-party-subject (`target player draws`, `its controller draws`) + alt-cost discard (`by discarding a card`) arms
+- `effect.grants_evasion` — clone-frame self-anaphor strip (`enter as a copy of ... it has X`)
+- `condition.cares_lifegain` + `trigger.life_changed` — `gain or lose life` disjunctive frame
+- `condition.gift_promised` — negative polarity (`wasn't promised`)
+- `effect.cast_from_exile` — Pattern 2 ("cast a spell this way") gated by 200-char backward exile-token check
+- `effect.counter_modified` — return-to-battlefield-with-counter (ETB-with-counter via blink/reanimate)
+- `effect.exile_from_library` — reveal-verb + count-less frame ("exile cards from the top of your library until ...")
+- `effect.causes_damage` — anaphoric "then it deals damage" filler
+- `condition.cares_high_power` — "power or toughness N" disjunction
+- `effect.untap` — narrow "gain control + untap it" Threaten-shape arm
+- `condition.cares_low_power` — "<name>'s/its power is N or less" copula arm
+- `effect.edict` — "unless that player sacrifices" punisher frame
+- `effect.bounce_creature` — "return those creatures" with antecedent gate
+- `trigger.counter_changed` — counter-type slot before bare `counters?`
+- `effect.loses_abilities` — "loses all (other) card types and abilities" Aura-transform
+- `effect.grants_keyword` (Frame f) — `{0,4}?` pre-item filler (benefits all keyword grants in 4-item lists)
+- `effect.cast_for_free` — "rather than paying" alt-cost frame
+- `effect.reanimate` — "put into <X>'s graveyard this way" wipe-then-recur frame
+- `effect.look_at_top_n` — compound quantifier (`twice X`, `three times that many`)
+- `effect.has_mana_activated_ability` — keyword-cost prefix strip (Offspring/Kicker/Equip/Ward etc.) before scanning
+- `effect.bounce_*` — comma-filler for mass-bounce frame ("return each nonland, nontoken permanent")
+- `pipeline/tag-expansion.ts` — typed-suppression: when parent evidence has `non<type>`, skip the `_<type>` child (fixes Season-of-the-Burrow `exile_land` FP and resolves the Rottenmouth Viper / Scavenger's Talent sacrifice_permanent issue)
+
+**Rejected (kept here for reference — these are intentional prior narrowings):**
+- `condition.cares_low_power` blocker-restriction frame (Rust-Shield Rampager) — explicit BLOCKER_GUARD added in v0.14.4; "can't be blocked by creatures with power N or less" is pseudo-evasion, not a low-power payoff.
+- `effect.exile_creature` flicker-tail (Salvation Swan, Skyskipper Duo) — FLICKER_TAIL guard is intentional; flicker tags as `bounce_creature` only, double-counting as exile_creature would distort removal counts.
+- `condition.cares_plus_one_counter` placement-trigger (Stocking the Pantry) — tag is a STATE predicate ("has a counter"), not a placement trigger; placement axis is `trigger.counter_changed` (shipped).
+- `effect.pacify` becomes-noncreature-via-Aura (Sugar Coat) — semantic coverage gap; needs a new tag (`effect.becomes_inert_permanent`) for the Sugar Coat / Witness Protection / Song of the Dryads family. Deferred to v0.8+ LLM verification phase.
+- `effect.create_creature_token` modal-antecedent guard (Season of Weaving) — token IS a creature in 50% of branches; suppressing creates worse FN. Tribal-edge metadata path (`creatureTypes: []`) is already safe.
+
+**Deferred (need infrastructure, not just regex):**
+- Modal "Choose <type> or <type>. Destroy all permanents of the chosen type." typed-expansion narrowing (Season of Gathering) — only 1-2 cards in current Standard hit this; revisit when a third "chosen type" card ships. `effect.board_wipe` + `effect.destroy_artifact` + `effect.destroy_enchantment` still fire correctly; the FPs are on `destroy_creature` / `_planeswalker` / `_land`.
+
+---
+
+## Mind Spiral  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {4}{U}
+
+**Oracle text:**
+
+```
+Gift a tapped Fish (You may promise an opponent a gift as you cast this spell. If you do, they create a tapped 1/1 blue Fish creature token before its other effects.)
+Target player draws three cards. If the gift was promised, tap target creature an opponent controls and put a stun counter on it. (If a permanent with a stun counter would become untapped, remove one from it instead.)
+```
+
+**Current tags:** `condition.gift_promised`, `effect.cast_noncreature_spell`, `effect.counter_modified`, `effect.has_gift`, `effect.is_instant_or_sorcery`, `effect.stun_counter`, `effect.tap`
+
+### Issues
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** Card has "target player draws three cards" but no draw-axis tag fires.
+  - **Evidence vs reality:** The clause "target player draws three cards" is a draw effect by any reasonable reading; tagDef says "Draws or discards cards" with no controller scope.
+  - **Suggested fix:** Broaden `effect.draws_or_discards` regex to admit `target\s+player\s+draws` in addition to "you draw" / "target opponent draws".
+---
+
+## Mockingbird  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Bird Bard
+**Mana cost:** {X}{U}
+
+**Oracle text:**
+
+```
+Flying
+You may have this creature enter as a copy of any creature on the battlefield with mana value less than or equal to the amount of mana spent to cast this creature, except it's a Bird in addition to its other types and it has flying.
+```
+
+**Current tags:** `condition.cares_tribe.bird`, `condition.has_x_in_cost`, `effect.clone_in_place`, `effect.grants_evasion`, `effect.has_flying`
+
+### Issues
+
+- **false-positive**: `effect.grants_evasion`
+  - **What's wrong:** This is self-clone framing, not a grant to other creatures or tokens. Same shape as the manland / self-animation leak in the recurring-patterns list.
+  - **Evidence vs reality:** Evidence is "has flying" inside "it's a Bird in addition to its other types and it has flying" — the antecedent of "it" is this creature itself entering as a copy, not another creature. The tagDef description is "Gives flying, menace, or intimidate to *other* creatures or to *tokens it creates*."
+  - **Suggested fix:** Add `enter[s]? as a copy of .* it has` to the existing self-animation exclusion in `effect.grants_evasion`'s regex, so the clone-with-extra-keyword family doesn't false-positive.
+---
+
+## Moonstone Harbinger  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Bat Warrior
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Flying, deathtouch
+Whenever you gain or lose life during your turn, Bats you control get +1/+0 and gain deathtouch until end of turn. This ability triggers only once each turn.
+```
+
+**Current tags:** `condition.cares_lifeloss`, `condition.cares_tribe.bat`, `effect.grants_deathtouch`, `effect.grants_stat_buff`, `effect.has_deathtouch`, `effect.has_flying`
+
+### Issues
+
+- **missing**: `condition.cares_lifegain`
+  - **What's wrong:** Card triggers on "gain or lose life" but only the lifeloss half is tagged.
+  - **Evidence vs reality:** The clause "whenever you gain or lose life" is a disjunction; the lifeloss rule matched but the lifegain rule did not.
+  - **Suggested fix:** Broaden `condition.cares_lifegain` to admit `gain\s+or\s+lose\s+life` (and the symmetric `lose\s+or\s+gain\s+life`). Mirror change likely already exists for cares_lifeloss; align the two.
+- **missing**: `trigger.life_changed`
+  - **What's wrong:** Lifegain/lifeloss trigger frame is exactly what this tagDef describes, but it didn't fire.
+  - **Evidence vs reality:** "Whenever you gain or lose life" matches description verbatim. Likely the rule only matches one half of the disjunction.
+  - **Suggested fix:** Broaden trigger.life_changed regex to admit the joint `gain\s+or\s+lose\s+life` frame.
+---
+
+## Nocturnal Hunger  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Gift a Food (You may promise an opponent a gift as you cast this spell. If you do, they create a Food token before its other effects. It's an artifact with "{2}, {T}, Sacrifice this token: You gain 3 life.")
+Destroy target creature. If the gift wasn't promised, you lose 2 life.
+```
+
+**Current tags:** `condition.cares_subtype.food`, `effect.cast_noncreature_spell`, `effect.destroy_creature`, `effect.has_gift`, `effect.is_instant_or_sorcery`, `effect.life_changed`
+
+### Issues
+
+- **missing**: `condition.gift_promised`
+  - **What's wrong:** Card has a Gift-promise gate ("if the gift wasn't promised") but the tag fires only on the positive form.
+  - **Evidence vs reality:** Existing rule matches "if the gift was promised"; this card uses the negation "if the gift wasn't promised", which is the same conditional axis (still gating an effect on whether Gift was paid).
+  - **Suggested fix:** Broaden `condition.gift_promised` regex to admit `if the gift was(?:n't| not)? promised` (and update tagDef description to mention both forms). Mention in test file that both polarities should match.
+---
+
+## Osteomancer Adept  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Squirrel Warlock
+**Mana cost:** {1}{B}
+
+**Oracle text:**
+
+```
+Deathtouch
+{T}: Until end of turn, you may cast creature spells from your graveyard by foraging in addition to paying their other costs. If you cast a spell this way, that creature enters with a finality counter on it. (To forage, exile three cards from your graveyard or sacrifice a Food. If a creature with a finality counter on it would die, exile it instead.)
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.cast_from_exile`, `effect.counter_modified`, `effect.forage`, `effect.has_activated_ability`, `effect.has_deathtouch`
+
+### Issues
+
+- **false-positive**: `effect.cast_from_exile`
+  - **What's wrong:** "Cast a spell this way" refers to casting from the GRAVEYARD via forage, not from exile.
+  - **Evidence vs reality:** Evidence is the anaphoric "cast a spell this way", but "this way" resolves to the preceding clause "cast creature spells from your graveyard". The tagDef explicitly scopes to the exile zone. The exile-from-graveyard part is the forage cost and lives in stripped reminder text.
+  - **Suggested fix:** Tighten `effect.cast_from_exile` to require a referent token (e.g. "from exile" / "exiled" / "exiled with") within proximity of the "cast" verb, OR explicitly anchor "this way" matches to a preceding "from exile" frame.
+---
+
+## Parting Gust  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {W}{W}
+
+**Oracle text:**
+
+```
+Gift a tapped Fish (You may promise an opponent a gift as you cast this spell. If you do, they create a tapped 1/1 blue Fish creature token before its other effects.)
+Exile target nontoken creature. If the gift wasn't promised, return that card to the battlefield under its owner's control with a +1/+1 counter on it at the beginning of the next end step.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.exile_creature`, `effect.has_gift`, `effect.is_instant_or_sorcery`, `effect.plus_one_counter`, `trigger.beginning_of_end_step`
+
+### Issues
+
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** Card returns a creature "with a +1/+1 counter on it" (ETB-with frame) — plus_one_counter fires but counter_modified doesn't. On most cards that put +1/+1 counters both fire; this one doesn't because the rule probably anchors on "put a … counter" verb, missing the ETB-with frame.
+  - **Evidence vs reality:** plus_one_counter has evidence "return that card to the battlefield under its owner's control with a +1/+1 counter"; counter_modified is unfiring even though a counter is being placed.
+  - **Suggested fix:** Broaden `effect.counter_modified` to admit the ETB-with frame `enters? .{0,40} with a .* counter` / `return[s]? .* with a .* counter` already covered by plus_one_counter.
+- **missing**: `condition.gift_promised` (same as Nocturnal Hunger)
+  - **What's wrong:** Negative form "if the gift wasn't promised" not matched.
+  - **Suggested fix:** Broaden regex to admit `wasn't promised` polarity — same fix as Nocturnal Hunger above.
+---
+
+## Portent of Calamity  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {X}{U}
+
+**Oracle text:**
+
+```
+Reveal the top X cards of your library. For each card type, you may exile a card of that type from among them. Put the rest into your graveyard. You may cast a spell from among the exiled cards without paying its mana cost if you exiled four or more cards this way. Then put the rest of the exiled cards into your hand.
+```
+
+**Current tags:** `condition.cares_exile_pile`, `condition.has_x_in_cost`, `effect.cast_for_free`, `effect.cast_from_exile`, `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`, `effect.look_at_top_n`, `effect.mill`
+
+### Issues
+
+- **missing**: `effect.exile_from_library`
+  - **What's wrong:** Card reveals top X cards of library and exiles selected ones, but no exile_from_library tag fires.
+  - **Evidence vs reality:** "Reveal the top X cards of your library. For each card type, you may exile a card of that type from among them." — this is paradigm-case exile-from-library (cards move library → exile). The tagDef describes "Moves cards from a library to the exile zone".
+  - **Suggested fix:** Broaden `effect.exile_from_library` regex to admit the "reveal top N … exile … from among them" frame in addition to the canonical "exile the top N cards" form.
+---
+
+## Rabid Gnaw  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {1}{R}
+
+**Oracle text:**
+
+```
+Target creature you control gets +1/+0 until end of turn. Then it deals damage equal to its power to target creature you don't control.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.grants_stat_buff`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.causes_damage`
+  - **What's wrong:** Card causes damage equal to power via the buffed creature, exact same Bite/Polliwallop family — but the anaphoric "it" instead of "target creature you control" blocks the rule.
+  - **Evidence vs reality:** Rabid Bite (already tagged) has "target creature you control deals damage equal to its power to target creature you don't control"; Rabid Gnaw says "Then it deals damage equal to its power to target creature you don't control" where "it" refers back to "Target creature you control" in the previous sentence. Semantically identical, only the pronoun differs.
+  - **Suggested fix:** Broaden `effect.causes_damage` regex to admit anaphoric `(?:it|that creature)\s+deals\s+damage\s+equal\s+to\s+its\s+power` in addition to the canonical "target creature you control deals damage…" frame. Also add a regression-test row using Rabid Gnaw's full text.
+---
+
+## Repel Calamity  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Destroy target creature with power or toughness 4 or greater.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.destroy_creature`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `condition.cares_high_power`
+  - **What's wrong:** Card destroys creatures with power or toughness 4 or greater — quintessential high-power-caring text — but no cares_high_power tag fires.
+  - **Evidence vs reality:** The clause "power or toughness 4 or greater" satisfies the tagDef "Triggers, scales, or gates on creatures with power N or greater (N >= 3)" because 4 >= 3. The "or toughness" alternative likely blocks the rule, which probably anchors only on `power\s+\d`.
+  - **Suggested fix:** Broaden `condition.cares_high_power` regex to admit `power\s+(?:or\s+toughness\s+)?(\d)\s+or\s+greater` (a frequent removal-spell frame: Doom Blade variants, Repel Calamity, etc.). Add Repel Calamity as a regression-test row.
+---
+
+## Reptilian Recruiter  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Lizard Warrior
+**Mana cost:** {3}{R}{R}
+
+**Oracle text:**
+
+```
+Trample
+When this creature enters, choose target creature. If that creature's power is 2 or less or if you control another Lizard, gain control of that creature until end of turn, untap it, and it gains haste until end of turn.
+```
+
+**Current tags:** `condition.cares_tribe.lizard`, `effect.control_change`, `effect.grants_haste`, `effect.has_trample`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.untap`
+  - **What's wrong:** Card explicitly untaps the stolen creature ("…, untap it, …") but no untap tag fires.
+  - **Evidence vs reality:** The phrase "untap it" inside a chained list satisfies the tagDef "Untaps a target permanent." The anaphoric "it" probably blocks a rule that requires `untap\s+target` form.
+  - **Suggested fix:** Broaden `effect.untap` to admit `untap\s+(?:it|that\s+creature|each\s+of\s+them)` in addition to `untap\s+target`.
+- **missing**: `condition.cares_low_power`
+  - **What's wrong:** Card gates an effect on "that creature's power is 2 or less" — quintessential cares_low_power frame.
+  - **Evidence vs reality:** "power is 2 or less" matches tagDef "Triggers, scales, or gates on creatures with power N or less (N <= 2)". Rule probably requires `power\s+\d\s+or\s+less` form without the intervening "is".
+  - **Suggested fix:** Broaden `condition.cares_low_power` regex to admit `power\s+is\s+\d\s+or\s+less` frame.
+---
+
+## Rottenmouth Viper  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Elemental Snake
+**Mana cost:** {5}{B}
+
+**Oracle text:**
+
+```
+As an additional cost to cast this spell, you may sacrifice any number of nonland permanents. This spell costs {1} less to cast for each permanent sacrificed this way.
+Whenever this creature enters or attacks, put a blight counter on it. Then for each blight counter on it, each opponent loses 4 life unless that player sacrifices a nonland permanent of their choice or discards a card.
+```
+
+**Current tags:** `effect.cost_reduction`, `effect.counter_modified`, `effect.life_changed`, `trigger.attack_or_block`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.sacrifice_permanent`
+  - **What's wrong:** Card explicitly has "you may sacrifice any number of nonland permanents" as additional cost.
+  - **Evidence vs reality:** "you may sacrifice any number of nonland permanents" matches the tagDef "Sacrifices a permanent without type restriction." Rule likely requires `sacrifice\s+a\s+permanent` and misses the `nonland\s+permanents` and `any\s+number\s+of\s+permanents` frames.
+  - **Suggested fix:** Broaden `effect.sacrifice_permanent` to admit `sacrifice\s+(?:any\s+number\s+of\s+)?(?:nonland\s+)?permanents?`.
+- **missing**: `effect.edict`
+  - **What's wrong:** "Each opponent loses 4 life unless that player sacrifices a nonland permanent of their choice" forces opponent sacrifice — classic edict frame.
+  - **Evidence vs reality:** "unless that player sacrifices a nonland permanent" satisfies tagDef "Forces an opponent (or each player) to sacrifice a creature or permanent". The "unless" / "or" construction (lose-or-sac) probably blocks the rule.
+  - **Suggested fix:** Broaden `effect.edict` to admit the `unless that player sacrifices` frame in addition to the canonical `target opponent sacrifices` / `each opponent sacrifices` forms.
+---
+
+## Run Away Together  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {1}{U}
+
+**Oracle text:**
+
+```
+Choose two target creatures controlled by different players. Return those creatures to their owners' hands.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** Card bounces two creatures to hand, but no bounce_creature tag fires.
+  - **Evidence vs reality:** "Return those creatures to their owners' hands" — anaphoric "those creatures" frame. tagDef: "Returns a creature to hand". The rule probably anchors on "return target creature" / "return target nonland permanent" but misses the bulk plural variant "Choose N target creatures … Return those creatures to their owners' hands."
+  - **Suggested fix:** Broaden `effect.bounce_creature` to admit the `Choose .* target creatures\b .* Return those creatures` two-clause frame, or the simpler post-target anaphoric `Return those creatures to (?:their owners'|its owner's) hand` form.
+---
+
+## Rust-Shield Rampager  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Raccoon Warrior
+**Mana cost:** {3}{G}
+
+**Oracle text:**
+
+```
+Offspring {2} (You may pay an additional {2} as you cast this spell. If you do, when this creature enters, create a 1/1 token copy of it.)
+This creature can't be blocked by creatures with power 2 or less.
+```
+
+**Current tags:** `effect.has_offspring`, `effect.partial_unblockable`
+
+### Issues
+
+- **missing**: `condition.cares_low_power`
+  - **What's wrong:** Card references creatures with "power 2 or less" — exact low-power gate frame — but no cares_low_power tag fires.
+  - **Evidence vs reality:** "power 2 or less" satisfies the tagDef "creatures with power N or less (N <= 2)". Likely the rule scopes only to "you control" / "target" power-gates and doesn't recognize "can't be blocked by creatures with power N or less" as an axis reference.
+  - **Suggested fix:** Broaden `condition.cares_low_power` to admit the `creatures with power \d or less` bare frame regardless of "you control" vs blocker-restriction context. Add Rust-Shield Rampager as a regression-test row.
+---
+
+## Salvation Swan  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Bird Cleric
+**Mana cost:** {3}{W}
+
+**Oracle text:**
+
+```
+Flash
+Flying
+Whenever this creature or another Bird you control enters, exile up to one target creature you control without flying. Return it to the battlefield under its owner's control with a flying counter on it at the beginning of the next end step.
+```
+
+**Current tags:** `condition.cares_tribe.bird`, `effect.bounce_creature`, `effect.has_flash`, `effect.has_flying`, `trigger.another_creature_etb`, `trigger.beginning_of_end_step`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.exile_creature`
+  - **What's wrong:** Card exiles a creature (then returns it). The bounce_creature tag fires on the combined exile-and-return frame, but the standalone exile_creature is also a valid axis (this is exile from battlefield, even if temporary).
+  - **Evidence vs reality:** "exile up to one target creature you control without flying" matches tagDef "Exiles a target creature from the battlefield, including replacement effects that exile instead of die." The "up to one" determiner probably blocks a rule that requires `exile\s+target\s+creature`.
+  - **Suggested fix:** Broaden `effect.exile_creature` to admit `exile\s+(?:up\s+to\s+(?:one|N|\d+|X)\s+)?target\s+creature` so flicker effects with the "up to one" variant still tag.
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** Card returns a creature "with a flying counter on it" but no counter_modified tag fires (this is the same ETB-with-counter frame as Parting Gust above).
+  - **Suggested fix:** Same fix as Parting Gust — broaden counter_modified to admit ETB-with-counter frame.
+---
+
+## Scavenger's Talent  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment — Class
+**Mana cost:** {B}
+
+**Oracle text:**
+
+```
+(Gain the next level as a sorcery to add its ability.)
+Whenever one or more creatures you control die, create a Food token. This ability triggers only once each turn.
+{1}{B}: Level 2
+Whenever you sacrifice a permanent, target player mills two cards.
+{2}{B}: Level 3
+At the beginning of your end step, you may sacrifice three other nonland permanents. If you do, return a creature card from your graveyard to the battlefield with a finality counter on it.
+```
+
+**Current tags:** `effect.create_food`, `effect.create_token`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.mill`, `effect.reanimate`, `trigger.beginning_of_end_step`, `trigger.creature_dies`, `trigger.permanent_sacrificed`
+
+### Issues
+
+- **missing**: `effect.sacrifice_permanent`
+  - **What's wrong:** Level 3 explicitly has "you may sacrifice three other nonland permanents" as cost. Same family as Rottenmouth Viper above.
+  - **Suggested fix:** Same fix as Rottenmouth Viper — broaden `effect.sacrifice_permanent` to admit the `sacrifice\s+N\s+(?:other\s+)?(?:nonland\s+)?permanents?` frame.
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** "Return a creature card from your graveyard to the battlefield with a finality counter on it" — ETB-with-counter frame, same as Parting Gust / Salvation Swan above.
+  - **Suggested fix:** Same broadening as Parting Gust.
+---
+
+## Season of Gathering  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {4}{G}{G}
+
+**Oracle text:**
+
+```
+Choose up to five {P} worth of modes. You may choose the same mode more than once.
+{P} — Put a +1/+1 counter on a creature you control. It gains vigilance and trample until end of turn.
+{P}{P} — Choose artifact or enchantment. Destroy all permanents of the chosen type.
+{P}{P}{P} — Draw cards equal to the greatest power among creatures you control.
+```
+
+**Current tags:** `effect.board_wipe`, `effect.cast_noncreature_spell`, `effect.counter_modified`, `effect.destroy_artifact`, `effect.destroy_creature`, `effect.destroy_enchantment`, `effect.destroy_land`, `effect.destroy_permanent`, `effect.destroy_planeswalker`, `effect.draws_or_discards`, `effect.grants_trample`, `effect.grants_vigilance`, `effect.is_instant_or_sorcery`, `effect.plus_one_counter`
+
+### Issues
+
+- **false-positive**: `effect.destroy_creature`, `effect.destroy_planeswalker`, `effect.destroy_land`, `effect.destroy_permanent`
+  - **What's wrong:** The mode says "Choose artifact or enchantment. Destroy all permanents of the chosen type." — the type-choice is restricted to {artifact, enchantment}; the spell can never destroy a creature, planeswalker, or land. Only `destroy_artifact` + `destroy_enchantment` should fire.
+  - **Evidence vs reality:** All four false-positive tags cite evidence "destroy all permanents" — but the rule strips the qualifier "of the chosen type" without checking the adjacent "Choose <type-list>" gate. This is a generic "destroy all permanents" → typed expansion failure.
+  - **Suggested fix:** When `effect.destroy_permanent` / `effect.board_wipe` matches "destroy all permanents of the chosen type" in proximity to "Choose <type-or-type>" (the modal-choice frame), restrict the typed-expansion to the actual chosen types, not the full {artifact, creature, enchantment, land, planeswalker} set. Practically: detect the `Choose (?:artifact|creature|enchantment|land|planeswalker)(?:\s+or\s+(?:artifact|creature|enchantment|land|planeswalker))*` antecedent and only emit those typed-destroy tags. Same problem will hit any future "destroy permanents of the chosen type" cards.
+---
+
+## Season of the Burrow  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {3}{W}{W}
+
+**Oracle text:**
+
+```
+Choose up to five {P} worth of modes. You may choose the same mode more than once.
+{P} — Create a 1/1 white Rabbit creature token.
+{P}{P} — Exile target nonland permanent. Its controller draws a card.
+{P}{P}{P} — Return target permanent card with mana value 3 or less from your graveyard to the battlefield with an indestructible counter on it.
+```
+
+**Current tags:** `condition.cares_low_mana_value`, `effect.cast_noncreature_spell`, `effect.create_creature_token`, `effect.create_token`, `effect.exile_artifact`, `effect.exile_creature`, `effect.exile_enchantment`, `effect.exile_from_battlefield`, `effect.exile_planeswalker`, `effect.is_instant_or_sorcery`, `effect.reanimate`, `effect.exile_land`
+
+### Issues
+
+- **false-positive**: `effect.exile_land`
+  - **What's wrong:** Card explicitly says "exile target **nonland** permanent" — the typed-expansion incorrectly includes land. Other typed exile tags (creature, artifact, enchantment, planeswalker) are correct.
+  - **Evidence vs reality:** Evidence is "exile target nonland permanent". The tagDef "Exiles a target land from the battlefield" is contradicted by the "nonland" qualifier.
+  - **Suggested fix:** In the typed-expansion / nonland-handling logic, when "exile target nonland permanent" matches, emit all typed-exile children EXCEPT `effect.exile_land`. Mirror the existing `destroy target nonland permanent` handling if one exists; otherwise add this case. Same bug shape may exist for destroy_land on similar "nonland" frames — worth a sweep.
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** "Its controller draws a card" — third-party-draw frame; same Mind Spiral issue.
+  - **Suggested fix:** Same as Mind Spiral — broaden draws_or_discards to admit `(?:its\s+controller|target\s+player|that\s+player)\s+draws`.
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** "with an indestructible counter on it" — ETB-with-counter frame, same as Parting Gust.
+  - **Suggested fix:** Same broadening as Parting Gust.
+---
+
+## Season of Weaving  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {4}{U}{U}
+
+**Oracle text:**
+
+```
+Choose up to five {P} worth of modes. You may choose the same mode more than once.
+{P} — Draw a card.
+{P}{P} — Choose an artifact or creature you control. Create a token that's a copy of it.
+{P}{P}{P} — Return each nonland, nontoken permanent to its owner's hand.
+```
+
+**Current tags:** `condition.cares_artifacts`, `effect.cast_noncreature_spell`, `effect.copy_permanent_token`, `effect.create_creature_token`, `effect.create_token`, `effect.draws_or_discards`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **false-positive**: `effect.create_creature_token`
+  - **What's wrong:** Token copies an "artifact or creature you control" — if the player chooses an artifact, the copy is not a creature token. The tag fires unconditionally.
+  - **Evidence vs reality:** Evidence is "create a token that's a copy of it" but the antecedent is artifact OR creature (modal); copy_permanent_token correctly captures the polymorphism. The create_creature_token tag overcommits to creature semantics.
+  - **Suggested fix:** When the copied-permanent antecedent is "<type1> or <type2> you control" where neither is necessarily a creature, suppress create_creature_token unless one of the antecedent types is creature-only. (For modal "artifact or creature", the token IS sometimes a creature — so this is fuzzy. A safer suggestion: don't fire create_creature_token on `create a token that's a copy of` when the antecedent isn't strictly "creature".)
+- **missing**: `effect.bounce_creature`, `effect.bounce_artifact`, `effect.bounce_enchantment`, `effect.bounce_planeswalker`
+  - **What's wrong:** Mode 3 is mass bounce: "Return each nonland, nontoken permanent to its owner's hand." No bounce-axis tags fire.
+  - **Evidence vs reality:** "Return each nonland, nontoken permanent" matches "Returns a {type} to hand" for all non-land permanent types. The "each" determiner and the "nonland, nontoken" qualifier probably block rules that expect `target <type>`.
+  - **Suggested fix:** Broaden `effect.bounce_*` typed rules to admit the mass form `return each (?:nonland,?\s*)?(?:nontoken,?\s*)?permanent to its owner's hand` and expand to all permanent types (excluding land when "nonland" is present). Mirror Season-of-the-Burrow's nonland-aware typed-exile suggestion.
+---
+
+## Skyskipper Duo  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Bird Frog
+**Mana cost:** {4}{U}
+
+**Oracle text:**
+
+```
+Flying
+When this creature enters, exile up to one other target creature you control. Return it to the battlefield under its owner's control at the beginning of the next end step.
+```
+
+**Current tags:** `effect.bounce_creature`, `effect.has_flying`, `trigger.beginning_of_end_step`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.exile_creature`
+  - **What's wrong:** Same as Salvation Swan — "exile up to one other target creature" is exile-from-battlefield, but the "up to one" determiner blocks the rule.
+  - **Suggested fix:** Same broadening as Salvation Swan.
+---
+
+## Star Charter  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Bat Cleric
+**Mana cost:** {3}{W}
+
+**Oracle text:**
+
+```
+Flying
+At the beginning of your end step, if you gained or lost life this turn, look at the top four cards of your library. You may reveal a creature card with power 3 or less from among them and put it into your hand. Put the rest on the bottom of your library in a random order.
+```
+
+**Current tags:** `condition.cares_lifeloss`, `effect.has_flying`, `effect.look_at_top_n`, `trigger.beginning_of_end_step`
+
+### Issues
+
+- **missing**: `condition.cares_lifegain` (same as Moonstone Harbinger above)
+  - **What's wrong:** Gate is "if you gained or lost life this turn" — the lifegain half doesn't match.
+  - **Suggested fix:** Same fix as Moonstone Harbinger — broaden cares_lifegain to admit the disjunctive `gain(?:ed)?\s+or\s+los(?:t|e)\s+life` form.
+---
+
+## Starfall Invocation  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {3}{W}{W}
+
+**Oracle text:**
+
+```
+Gift a card (You may promise an opponent a gift as you cast this spell. If you do, they draw a card before its other effects.)
+Destroy all creatures. If the gift was promised, return a creature card put into your graveyard this way to the battlefield under your control.
+```
+
+**Current tags:** `condition.gift_promised`, `effect.board_wipe`, `effect.cast_noncreature_spell`, `effect.destroy_creature`, `effect.has_gift`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** Card returns a creature card from graveyard to the battlefield (under your control), but reanimate doesn't fire.
+  - **Evidence vs reality:** "Return a creature card put into your graveyard this way to the battlefield under your control" — exactly reanimate. The "put into your graveyard this way" qualifier (referring to the cards killed by the wipe) probably blocks a rule that requires `return\s+(?:target\s+)?creature\s+card\s+from\s+your\s+graveyard`.
+  - **Suggested fix:** Broaden `effect.reanimate` to admit `return\s+a?\s*creature card\s+put into (?:your|a)\s+graveyard this way` (wipe-then-recur frame). Add Starfall Invocation as a regression-test row.
+---
+
+## Stargaze  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {X}{B}{B}
+
+**Oracle text:**
+
+```
+Look at twice X cards from the top of your library. Put X cards from among them into your hand and the rest into your graveyard. You lose X life.
+```
+
+**Current tags:** `condition.has_x_in_cost`, `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`, `effect.life_changed`, `effect.mill`
+
+### Issues
+
+- **missing**: `effect.look_at_top_n`
+  - **What's wrong:** Card explicitly says "Look at twice X cards from the top of your library" — exact look-at frame, but no tag fires.
+  - **Evidence vs reality:** The phrase "Look at twice X cards from the top of your library" matches the tagDef "Reveals or looks at the top N cards of a library." The "twice X" arithmetic determiner probably blocks a rule that requires `top\s+(?:\d+|N|X|a)\s+cards?`.
+  - **Suggested fix:** Broaden `effect.look_at_top_n` to admit multi-token quantifiers like `twice\s+X`, `two times X`, etc. The simplest fix: match `Look at .{0,30} cards? from the top of` rather than anchoring on the specific count.
+---
+
+## Stocking the Pantry  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {G}
+
+**Oracle text:**
+
+```
+Whenever you put one or more +1/+1 counters on a creature you control, put a supply counter on this enchantment.
+{2}, Remove a supply counter from this enchantment: Draw a card.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.draws_or_discards`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`
+
+### Issues
+
+- **missing**: `trigger.counter_changed`
+  - **What's wrong:** Trigger fires on placing +1/+1 counters — quintessential counter-changed trigger frame.
+  - **Evidence vs reality:** "Whenever you put one or more +1/+1 counters on a creature you control" matches tagDef "Triggers when counters are placed on or removed from a permanent." Rule probably scopes to a different frame (e.g. "whenever a counter is placed" / "whenever ~ gets a counter") and misses the controller-active "whenever you put" form.
+  - **Suggested fix:** Broaden `trigger.counter_changed` to admit `whenever you put (?:one or more )?\+?\d?/\+?\d?\s+counters?\s+on` frame.
+- **missing**: `condition.cares_plus_one_counter`
+  - **What's wrong:** Trigger condition is the +1/+1-counter-placement axis — Stocking the Pantry is a +1/+1-counter payoff card.
+  - **Evidence vs reality:** The card's whole engine cares about you putting +1/+1 counters on your creatures. tagDef "Has an effect or trigger that checks whether a creature has a +1/+1 counter" — the rule probably anchors on "with a +1/+1 counter" presence-check phrasing and misses the "whenever you put +1/+1 counter" placement-trigger.
+  - **Suggested fix:** Broaden `condition.cares_plus_one_counter` to also fire on the "whenever you put +1/+1 counter" placement frame, or alternatively introduce a separate `condition.cares_counter_placement` tag and link the two via pairsWith.
+---
+
+## Sugar Coat  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment — Aura
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+Flash
+Enchant creature or Food
+Enchanted permanent is a colorless Food artifact with "{2}, {T}, Sacrifice this artifact: You gain 3 life" and loses all other card types and abilities.
+```
+
+**Current tags:** `condition.cares_subtype.food`, `effect.has_flash`
+
+### Issues
+
+- **missing**: `effect.loses_abilities`
+  - **What's wrong:** Aura makes the enchanted permanent "lose all other card types and abilities" — exact loses_abilities frame.
+  - **Evidence vs reality:** "Loses all other card types and abilities" matches tagDef "Causes a permanent (or all of a category) to lose all abilities — silencer removal that neutralizes activated/triggered". The "and types" addendum and the "other" qualifier probably block the rule.
+  - **Suggested fix:** Broaden `effect.loses_abilities` to admit `loses?\s+all\s+(?:other\s+)?(?:card\s+types\s+and\s+)?abilities` (the Aura-transform / soulshift template).
+- **missing**: `effect.pacify`
+  - **What's wrong:** By losing all card types (including creature) and abilities, the enchanted permanent can no longer attack or block — functionally a pacify effect.
+  - **Evidence vs reality:** tagDef says "Prevents a creature from attacking/blocking" — Sugar Coat achieves this by removing creature-type, but the rule looks for literal "can't attack or block" phrasing. This is a deeper semantic miss; logging for awareness, not necessarily an easy regex fix.
+  - **Suggested fix:** Either explicitly list the "becomes [non-creature] / loses all abilities" Aura-removal frame in `effect.pacify`'s regex (it's a narrow set: Sugar Coat, Song of the Dryads, Witness Protection, etc.), or accept it as a coverage gap and add a sibling tag `effect.becomes_inert_permanent` for this family.
+---
+
+## Sword of Vengeance  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Artifact — Equipment
+**Mana cost:** {3}
+
+**Oracle text:**
+
+```
+Equipped creature gets +2/+0 and has first strike, vigilance, trample, and haste.
+Equip {3}
+```
+
+**Current tags:** `effect.grants_first_strike`, `effect.grants_stat_buff`, `effect.grants_trample`, `effect.grants_vigilance`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`
+
+### Issues
+
+- **missing**: `effect.grants_haste`
+  - **What's wrong:** Granted keyword list includes haste — "and has first strike, vigilance, trample, and haste" — but only the first three grants fire.
+  - **Evidence vs reality:** The other three grant tags (first strike, vigilance, trample) all matched on this same line; only the tail keyword "haste" was missed. Almost certainly the grants_haste rule anchors on `has\s+haste` only and doesn't admit position-N-in-a-list "..., and haste" form.
+  - **Suggested fix:** Broaden `effect.grants_haste` to match haste anywhere inside a `has\s+(?:[\w'-]+(?:,\s+|,?\s+and\s+))*haste` keyword-list frame, matching how the sibling grants_* tags handled vigilance/trample at non-first positions. Verify the same fix isn't needed on the other grants_* rules.
+---
+
+## Tender Wildguide  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Possum Druid
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+Offspring {2} (You may pay an additional {2} as you cast this spell. If you do, when this creature enters, create a 1/1 token copy of it.)
+{T}: Add one mana of any color.
+{T}: Put a +1/+1 counter on this creature.
+```
+
+**Current tags:** `effect.add_mana`, `effect.counter_modified`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.has_offspring`, `effect.plus_one_counter`, `effect.ramp_nonland`
+
+### Issues
+
+- **false-positive**: `effect.has_mana_activated_ability`
+  - **What's wrong:** Both activated abilities are `{T}:` only — no mana cost. The tag fires only because the Offspring keyword's "{2}" cost is adjacent to the next line's `{T}:`, and the regex matches "{2} {t}:" across the line boundary.
+  - **Evidence vs reality:** Evidence is "{2} {t}:" — but the "{2}" belongs to "Offspring {2}", which is an alternative-cast keyword cost, NOT an activated-ability cost. The card's two activated abilities are both `{T}:` (tap-only); neither is reducible by Training-Grounds-style effects.
+  - **Suggested fix:** Add a line-boundary anchor or exclusion to `effect.has_mana_activated_ability` so it does not match across newline / sentence-boundary. Or better: only match when the preceding mana symbols are immediately followed by `,? \{T\}:` on the same logical ability line. Same risk applies to any keyword with a numeric cost (Bargain, Multikicker, Buyback) adjacent to a `{T}:` activation.
+---
+
+## The Infamous Cruelclaw  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Weasel Mercenary
+**Mana cost:** {1}{B}{R}
+
+**Oracle text:**
+
+```
+Menace
+Whenever The Infamous Cruelclaw deals combat damage to a player, exile cards from the top of your library until you exile a nonland card. You may cast that card by discarding a card rather than paying its mana cost.
+```
+
+**Current tags:** `effect.has_menace`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.exile_from_library`
+  - **What's wrong:** "exile cards from the top of your library" matches the canonical exile-from-library frame.
+  - **Suggested fix:** Likely the "until you exile a nonland card" qualifier is breaking match. Broaden to admit `exile\s+cards?\s+from\s+the\s+top\s+of\s+your\s+library` even when followed by an `until` clause.
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** "You may cast that card" where "that card" is the just-exiled card.
+  - **Suggested fix:** Same anaphoric "this/that card" cast frame discussed under Osteomancer Adept — but in the inverse direction. Here the anaphor IS pointing to an exiled card, so the tag SHOULD fire. Ensure the rule handles the form `exile cards … until you exile a … card. You may cast that card`.
+- **missing**: `effect.cast_for_free`
+  - **What's wrong:** "by discarding a card rather than paying its mana cost" — alternative-cost cast that bypasses the printed mana cost.
+  - **Evidence vs reality:** Description: "Casts an exiled or revealed card without paying its mana cost." The "by discarding a card" addendum is the substitute cost; the rule probably anchors on the bare `without paying its mana cost` frame and misses the `by\s+\w+ing\s+.* rather than paying its mana cost` variant.
+  - **Suggested fix:** Broaden `effect.cast_for_free` to admit `by\s+(?:\w+ing|\w+ing\s+\w+\s+)?(?:.{0,40})\s+rather\s+than\s+paying\s+its\s+mana\s+cost`.
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** "by discarding a card" — discard is part of the alternative cost; draws_or_discards should fire.
+  - **Suggested fix:** Broaden to admit `by discarding (?:a|N|X|one or more) cards?` as alternative-cost frame (also seen on flashback-from-graveyard / madness / etc.).
+# Card tag-audit issues
+
+Logged by `mtg-graph-card-tag-audit`. Each entry = one card with at least one tag accuracy issue. Consume entries via `mtg-graph-narrow-tag-rule` (precision fixes) or by authoring a new rule (coverage gaps).
+
+The v0.20.0 batch (27 cards, 23 ships + 5 rejects + 1 defer) cleared the previous queue. See `CARD_ISSUES_RESOLVED.md` § "v0.20.0 batch" for the shipped fixes and the rejected-with-reason list.
+
+
+---
+
+# v0.20.0 audit batch (audited 2026-05-31)
+
+Processed 100 cards; 45 issues logged. 22 fixes shipped (G2-G5, G7-G16, G21 partial, G23, G24, G26-G28, G30-G32). 4 no-op verifications (G6, G11, G29, G33). Deferred: G1 (needs new parametric `effect.tutors_tribe.*`), G17-G20 (anaphoric self-buff strip needs structural rewrite), G22/G25 (granted-quote scope reversal — Kitesail precedent). Coverage gaps (separate new-rule batch): condition.delirium, condition.survival + trigger.second_main_phase, condition.eerie + trigger.door_unlocked, effect.alternate_win_condition, effect.tutors_subtype.room, condition.cares_subtype.room, effect.has_changeling, effect.has_convoke.
+
+---
+
+## Thornvault Forager  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Squirrel Ranger
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+{T}: Add {G}.
+{T}, Forage: Add two mana in any combination of colors. (To forage, exile three cards from your graveyard or sacrifice a Food.)
+{3}{G}, {T}: Search your library for a Squirrel card, reveal it, put it into your hand, then shuffle.
+```
+
+**Current tags:** `condition.cares_tribe.squirrel`, `effect.add_mana`, `effect.forage`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.ramp_nonland`
+
+### Issues
+
+- **missing**: `effect.tutors_creature`
+  - **What's wrong:** Card searches library for a Squirrel card (a creature type), which is a creature tutor, but the tag isn't applied.
+  - **Evidence vs reality:** Oracle says "Search your library for a Squirrel card, reveal it, put it into your hand" — Squirrel is a creature subtype, so this satisfies "Searches library for a creature card (any creature — not subtype-restricted)".
+  - **Suggested fix:** Broaden `effect.tutors_creature` regex to match "search your library for a <tribe-name> card" patterns where the tribe is a creature type (or add a generic creature-tutor handler that recognizes tribal tutor patterns).
+
+---
+
+## Thought-Stalker Warlock  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Lizard Warlock
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Menace (This creature can't be blocked except by two or more creatures.)
+When this creature enters, choose target opponent. If they lost life this turn, they reveal their hand, you choose a nonland card from it, and they discard that card. Otherwise, they discard a card.
+```
+
+**Current tags:** `condition.cares_lifeloss`, `effect.has_menace`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.targeted_discard`
+  - **What's wrong:** Card forces a target opponent to discard a card (both branches of the if/otherwise resolve to opponent discarding), which is the canonical targeted-discard / hand-attack pattern.
+  - **Evidence vs reality:** "choose target opponent. If they lost life this turn, ... they discard that card. Otherwise, they discard a card." Both branches force a chosen opponent to discard.
+  - **Suggested fix:** Ensure `effect.targeted_discard` matches "target opponent ... they discard" templating (without requiring "discards a card of their choice" or explicit ".../they discard a card" adjacency).
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** "they discard a card" is a discard effect; the broader draws-or-discards tag is missing.
+  - **Evidence vs reality:** Oracle text contains "discard that card" and "discard a card" — clean matches for the discard half of the axis.
+  - **Suggested fix:** Confirm `effect.draws_or_discards` regex includes opponent-discard frames (not just self-loot).
+
+---
+
+## Thundertrap Trainer  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Otter Wizard
+**Mana cost:** {1}{U}
+
+**Oracle text:**
+
+```
+Offspring {4} (You may pay an additional {4} as you cast this spell. If you do, when this creature enters, create a 1/1 token copy of it.)
+When this creature enters, look at the top four cards of your library. You may reveal a noncreature, nonland card from among them and put it into your hand. Put the rest on the bottom of your library in a random order.
+```
+
+**Current tags:** `effect.has_offspring`, `effect.look_at_top_n`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** Card puts a revealed card from the top of library into hand — that's card advantage / card selection, equivalent to drawing. While not literally "draw a card", the impulse-card-selection family is currently mapped to `effect.draws_or_discards` for similar cards in the catalog.
+  - **Evidence vs reality:** "You may reveal a noncreature, nonland card from among them and put it into your hand." This is functionally a conditional draw.
+  - **Suggested fix:** Verify how similar look-at-top-N-and-put-into-hand cards are tagged across the catalog; if they get `effect.draws_or_discards`, broaden this rule, otherwise this is a coverage gap and a new tag (e.g. `effect.card_selection` or `effect.impulse_to_hand`) may be appropriate. Low priority — flag only.
+
+---
+
+## Three Tree Mascot  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Artifact Creature — Shapeshifter
+**Mana cost:** {2}
+
+**Oracle text:**
+
+```
+Changeling (This card is every creature type.)
+{1}: Add one mana of any color. Activate only once each turn.
+```
+
+**Current tags:** `effect.add_mana`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.ramp_nonland`
+
+### Issues
+
+- **missing: no `effect.has_changeling` exists**
+  - **What's wrong:** Changeling is a printed evergreen keyword that makes the card every creature type — relevant for tribal synergies. No catalog tag covers it.
+  - **Evidence vs reality:** Oracle text starts with "Changeling" — clear keyword grant on the card itself.
+  - **Suggested fix:** Add `effect.has_changeling` (sibling to the `effect.has_<kw>` family) so tribal decks can detect this card as a member of any tribe via the graph.
+
+---
+
+## Valley Flamecaller  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Lizard Warlock
+**Mana cost:** {2}{R}
+
+**Oracle text:**
+
+```
+If a Lizard, Mouse, Otter, or Raccoon you control would deal damage to a permanent or player, it deals that much damage plus 1 instead.
+```
+
+**Current tags:** `condition.cares_tribe.lizard`, `condition.cares_tribe.mouse`, `condition.cares_tribe.otter`, `condition.cares_tribe.raccoon`, `effect.deals_damage`
+
+### Issues
+
+- **false-positive**: `effect.deals_damage`
+  - **What's wrong:** Valley Flamecaller does not itself deal damage — it is a replacement effect that increments the damage dealt by OTHER creatures (Lizard/Mouse/Otter/Raccoon you control). The "it deals that much damage plus 1" clause is the result of the replacement applied to a different source.
+  - **Evidence vs reality:** evidence was `"it deals that much damage"`, but the antecedent of "it" is "a Lizard, Mouse, Otter, or Raccoon you control" — a third party, not the card itself. The tagDef should reserve "deals damage" for cards that are the damage source.
+  - **Suggested fix:** Narrow `effect.deals_damage` to exclude "would deal damage... it deals that much damage plus N instead" replacement frames; route those to `effect.amplifies_damage_or_lifeloss` instead (and broaden that tag's regex to cover "+N" increments, not just doubling).
+
+- **missing: no clean tag for damage-incrementing replacement (+N, not double)**
+  - **What's wrong:** `effect.amplifies_damage_or_lifeloss` description specifies "doubles damage" — but Valley Flamecaller adds +1 instead of doubling. There's no catalog tag that matches Torbran-style "+N damage" replacements.
+  - **Suggested fix:** Broaden `effect.amplifies_damage_or_lifeloss` description and regex to cover the "+N instead" Torbran/Furnace-of-Rath family (not just outright doubling), OR add a separate `effect.increments_damage` tag.
+
+---
+
+## Valley Floodcaller  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Otter Wizard
+**Mana cost:** {1}{U}{B}
+
+**Oracle text:**
+
+```
+Flash
+You may cast noncreature spells as though they had flash.
+Whenever you cast a noncreature spell, Birds, Frogs, Otters, and Rats you control get +1/+1 until end of turn. Untap them.
+```
+
+**Current tags:** `condition.cares_noncreature_spell`, `condition.cares_tribe.bird`, `condition.cares_tribe.frog`, `condition.cares_tribe.otter`, `condition.cares_tribe.rat`, `effect.grants_stat_buff`, `effect.has_flash`, `trigger.spell_cast`
+
+### Issues
+
+- **missing**: `effect.untap`
+  - **What's wrong:** Card explicitly untaps a group of creatures as part of the trigger payoff — "Untap them" — but `effect.untap` is not applied.
+  - **Evidence vs reality:** Oracle text contains the literal verb "Untap them." referring to the tribal creatures buffed above.
+  - **Suggested fix:** Broaden `effect.untap` regex to match "untap them" / "untap <group>" frames, not only "untap target <permanent>".
+
+---
+
+## Valley Mightcaller  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Frog Warrior
+**Mana cost:** {G}
+
+**Oracle text:**
+
+```
+Trample
+Whenever another Frog, Rabbit, Raccoon, or Squirrel you control enters, put a +1/+1 counter on this creature.
+```
+
+**Current tags:** `condition.cares_tribe.frog`, `condition.cares_tribe.rabbit`, `condition.cares_tribe.raccoon`, `condition.cares_tribe.squirrel`, `effect.counter_modified`, `effect.has_trample`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `trigger.another_creature_etb`
+  - **What's wrong:** Card has an ETB-of-other-creature trigger ("Whenever another Frog, Rabbit, Raccoon, or Squirrel you control enters") that gives this creature a +1/+1 counter — exactly the another-creature-ETB pattern, with a tribal filter.
+  - **Evidence vs reality:** "Whenever another Frog, Rabbit, Raccoon, or Squirrel you control enters" — explicit "another ... enters" templating.
+  - **Suggested fix:** Broaden `trigger.another_creature_etb` regex to match "whenever another <tribe-list> you control enters" patterns (tribal-filtered another-ETB triggers).
+
+---
+
+## Valley Questcaller  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Rabbit Warrior
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Whenever one or more other Rabbits, Bats, Birds, and/or Mice you control enter, scry 1.
+Other Rabbits, Bats, Birds, and Mice you control get +1/+1.
+```
+
+**Current tags:** `condition.cares_tribe.bat`, `condition.cares_tribe.bird`, `condition.cares_tribe.mouse`, `condition.cares_tribe.rabbit`, `effect.grants_stat_buff`, `effect.scry`
+
+### Issues
+
+- **missing**: `trigger.another_creature_etb`
+  - **What's wrong:** Card has an ETB-of-other-creature trigger ("Whenever one or more other Rabbits, Bats, Birds, and/or Mice you control enter, scry 1") gated on tribal types — a clear another-creature-ETB trigger.
+  - **Evidence vs reality:** "Whenever one or more other Rabbits, Bats, Birds, and/or Mice you control enter" — explicit "one or more other ... enter" templating.
+  - **Suggested fix:** Broaden `trigger.another_creature_etb` regex to match "whenever one or more other <tribe-list> you control enter" patterns.
+
+---
+
+## Valley Rally  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Instant
+**Mana cost:** {2}{R}
+
+**Oracle text:**
+
+```
+Gift a Food (You may promise an opponent a gift as you cast this spell. If you do, they create a Food token before its other effects. It's an artifact with "{2}, {T}, Sacrifice this token: You gain 3 life.")
+Creatures you control get +2/+0 until end of turn. If the gift was promised, target creature you control gains first strike until end of turn.
+```
+
+**Current tags:** `condition.cares_subtype.food`, `condition.gift_promised`, `effect.cast_noncreature_spell`, `effect.grants_first_strike`, `effect.grants_stat_buff`, `effect.has_gift`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **false-positive**: `condition.cares_subtype.food`
+  - **What's wrong:** The "Food" token-name appears only as the Gift token-type given to the opponent — this card does not synergize with Food-matters payoffs (it doesn't care about Food cards you control or trigger off Foods existing). Tagging it as Food-caring will mislead deck-builders looking for Food synergies.
+  - **Evidence vs reality:** evidence was `"food"`, but the only Food reference is the Gift-token type ("Gift a Food") given to the opponent; the card itself does not consume or interact with Food as a payoff.
+  - **Suggested fix:** Narrow `condition.cares_subtype.food` to exclude "Gift a Food" Gift-keyword token-grants (and similar token-creation contexts where the subtype is just the created token's type, not a payoff reference).
+
+---
+
+## Veteran Guardmouse  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Mouse Soldier
+**Mana cost:** {3}{R/W}
+
+**Oracle text:**
+
+```
+Valiant — Whenever this creature becomes the target of a spell or ability you control for the first time each turn, it gets +1/+0 and gains first strike until end of turn. Scry 1. (Look at the top card of your library. You may put that card on the bottom.)
+```
+
+**Current tags:** `condition.valiant`, `effect.grants_stat_buff`, `effect.scry`
+
+### Issues
+
+- **missing**: `effect.grants_first_strike`
+  - **What's wrong:** Card grants first strike to itself on the Valiant trigger but the keyword-grant tag is not applied.
+  - **Evidence vs reality:** "it gets +1/+0 and gains first strike until end of turn" — explicit "gains first strike" keyword-grant frame.
+  - **Suggested fix:** Broaden `effect.grants_first_strike` to match "it gains first strike" anaphoric (self-target) grants under Valiant / similar trigger frames. (Per the recurring "anaphoric 'it gains <kw>'" note in the audit playbook, this is a known fix family.)
+
+---
+
+## Vren, the Relentless  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Legendary Creature — Rat Rogue
+**Mana cost:** {2}{U}{B}
+
+**Oracle text:**
+
+```
+Ward {2}
+If a creature an opponent controls would die, exile it instead.
+At the beginning of each end step, create X 1/1 black Rat creature tokens with "This token gets +1/+1 for each other Rat you control," where X is the number of creatures that were exiled under your opponents' control this turn.
+```
+
+**Current tags:** `effect.create_creature_token`, `effect.create_token`, `effect.exile_creature`, `effect.has_ward`, `trigger.beginning_of_end_step`
+
+### Issues
+
+- **missing**: `condition.cares_tribe.rat`
+  - **What's wrong:** Token's printed ability references "each other Rat you control" — a tribal scaling reference on Rats — but no cares_tribe.rat fires.
+  - **Evidence vs reality:** oracle text contains `"This token gets +1/+1 for each other Rat you control"`; cares_tribe.rat description is "References the Rat creature type." The rule did not pick up the quoted-token-text reference.
+  - **Suggested fix:** broaden cares_tribe.rat to match the "for each other Rat you control" frame inside quoted token text, or set effect.create_creature_token metadata.creatureTypes to ["Rat"] so the tribal pairing is auto-gated.
+
+---
+
+## Wax-Wane Witness  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Bat Cleric
+**Mana cost:** {3}{W}
+
+**Oracle text:**
+
+```
+Flying, vigilance
+Whenever you gain or lose life during your turn, this creature gets +1/+0 until end of turn.
+```
+
+**Current tags:** `condition.cares_lifeloss`, `effect.grants_stat_buff`, `effect.has_flying`, `effect.has_vigilance`
+
+### Issues
+
+- **missing**: `condition.cares_lifegain`
+  - **What's wrong:** Card triggers on "gain or lose life" but only the lifeloss half fires; lifegain side is unmatched.
+  - **Evidence vs reality:** oracle text says "Whenever you gain or lose life during your turn"; description of cares_lifegain is "Triggers or scales off life being gained." The disjunction matches both halves.
+  - **Suggested fix:** broaden cares_lifegain regex to catch "gain or lose life" disjunctive frame.
+
+- **missing**: `trigger.life_changed`
+  - **What's wrong:** Card has a unified gain-or-lose-life trigger; the dedicated trigger.life_changed tag (described as "Triggers when a player gains or loses life") should fire.
+  - **Evidence vs reality:** "Whenever you gain or lose life during your turn" matches trigger.life_changed's exact description, but the rule did not pick it up.
+  - **Suggested fix:** broaden trigger.life_changed regex to match the "gain or lose life" disjunctive form.
+
+---
+
+## Wishing Well  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Artifact
+**Mana cost:** {3}{U}
+
+**Oracle text:**
+
+```
+{T}: Put a coin counter on this artifact. When you do, you may cast target instant or sorcery card with mana value equal to the number of coin counters on this artifact from your graveyard without paying its mana cost. If that spell would be put into your graveyard, exile it instead. Activate only as a sorcery.
+```
+
+**Current tags:** `condition.cares_graveyard`, `condition.cares_instant_sorcery_in_graveyard`, `effect.counter_modified`, `effect.has_activated_ability`
+
+### Issues
+
+- **missing**: `effect.cast_for_free`
+  - **What's wrong:** Card explicitly casts a card "without paying its mana cost" — the canonical cast-for-free phrasing — but the tag did not fire.
+  - **Evidence vs reality:** oracle text contains "cast target instant or sorcery card ... without paying its mana cost"; effect.cast_for_free is described as "Casts an exiled or revealed card without paying its mana cost." (Cast-from-graveyard variant should also count toward this axis.)
+  - **Suggested fix:** broaden cast_for_free regex to include the "from your graveyard ... without paying its mana cost" frame (not just exile/library casts).
+
+---
+
+## Ygra, Eater of All  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Legendary Creature — Elemental Cat
+**Mana cost:** {3}{B}{G}
+
+**Oracle text:**
+
+```
+Ward—Sacrifice a Food.
+Other creatures are Food artifacts in addition to their other types and have "{2}, {T}, Sacrifice this permanent: You gain 3 life."
+Whenever a Food is put into a graveyard from the battlefield, put two +1/+1 counters on Ygra.
+```
+
+**Current tags:** `condition.cares_subtype.food`, `effect.counter_modified`, `effect.has_ward`, `effect.plus_one_counter`, `trigger.artifact_leaves_battlefield`
+
+### Issues
+
+- **missing**: `effect.life_changed`
+  - **What's wrong:** Granted activated ability "you gain 3 life" is a clear life-gain effect (delivered through the granted ability on every other creature), but life_changed doesn't fire.
+  - **Evidence vs reality:** oracle text says `you gain 3 life`; effect.life_changed description is "Causes a player to gain or lose life." Grant-frame quoted abilities should still count as the card emitting that effect.
+  - **Suggested fix:** include "you gain N life" inside quoted granted-ability text when matching life_changed.
+
+- **missing**: `effect.sacrifice_creature` (and/or `effect.sacrifice_artifact`)
+  - **What's wrong:** The granted ability has "Sacrifice this permanent" as a cost on creatures-that-are-also-Food-artifacts; the typed sacrifice tags should fire as a consequence (the activated ability appears on every other creature you control).
+  - **Evidence vs reality:** oracle has `Sacrifice this permanent`; the ward cost also includes `Sacrifice a Food` (artifact sacrifice). Neither sacrifice tag fires.
+  - **Suggested fix:** broaden sacrifice_creature/sacrifice_artifact regexes to match the "Sacrifice a Food" Ward cost and the "Sacrifice this permanent" granted-ability cost. (Note: per the typed-sacrifice failure-pattern, granted-ability scope inside quoted text is currently unhandled.)
+
+---
+
+## Abhorrent Oculus  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Eye
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+As an additional cost to cast this spell, exile six cards from your graveyard.
+Flying
+At the beginning of each opponent's upkeep, manifest dread.
+```
+
+**Current tags:** `effect.cloak`, `effect.has_flying`, `trigger.upkeep`
+
+### Issues
+
+- **missing**: `effect.exile_from_graveyard`
+  - **What's wrong:** "Exile six cards from your graveyard" is a clear graveyard-exile effect (here paid as an additional cost), but the tag did not fire.
+  - **Evidence vs reality:** oracle text contains `exile six cards from your graveyard`; effect.exile_from_graveyard description is "Produces an effect that removes cards from a graveyard by exiling them. Excludes self-exile activation costs (Renew-style)." This is NOT self-exile — it exiles OTHER graveyard cards.
+  - **Suggested fix:** broaden exile_from_graveyard regex to match the "exile N cards from your graveyard" additional/alternate cost frame (similar to how collect_evidence cost-form is matched).
+
+---
+
+## Acrobatic Cheerleader  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Human Survivor
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if this creature is tapped, put a flying counter on it. This ability triggers only once.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.grants_evasion`
+
+### Issues
+
+- **false-positive**: `effect.grants_evasion`
+  - **What's wrong:** "Put a flying counter on it" gives flying to the card itself; grants_evasion is described as "Gives flying, menace, or intimidate to OTHER creatures or to tokens it creates." This is a self-keyword via counter, not anthem-style grants.
+  - **Evidence vs reality:** evidence was `"put a flying counter"`; the antecedent of "it" is this creature itself. Self-evasion-via-counter should map to a `gains_flying_self`-style tag (or `has_flying` if treated as conditional intrinsic), not the "grants" axis.
+  - **Suggested fix:** narrow grants_evasion to exclude "put a <evasion-kw> counter on it/this creature/self" frames; route those to a new self-evasion-via-counter tag.
+
+- **missing**: `condition.survival` (coverage gap)
+  - **What's wrong:** Card uses the Survival ability word (gates a second-main-phase ability on whether this creature is tapped); no catalog tag captures this Bloomburrow ability-word family.
+  - **Evidence vs reality:** oracle text starts with `Survival —`; no condition.survival exists in the catalog (verified against the 273-tag dump).
+  - **Suggested fix:** add a new `condition.survival` rule matching `^survival —` ability-word triggers (gated on this creature being tapped at the start of your second main phase). New rule.
+
+- **missing**: trigger for "beginning of your second main phase" (coverage gap)
+  - **What's wrong:** No trigger.* tag in the catalog covers "beginning of your second main phase." trigger.upkeep / beginning_of_combat / beginning_of_end_step exist but second-main-phase is a distinct timing.
+  - **Evidence vs reality:** oracle text says `At the beginning of your second main phase`; no main-phase-trigger tag exists in the catalog (verified).
+  - **Suggested fix:** consider adding `trigger.beginning_of_second_main` (or generalize the Bloomburrow Survival ability word into a single tag that subsumes it).
+
+---
+
+## A-Kona, Rescue Beastie  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Legendary Creature — Beast Survivor
+**Mana cost:** {4}{G}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if Kona is tapped, you may put a permanent card from your hand onto the battlefield.
+```
+
+**Current tags:** `(none)`
+
+### Issues
+
+- **missing**: `effect.cheat_into_play`
+  - **What's wrong:** Card puts a permanent card from hand directly onto the battlefield without casting — the canonical cheat-into-play frame — but the tag did not fire.
+  - **Evidence vs reality:** oracle text says `put a permanent card from your hand onto the battlefield`; cheat_into_play description covers library/top-N/exile sub-patterns but appears to miss "from your hand". The tagDef description's "from a zone OTHER than the graveyard" clause should include hand.
+  - **Suggested fix:** broaden cheat_into_play regex to include the "from your hand ... onto the battlefield" frame (Birthing Ritual / Through the Breach family).
+
+- **missing**: `condition.survival` (coverage gap, same family as Acrobatic Cheerleader)
+  - **What's wrong:** Survival ability word — gates an ability on this creature being tapped at the start of your second main phase. No catalog tag covers this.
+  - **Evidence vs reality:** oracle text starts with `Survival —`; no condition.survival exists in the catalog.
+  - **Suggested fix:** add new `condition.survival` rule.
+
+- **missing**: trigger for "beginning of your second main phase" (coverage gap, same as Acrobatic Cheerleader)
+  - **What's wrong:** No main-phase trigger tag exists.
+  - **Evidence vs reality:** `At the beginning of your second main phase` — not covered by trigger.upkeep / beginning_of_combat / beginning_of_end_step.
+  - **Suggested fix:** add `trigger.beginning_of_second_main` (or fold into a Survival ability-word tag).
+
+
+---
+
+## Anthropede  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Insect
+**Mana cost:** {3}{G}
+
+**Oracle text:**
+
+```
+Reach
+When this creature enters, you may discard a card or pay {2}. When you do, destroy target Room.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.has_reach`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.destroy_enchantment`
+  - **What's wrong:** Card destroys target Room. Rooms are Enchantments (subtype), so `effect.destroy_enchantment` should fire.
+  - **Evidence vs reality:** Oracle text "destroy target Room" is a destroy-enchantment effect — Room is a printed Enchantment subtype.
+  - **Suggested fix:** Broaden `effect.destroy_enchantment` regex to recognize "destroy target Room" (Room is always an enchantment).
+- **missing**: no `condition.cares_subtype.room` exists
+  - **What's wrong:** No Room subtype condition exists, but a destroy-Room targeting effect exists in the set.
+  - **Evidence vs reality:** Anthropede explicitly destroys a Room, but catalog only has subtype tags for aura/cave/class/clue/curse/dragon/equipment/food/lesson/mount/role/saga/shrine/treasure/vehicle.
+  - **Suggested fix:** Add a `condition.cares_subtype.room` rule and ensure parametric coverage of Room.
+
+---
+
+## Balemurk Leech  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Leech
+**Mana cost:** {1}{B}
+
+**Oracle text:**
+
+```
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, each opponent loses 1 life.
+```
+
+**Current tags:** `condition.cares_enchantments`, `effect.life_changed`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: no `condition.eerie` or `trigger.room_unlocked` exists
+  - **What's wrong:** "Eerie —" is an ability word (DSK) gating a trigger on enchantment ETB or fully unlocking a Room. The second trigger half ("whenever you fully unlock a Room") has no catalog tag.
+  - **Evidence vs reality:** Oracle text "whenever you fully unlock a Room" is a distinct trigger that the catalog doesn't recognize — currently no eerie ability word tag nor room-unlock trigger tag.
+  - **Suggested fix:** Add `condition.eerie` (ability word, like `condition.celebration`/`descend`) and/or a `trigger.room_unlocked` rule.
+
+---
+
+## Balustrade Wurm  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Wurm
+**Mana cost:** {3}{G}{G}
+
+**Oracle text:**
+
+```
+This spell can't be countered.
+Trample, haste
+Delirium — {2}{G}{G}: Return this card from your graveyard to the battlefield with a finality counter on it. Activate only if there are four or more card types among cards in your graveyard and only as a sorcery.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.has_activated_ability`, `effect.has_haste`, `effect.has_mana_activated_ability`, `effect.has_trample`, `effect.reanimate`
+
+### Issues
+
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** Card places a finality counter on itself when returned, but `effect.counter_modified` doesn't fire.
+  - **Evidence vs reality:** Oracle "return this card from your graveyard to the battlefield with a finality counter on it" is a counter placement.
+  - **Suggested fix:** Broaden `effect.counter_modified` regex to match "with a X counter on it" reanimation phrasing.
+- **missing**: no `condition.delirium` exists (known catalog gap)
+  - **What's wrong:** "Delirium —" is an ability word gating this card's activation; no catalog tag exists for delirium.
+  - **Evidence vs reality:** Oracle "Delirium —" and "if there are four or more card types among cards in your graveyard" is the canonical delirium gate.
+  - **Suggested fix:** Add `condition.delirium` rule (parallel to existing `condition.descend`, `condition.celebration`).
+
+---
+
+## Beastie Beatdown  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {R}{G}
+
+**Oracle text:**
+
+```
+Choose target creature you control and target creature an opponent controls.
+Delirium — If there are four or more card types among cards in your graveyard, put two +1/+1 counters on the creature you control.
+The creature you control deals damage equal to its power to the creature an opponent controls.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.cast_noncreature_spell`, `effect.counter_modified`, `effect.is_instant_or_sorcery`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `effect.causes_damage`
+  - **What's wrong:** Card has a Soul's Fire-style "creature you control deals damage equal to its power" clause but the tag doesn't fire.
+  - **Evidence vs reality:** Oracle "The creature you control deals damage equal to its power to the creature an opponent controls" is the canonical causes_damage pattern.
+  - **Suggested fix:** Broaden `effect.causes_damage` regex; current rule likely keys on "target creature you control deals damage" — Beastie uses "the creature you control deals damage" (anaphoric "the" because target was chosen above).
+- **missing**: no `condition.delirium` exists (known catalog gap)
+  - **What's wrong:** "Delirium —" ability word gating the counter clause has no catalog tag.
+  - **Evidence vs reality:** Oracle "Delirium — If there are four or more card types among cards in your graveyard" is canonical delirium.
+  - **Suggested fix:** Add `condition.delirium` rule.
+
+---
+
+## Bottomless Pool // Locker Room  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {U} // {4}{U}
+
+**Oracle text:**
+
+```
+When you unlock this door, return up to one target creature to its owner's hand.
+(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)
+
+Whenever one or more creatures you control deal combat damage to a player, draw a card.
+(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)
+```
+
+**Current tags:** `effect.bounce_creature`, `effect.draws_or_discards`, `effect.is_room`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: no `trigger.door_unlocked` exists
+  - **What's wrong:** "When you unlock this door" is a one-shot trigger on a Room half being unlocked; no catalog tag exists for it.
+  - **Evidence vs reality:** Oracle "When you unlock this door, return up to one target creature to its owner's hand" is the canonical Room-unlock trigger; same family as Balemurk Leech's eerie "whenever you fully unlock a Room."
+  - **Suggested fix:** Add `trigger.door_unlocked` for "when you unlock this door" / "whenever you fully unlock a Room" phrasings.
+
+
+---
+
+## Cautious Survivor  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Elf Survivor
+**Mana cost:** {3}{G}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if this creature is tapped, you gain 2 life.
+```
+
+**Current tags:** `effect.life_changed`
+
+### Issues
+
+- **missing**: no `condition.survival` exists
+  - **What's wrong:** Survival is a BLB ability word gating an ability on "at the beginning of your second main phase, if this creature is tapped". No catalog tag exists for it (parallel coverage gap to delirium/threshold).
+  - **Evidence vs reality:** oracle text contains `Survival —` ability-word prefix and tapped-self condition; no catalog tag matches.
+  - **Suggested fix:** add `condition.survival` ability-word rule (anchor: "Survival —" or "if this creature is tapped" within a second-main-phase trigger).
+
+- **missing**: no `trigger.second_main_phase` exists
+  - **What's wrong:** "At the beginning of your second main phase" is a phase trigger not covered by `trigger.upkeep` / `trigger.beginning_of_combat` / `trigger.beginning_of_end_step`.
+  - **Evidence vs reality:** Survival cards all share this phase trigger; nothing fires here.
+  - **Suggested fix:** add `trigger.second_main_phase` (or fold under a broader trigger.phase_step rule).
+
+---
+
+## Central Elevator // Promising Stairs  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {3}{U} // {2}{U}
+
+**Oracle text:**
+
+```
+When you unlock this door, search your library for a Room card that doesn't have the same name as a Room you control, reveal it, put it into your hand, then shuffle.
+
+At the beginning of your upkeep, surveil 1. You win the game if there are eight or more different names among unlocked doors of Rooms you control.
+```
+
+**Current tags:** `effect.is_room`, `effect.surveil`, `trigger.upkeep`
+
+### Issues
+
+- **missing**: no `effect.tutors_subtype.room` exists
+  - **What's wrong:** Card searches library for a Room card (a subtype tutor). The parametric `effect.tutors_subtype.*` family does not include Room.
+  - **Evidence vs reality:** oracle text "search your library for a Room card" — exact shape of a subtype tutor.
+  - **Suggested fix:** add `room` to the THEME_SUBTYPES driving `effect.tutors_subtype.*` (and matching `condition.cares_subtype.room`).
+
+- **missing**: no `trigger.door_unlocked` (or similar) exists
+  - **What's wrong:** "When you unlock this door" is a Room-specific trigger word with no catalog representation.
+  - **Evidence vs reality:** oracle text "When you unlock this door, search your library..." is the canonical Room unlock-trigger frame.
+  - **Suggested fix:** add `trigger.door_unlocked` rule (anchor: "when you unlock" / "when this door is unlocked").
+
+- **missing**: no `effect.alternate_win_condition` exists
+  - **What's wrong:** "You win the game if..." is an alternate win condition (Approach of the Second Sun / Mechanized Production family). No tag covers it.
+  - **Evidence vs reality:** oracle text "You win the game if there are eight or more different names among unlocked doors..."
+  - **Suggested fix:** add `effect.alternate_win_condition` rule (anchor: "you win the game").
+
+---
+
+## Charred Foyer // Warped Space  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {3}{R} // {4}{R}{R}
+
+**Oracle text:**
+
+```
+At the beginning of your upkeep, exile the top card of your library. You may play it this turn.
+
+Once each turn, you may pay {0} rather than pay the mana cost for a spell you cast from exile.
+```
+
+**Current tags:** `effect.exile_from_library`, `effect.impulse_draw`, `effect.is_room`, `trigger.upkeep`
+
+### Issues
+
+- **missing**: `effect.cast_for_free`
+  - **What's wrong:** "you may pay {0} rather than pay the mana cost for a spell you cast from exile" is the canonical pay-zero / cast-for-free frame applied to spells from exile.
+  - **Evidence vs reality:** oracle text on Warped Space half — `pay {0} rather than pay the mana cost` should trigger this rule.
+  - **Suggested fix:** broaden `effect.cast_for_free` regex to match "pay {0} rather than pay the mana cost".
+
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** Card explicitly says "a spell you cast from exile" — that's the canonical anchor for the cast-from-exile tag.
+  - **Evidence vs reality:** oracle text "for a spell you cast from exile" — direct match for the tagDef.
+  - **Suggested fix:** broaden `effect.cast_from_exile` regex to match "you cast from exile" as a static-permission anchor.
+
+- **missing**: `condition.cares_exile_pile`
+  - **What's wrong:** Warped Space provides a static discount keyed on "a spell you cast from exile" — it's literally an exile-pile-as-resource payoff.
+  - **Evidence vs reality:** oracle text references cards in exile as the trigger for a cost reduction.
+  - **Suggested fix:** broaden `condition.cares_exile_pile` to include "for a spell you cast from exile" static frames.
+
+---
+
+## Come Back Wrong  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Destroy target creature. If a creature card is put into a graveyard this way, return it to the battlefield under your control. Sacrifice it at the beginning of your next end step.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.destroy_creature`, `effect.is_instant_or_sorcery`, `effect.sacrifice_creature`, `trigger.beginning_of_end_step`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** Card destroys creature, then "return it to the battlefield under your control" — that's a graveyard-to-battlefield return (a reanimate, applied to the just-killed creature).
+  - **Evidence vs reality:** oracle text "If a creature card is put into a graveyard this way, return it to the battlefield under your control" — exact reanimate shape.
+  - **Suggested fix:** broaden `effect.reanimate` to match "return it to the battlefield" anaphoric reanimate frames where the graveyard zone is established by an earlier "put into a graveyard" clause.
+
+- **missing**: `trigger.creature_leaves_battlefield` (or `creature_dies`)
+  - **What's wrong:** "If a creature card is put into a graveyard this way" is the "put into a graveyard from the battlefield" phrasing flagged in the recurring patterns. This is a creature-dies/LTB conditional.
+  - **Evidence vs reality:** oracle text "If a creature card is put into a graveyard this way" — recurring LTB-via-graveyard-phrasing miss.
+  - **Suggested fix:** broaden `trigger.creature_dies` (or add typed LTB rule) to catch "if a creature card is put into a graveyard this way" conditional frame.
+
+- **missing**: `effect.control_change`
+  - **What's wrong:** "return it to the battlefield under your control" — when the target was an opponent's creature, this is effectively a control change via reanimate.
+  - **Evidence vs reality:** oracle text "return it to the battlefield under your control" applied to a creature you destroyed (often an opponent's).
+  - **Suggested fix:** consider broadening `effect.control_change` to match "return ... under your control" reanimate-steal frame. (Marginal — flagging for review.)
+
+---
+
+## Coordinated Clobbering  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {G}
+
+**Oracle text:**
+
+```
+Tap one or two target untapped creatures you control. They each deal damage equal to their power to target creature an opponent controls.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`, `effect.tap`
+
+### Issues
+
+- **missing**: `effect.causes_damage`
+  - **What's wrong:** Card is the canonical "your creature deals damage equal to its power" frame — tagDef description even quotes this exact pattern.
+  - **Evidence vs reality:** oracle text "They each deal damage equal to their power to target creature an opponent controls" — direct match. The plural "they" form may be evading a singular regex.
+  - **Suggested fix:** broaden `effect.causes_damage` regex to accept plural subjects ("they each deal damage equal to their power") in addition to the singular ("target creature you control deals damage equal to its power") form.
+
+- **missing**: `effect.deals_damage`
+  - **What's wrong:** Even ignoring causes_damage, this card unambiguously causes damage to be dealt to a creature, satisfying `effect.deals_damage`.
+  - **Evidence vs reality:** oracle text "deal damage equal to their power to target creature" — should match a deals_damage regex.
+  - **Suggested fix:** broaden `effect.deals_damage` to match "deal damage equal to ... power" plural-subject frames.
+
+---
+
+## Cracked Skull  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Enchantment — Aura
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Enchant creature
+When this Aura enters, look at target player's hand. You may choose a nonland card from it. That player discards that card.
+When enchanted creature is dealt damage, destroy it.
+```
+
+**Current tags:** `effect.targeted_discard`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.destroy_creature`
+  - **What's wrong:** "destroy it" with antecedent "enchanted creature" is unambiguous creature destruction.
+  - **Evidence vs reality:** oracle text "When enchanted creature is dealt damage, destroy it." — the pronoun resolves to the creature; tag should fire.
+  - **Suggested fix:** broaden `effect.destroy_creature` to match "destroy it" frames where the prior clause establishes a creature antecedent (or specifically "enchanted creature" frames on Auras).
+
+- **missing**: `trigger.damage_dealt`
+  - **What's wrong:** "When enchanted creature is dealt damage" is the canonical damage-dealt trigger.
+  - **Evidence vs reality:** oracle text "When enchanted creature is dealt damage, ..." — direct match for the tagDef.
+  - **Suggested fix:** broaden `trigger.damage_dealt` to match "when enchanted creature is dealt damage" Aura-scope frames.
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** "That player discards that card" is an explicit discard, satisfying the draws-OR-discards umbrella.
+  - **Evidence vs reality:** oracle text "That player discards that card." — should hit a discard regex (currently only `effect.targeted_discard` is firing).
+  - **Suggested fix:** ensure `effect.draws_or_discards` matches "<player> discards" frames (or treat targeted_discard as implying it).
+
+---
+
+## Cult Healer  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Human Doctor
+**Mana cost:** {2}{W}
+
+**Oracle text:**
+
+```
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, this creature gains lifelink until end of turn.
+```
+
+**Current tags:** `condition.cares_enchantments`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: `effect.grants_lifelink`
+  - **What's wrong:** "this creature gains lifelink until end of turn" is the textbook temporary-lifelink-grant phrase.
+  - **Evidence vs reality:** oracle text "this creature gains lifelink until end of turn" — direct match for the tagDef.
+  - **Suggested fix:** broaden `effect.grants_lifelink` to match "this creature gains lifelink until end of turn" (self-grant frame).
+
+- **missing**: no `condition.eerie` exists
+  - **What's wrong:** Eerie is a DSK ability word triggered on "an enchantment enters OR you fully unlock a Room". Parallel coverage gap to delirium/threshold/survival.
+  - **Evidence vs reality:** oracle text leads with `Eerie —` ability-word prefix.
+  - **Suggested fix:** add `condition.eerie` ability-word rule (anchor: "Eerie —").
+
+- **missing**: no `trigger.door_unlocked` exists
+  - **What's wrong:** "whenever you fully unlock a Room" is a Room-mechanic trigger — same coverage gap noted on Central Elevator.
+  - **Evidence vs reality:** oracle text "whenever you fully unlock a Room, ..." has no catalog tag.
+  - **Suggested fix:** see Central Elevator entry — add `trigger.door_unlocked` / `trigger.room_fully_unlocked`.
+
+---
+
+## Cursed Recording  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Artifact
+**Mana cost:** {2}{R}{R}
+
+**Oracle text:**
+
+```
+Whenever you cast an instant or sorcery spell, put a time counter on this artifact. Then if there are seven or more time counters on it, remove those counters and it deals 20 damage to you.
+{T}: When you next cast an instant or sorcery spell this turn, copy that spell. You may choose new targets for the copy.
+```
+
+**Current tags:** `condition.cares_noncreature_spell`, `effect.copy_spell`, `effect.counter_modified`, `effect.has_activated_ability`, `trigger.spell_cast`
+
+### Issues
+
+- **missing**: `effect.deals_damage`
+  - **What's wrong:** "it deals 20 damage to you" is unambiguous damage dealing.
+  - **Evidence vs reality:** oracle text "it deals 20 damage to you" — direct match for the tagDef.
+  - **Suggested fix:** broaden `effect.deals_damage` to match "it deals N damage to you" frames (self-damage / pinger-with-anaphor).
+
+---
+
+## Cynical Loner  <!-- audited 2026-05-31, ruleVersion v0.19.0 -->
+
+**Type:** Creature — Human Survivor
+**Mana cost:** {1}{B}
+
+**Oracle text:**
+
+```
+This creature can't be blocked by Glimmers.
+Survival — At the beginning of your second main phase, if this creature is tapped, you may search your library for a card, put it into your graveyard, then shuffle.
+```
+
+**Current tags:** `effect.partial_unblockable`, `effect.tutor_any`
+
+### Issues
+
+- **missing**: `effect.mill`
+  - **What's wrong:** "search your library for a card, put it into your graveyard" puts a library card directly into a graveyard — that's targeted self-mill (tutor-to-graveyard pattern).
+  - **Evidence vs reality:** oracle text "put it into your graveyard" applied after a library search.
+  - **Suggested fix:** broaden `effect.mill` to match "search ... for a card, put it into your graveyard" tutor-mill frames, or add a `effect.tutor_to_graveyard` rule.
+
+- **missing**: no `condition.survival` exists (same as Cautious Survivor)
+  - **What's wrong:** Survival ability word coverage gap; see Cautious Survivor entry.
+  - **Evidence vs reality:** oracle text `Survival —` ability-word prefix.
+  - **Suggested fix:** see Cautious Survivor — add `condition.survival`.
+
+- **missing**: no `trigger.second_main_phase` (same as Cautious Survivor)
+  - **What's wrong:** "At the beginning of your second main phase" phase trigger; see Cautious Survivor.
+  - **Evidence vs reality:** oracle text triggers second main phase.
+  - **Suggested fix:** see Cautious Survivor.
+
+---
+
+## Dashing Bloodsucker  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Vampire Warrior
+**Mana cost:** {3}{B}
+
+**Oracle text:**
+
+```
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, this creature gets +2/+0 and gains lifelink until end of turn.
+```
+
+**Current tags:** `condition.cares_enchantments`, `effect.grants_stat_buff`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: `effect.grants_lifelink`
+  - **What's wrong:** Card grants lifelink temporarily ("gains lifelink until end of turn") to itself, but the grants_lifelink tag did not fire.
+  - **Evidence vs reality:** Oracle text contains "gains lifelink until end of turn" — a clear lifelink grant frame; the rule's anchors should cover self-grant via "this creature gains lifelink".
+  - **Suggested fix:** broaden `effect.grants_lifelink` regex to catch self-targeted "this creature gains lifelink".
+
+- **missing**: no `condition.eerie` / `condition.cares_rooms` exists
+  - **What's wrong:** Card has an Eerie ability word triggering on enchantment-ETBs and Room unlocks, but neither the Eerie ability word nor the "fully unlock a Room" trigger has a catalog tag (catalog grep shows only `effect.is_room`).
+  - **Evidence vs reality:** Oracle: "whenever you fully unlock a Room" — distinct trigger family not covered by `trigger.another_enchantment_etb`.
+  - **Suggested fix:** coverage gap — add `condition.cares_rooms` / `trigger.room_unlocked` family.
+
+---
+
+## Dazzling Theater // Prop Room  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {3}{W} // {2}{W}
+
+**Oracle text:**
+
+```
+Creature spells you cast have convoke.
+
+Untap each creature you control during each other player's untap step.
+```
+
+**Current tags:** `effect.is_room`, `effect.untap`
+
+### Issues
+
+- **missing**: no `effect.has_convoke` / `effect.grants_convoke` exists
+  - **What's wrong:** Front face grants convoke to all creature spells you cast — a cost-reduction-flavored mechanic with no catalog tag.
+  - **Evidence vs reality:** Oracle: "Creature spells you cast have convoke." Catalog grep finds zero convoke entries; closest is `effect.cost_reduction` (which arguably applies).
+  - **Suggested fix:** coverage gap — add `effect.has_convoke` / `effect.grants_convoke`, OR broaden `effect.cost_reduction` to capture convoke grants.
+
+---
+
+## Defiant Survivor  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Human Survivor
+**Mana cost:** {2}{G}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if this creature is tapped, manifest dread.
+```
+
+**Current tags:** `effect.cloak`
+
+### Issues
+
+- **missing**: no `trigger.second_main_phase` / `condition.survival` exists
+  - **What's wrong:** Survival ability word triggers at the beginning of your second main phase if the creature is tapped — neither the phase trigger nor the Survival ability word has a catalog tag.
+  - **Evidence vs reality:** Oracle: "Survival — At the beginning of your second main phase, if this creature is tapped, ..." Catalog grep finds no phase or survival entries.
+  - **Suggested fix:** coverage gap — add `trigger.second_main_phase` (phase-step family parallels existing `trigger.beginning_of_combat` / `trigger.upkeep`), and optionally a `condition.survival` ability word.
+
+---
+
+## Demonic Counsel  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {1}{B}
+
+**Oracle text:**
+
+```
+Search your library for a Demon card, reveal it, put it into your hand, then shuffle.
+Delirium — If there are four or more card types among cards in your graveyard, instead search your library for any card, put it into your hand, then shuffle.
+```
+
+**Current tags:** `condition.cares_graveyard`, `condition.cares_tribe.demon`, `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`, `effect.tutor_any`
+
+### Issues
+
+- **missing**: `effect.tutors_creature`
+  - **What's wrong:** Card searches for a Demon card (Demons are creatures), which is a tribal-tutor flavor of creature tutor; `effect.tutors_creature` did not fire.
+  - **Evidence vs reality:** Oracle: "Search your library for a Demon card" — Demon is a creature subtype; this is a creature tutor. Catalog's `effect.tutors_creature` tagDef matches.
+  - **Suggested fix:** broaden `effect.tutors_creature` to capture "search ... for a <CreatureType> card" frames where the type is a creature type.
+
+- **missing**: no `condition.delirium` exists
+  - **What's wrong:** Card has the Delirium ability word with the canonical "four or more card types in your graveyard" gate, but no catalog tag for this ability word.
+  - **Evidence vs reality:** Oracle: "Delirium — If there are four or more card types among cards in your graveyard..." Catalog grep finds zero `delirium` entries.
+  - **Suggested fix:** coverage gap (already-known) — add `condition.delirium` parallel to existing `condition.descend` / `condition.celebration`.
+
+---
+
+## Derelict Attic // Widow's Walk  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {2}{B} // {3}{B}
+
+**Oracle text:**
+
+```
+When you unlock this door, you draw two cards and you lose 2 life.
+
+Whenever a creature you control attacks alone, it gets +1/+0 and gains deathtouch until end of turn.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.grants_stat_buff`, `effect.is_room`, `effect.life_changed`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.grants_deathtouch`
+  - **What's wrong:** Card grants deathtouch to an attacking creature, but `effect.grants_deathtouch` did not fire.
+  - **Evidence vs reality:** Oracle: "Whenever a creature you control attacks alone, it gets +1/+0 and gains deathtouch until end of turn" — clear keyword-grant frame. Anaphoric "it gains deathtouch" may be the regex blocker.
+  - **Suggested fix:** broaden `effect.grants_deathtouch` to anchor on "it gains deathtouch" after an attack/condition antecedent (Restless cycle anaphor caveat aside, here the subject is genuinely a creature).
+
+---
+
+## Dissection Tools  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Artifact — Equipment
+**Mana cost:** {5}
+
+**Oracle text:**
+
+```
+When this Equipment enters, manifest dread, then attach this Equipment to that creature.
+Equipped creature gets +2/+2 and has deathtouch and lifelink.
+Equip—Sacrifice a creature.
+```
+
+**Current tags:** `effect.cloak`, `effect.grants_deathtouch`, `effect.grants_lifelink`, `effect.grants_stat_buff`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.sacrifice_creature`, `trigger.self_etb`
+
+### Issues
+
+- **false-positive**: `effect.has_mana_activated_ability`
+  - **What's wrong:** The only activated ability here is the equip cost, and that equip cost is "Sacrifice a creature" — NOT a mana cost. This tag should be reserved for activated abilities reducible by Training-Grounds-style cost reducers.
+  - **Evidence vs reality:** evidence was `"equip"`, but the equip cost is em-dash–introduced sacrifice ("Equip—Sacrifice a creature"). No mana is in the activation cost.
+  - **Suggested fix:** narrow `effect.has_mana_activated_ability` regex so that an "Equip—<non-mana>" line does NOT match; gate Equip matches on a following mana-cost token like `{N}` or `{X}`.
+
+---
+
+## Disturbing Mirth  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {B}{R}
+
+**Oracle text:**
+
+```
+When this enchantment enters, you may sacrifice another enchantment or creature. If you do, draw two cards.
+When you sacrifice this enchantment, manifest dread.
+```
+
+**Current tags:** `effect.cloak`, `effect.draws_or_discards`, `effect.sacrifice_creature`, `effect.sacrifice_enchantment`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `trigger.enchantment_leaves_battlefield` (and/or `trigger.permanent_sacrificed`)
+  - **What's wrong:** Second ability triggers "When you sacrifice this enchantment" — a self-leave trigger on an enchantment, but no leaves-battlefield or sacrificed trigger is tagged.
+  - **Evidence vs reality:** Oracle: "When you sacrifice this enchantment, manifest dread." `trigger.enchantment_leaves_battlefield` tagDef explicitly says it covers sacrifice.
+  - **Suggested fix:** broaden `trigger.enchantment_leaves_battlefield` (and the parallel typed triggers) to capture self-sacrifice templating "When you sacrifice this <type>".
+
+---
+
+## Doomsday Excruciator  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Demon
+**Mana cost:** {B}{B}{B}{B}{B}{B}
+
+**Oracle text:**
+
+```
+Flying
+When this creature enters, if it was cast, each player exiles all but the bottom six cards of their library face down.
+At the beginning of your upkeep, draw a card.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.has_flying`, `trigger.self_etb`, `trigger.upkeep`
+
+### Issues
+
+- **missing**: `effect.exile_from_library`
+  - **What's wrong:** ETB exiles cards from libraries en masse, but the exile-from-library tag did not fire.
+  - **Evidence vs reality:** Oracle: "each player exiles all but the bottom six cards of their library face down" — direct library-to-exile movement that matches the tagDef.
+  - **Suggested fix:** broaden `effect.exile_from_library` regex to capture "exile all but the bottom N cards of [poss] library" templating.
+
+---
+
+## Drag to the Roots  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Instant
+**Mana cost:** {2}{B}{G}
+
+**Oracle text:**
+
+```
+Delirium — This spell costs {2} less to cast as long as there are four or more card types among cards in your graveyard.
+Destroy target nonland permanent.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.cast_noncreature_spell`, `effect.cost_reduction`, `effect.destroy_artifact`, `effect.destroy_creature`, `effect.destroy_enchantment`, `effect.destroy_permanent`, `effect.destroy_planeswalker`, `effect.is_instant_or_sorcery`, `effect.destroy_land`
+
+### Issues
+
+- **false-positive**: `effect.destroy_land`
+  - **What's wrong:** "Destroy target NONLAND permanent" explicitly excludes lands; this tag must not fire on a nonland-restricted destroy.
+  - **Evidence vs reality:** evidence was `"destroy target nonland permanent"`, but the word "nonland" is the exclusion clause — the effect cannot destroy any land.
+  - **Suggested fix:** narrow `effect.destroy_land` (and the tag-expansion logic that propagates `effect.destroy_permanent` to typed children) so that the "nonland" qualifier on "destroy target ___ permanent" suppresses the `_land` child expansion.
+
+- **missing**: no `condition.delirium` exists
+  - **What's wrong:** Delirium ability word gates the cost-reduction; no `condition.delirium` catalog tag.
+  - **Evidence vs reality:** Oracle: "Delirium — This spell costs {2} less to cast as long as there are four or more card types among cards in your graveyard."
+  - **Suggested fix:** coverage gap (already-known) — add `condition.delirium`.
+
+---
+
+## Enduring Courage  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Dog Glimmer
+**Mana cost:** {2}{R}{R}
+
+**Oracle text:**
+
+```
+Whenever another creature you control enters, it gets +2/+0 and gains haste until end of turn.
+When Enduring Courage dies, if it was a creature, return it to the battlefield under its owner's control. It's an enchantment.
+```
+
+**Current tags:** `effect.grants_stat_buff`, `trigger.another_creature_etb`, `trigger.creature_dies`
+
+### Issues
+
+- **missing**: `effect.grants_haste`
+  - **What's wrong:** Card grants haste to another-creature-ETBs, but `effect.grants_haste` did not fire.
+  - **Evidence vs reality:** Oracle: "it gets +2/+0 and gains haste until end of turn" — clear keyword grant frame. Likely blocked by anaphoric "it gains haste" subject.
+  - **Suggested fix:** broaden `effect.grants_haste` to accept "it gains haste" after a "Whenever <creature> enters" antecedent (Restless-cycle caveat: ensure the antecedent is a creature noun, not a land becoming a creature).
+
+- **missing**: `effect.reanimate` (self-reanimation as the Enduring cycle effect)
+  - **What's wrong:** Card returns itself from graveyard to the battlefield on death (the cycle's identifying mechanic), but no reanimation tag fires.
+  - **Evidence vs reality:** Oracle: "When __SELF__ dies, ..., return it to the battlefield under its owner's control." Matches `effect.reanimate` tagDef ("Returns a card from a graveyard to the battlefield").
+  - **Suggested fix:** broaden `effect.reanimate` to cover self-revive frames ("return it to the battlefield" with antecedent referring to the card itself). Note this is a recurring miss across the Enduring cycle (Courage, Curiosity, Innocence, Tenacity, Vitality).
+
+---
+
+## Enduring Curiosity  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Cat Glimmer
+**Mana cost:** {2}{U}{U}
+
+**Oracle text:**
+
+```
+Flash
+Whenever a creature you control deals combat damage to a player, draw a card.
+When Enduring Curiosity dies, if it was a creature, return it to the battlefield under its owner's control. It's an enchantment.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.has_flash`, `trigger.creature_dies`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.reanimate` (Enduring cycle self-revive)
+  - **What's wrong:** Same self-revive miss as Enduring Courage — the cycle's identifying mechanic isn't tagged.
+  - **Evidence vs reality:** Oracle: "When __SELF__ dies, ..., return it to the battlefield under its owner's control."
+  - **Suggested fix:** see Enduring Courage entry — broaden `effect.reanimate` for self-revive on the Enduring cycle.
+
+---
+
+## Enduring Innocence  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Sheep Glimmer
+**Mana cost:** {1}{W}{W}
+
+**Oracle text:**
+
+```
+Lifelink
+Whenever one or more other creatures you control with power 2 or less enter, draw a card. This ability triggers only once each turn.
+When Enduring Innocence dies, if it was a creature, return it to the battlefield under its owner's control. It's an enchantment.
+```
+
+**Current tags:** `condition.cares_low_power`, `effect.draws_or_discards`, `effect.has_lifelink`, `trigger.another_creature_etb`, `trigger.creature_dies`
+
+### Issues
+
+- **missing**: `effect.reanimate` (Enduring cycle self-revive)
+  - **What's wrong:** Same self-revive miss as the rest of the Enduring cycle.
+  - **Evidence vs reality:** Oracle: "When __SELF__ dies, ..., return it to the battlefield under its owner's control."
+  - **Suggested fix:** see Enduring Courage entry — broaden `effect.reanimate` for self-revive.
+
+---
+
+## Enduring Tenacity  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Snake Glimmer
+**Mana cost:** {2}{B}{B}
+
+**Oracle text:**
+
+```
+Whenever you gain life, target opponent loses that much life.
+When Enduring Tenacity dies, if it was a creature, return it to the battlefield under its owner's control. It's an enchantment.
+```
+
+**Current tags:** `condition.cares_lifegain`, `trigger.creature_dies`, `trigger.life_changed`
+
+### Issues
+
+- **missing**: `effect.life_changed`
+  - **What's wrong:** Card causes a target opponent to lose life as the trigger's effect, but `effect.life_changed` did not fire.
+  - **Evidence vs reality:** Oracle: "target opponent loses that much life" — directly matches the tagDef "Causes a player to gain or lose life."
+  - **Suggested fix:** broaden `effect.life_changed` to capture "loses that much life" (anaphoric quantity referencing prior life gain).
+
+- **missing**: `effect.reanimate` (Enduring cycle self-revive — same pattern as the rest of the cycle)
+
+---
+
+## Enduring Vitality  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Elk Glimmer
+**Mana cost:** {1}{G}{G}
+
+**Oracle text:**
+
+```
+Vigilance
+Creatures you control have "{T}: Add one mana of any color."
+When Enduring Vitality dies, if it was a creature, return it to the battlefield under its owner's control. It's an enchantment.
+```
+
+**Current tags:** `effect.has_vigilance`, `trigger.creature_dies`
+
+### Issues
+
+- **missing**: `effect.add_mana` (and/or `effect.ramp_nonland`)
+  - **What's wrong:** Card grants creatures a tap-for-mana ability ("{T}: Add one mana of any color") — a Cryptolith Rite anthem-style mana-producer effect. Neither `effect.add_mana` nor `effect.ramp_nonland` fires.
+  - **Evidence vs reality:** Oracle: `Creatures you control have "{T}: Add one mana of any color."` Matches `effect.add_mana` tagDef.
+  - **Suggested fix:** broaden `effect.add_mana` to include granted activated abilities ("creatures you control have ... add ... mana").
+
+- **missing**: `effect.reanimate` (Enduring cycle self-revive — same pattern as the rest of the cycle)
+
+
+---
+
+# v0.21.0 audit batch (audited 2026-05-31)
+
+Processed 100 cards (cards 101-200); 30 issues logged. 18 fixes shipped (H3, H4, H5, H6, H7, H8, H10, H11, H12, H13, H15, H17, H19, H20, H21, H22, H23, H24). Deferred regex broadenings: H1 (each-player-discards is intentional v0.14 Rankle precedent), H2 (typed-LTB is intentionally both-cover by design), H9 (granted-quote scope — Kitesail precedent), H14 (`effect.ramp_nonland` excludes tutor-to-hand by tagDef), H16 (granted-quote scope), H18 (`effect.cost_reduction` excludes alternate-cost by header design). Coverage gaps for new-rule batch: condition.eerie + trigger.door_unlocked, condition.delirium, condition.survival + trigger.second_main_phase, effect.extra_combat, effect.graveyard_hate, effect.has_ninjutsu, trigger.self_ltb, effect.tutors_land, effect.alternate_cost.
+
+---
+
+## Entity Tracker  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Human Scout
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+Flash
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, draw a card.
+```
+
+**Current tags:** `condition.cares_enchantments`, `effect.draws_or_discards`, `effect.has_flash`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: `condition.eerie`
+  - **What's wrong:** Coverage gap — no `condition.eerie` rule exists in catalog despite the card carrying the Eerie ability word.
+  - **Evidence vs reality:** oracle text starts the second line with "Eerie —" but no rule matches; this card is a textbook Eerie payoff.
+  - **Suggested fix:** add a `condition.eerie` rule keyed on the "Eerie —" ability word.
+- **missing**: `trigger.door_unlocked`
+  - **What's wrong:** Coverage gap — no rule matches "whenever you fully unlock a Room".
+  - **Evidence vs reality:** oracle has "whenever you fully unlock a Room, draw a card" — a Room-unlock trigger that goes untagged.
+  - **Suggested fix:** add a `trigger.door_unlocked` (or `trigger.room_unlocked`) rule.
+---
+
+## Erratic Apparition  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Spirit
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+Flying, vigilance
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, this creature gets +1/+1 until end of turn.
+```
+
+**Current tags:** `condition.cares_enchantments`, `effect.grants_stat_buff`, `effect.has_flying`, `effect.has_vigilance`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: `condition.eerie`
+  - **What's wrong:** Coverage gap — no `condition.eerie` rule exists despite the explicit "Eerie —" ability word.
+  - **Evidence vs reality:** "Eerie — Whenever an enchantment you control enters..." is the canonical Eerie clause.
+  - **Suggested fix:** add a `condition.eerie` rule.
+- **missing**: `trigger.door_unlocked`
+  - **What's wrong:** Coverage gap — "whenever you fully unlock a Room" goes untagged.
+  - **Evidence vs reality:** oracle says "whenever you fully unlock a Room, this creature gets +1/+1".
+  - **Suggested fix:** add a `trigger.door_unlocked` rule.
+---
+
+## Fanatic of the Harrowing  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Human Cleric
+**Mana cost:** {3}{B}
+
+**Oracle text:**
+
+```
+When this creature enters, each player discards a card. If you discarded a card this way, draw a card.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.targeted_discard`, `trigger.self_etb`
+
+### Issues
+
+- **false-positive**: `effect.targeted_discard`
+  - **What's wrong:** Symmetric "each player discards" includes the controller; the tagDef explicitly says "targeted opponent (or each opponent)" — hand-attack disruption.
+  - **Evidence vs reality:** evidence was `"each player discards"`, but "each player" includes you (and the card even references "If you discarded a card this way"), so this isn't a one-sided hand-attack effect.
+  - **Suggested fix:** narrow regex to require "opponent" / "target player" rather than "each player".
+---
+
+## Fear of Abduction  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Nightmare
+**Mana cost:** {4}{W}{W}
+
+**Oracle text:**
+
+```
+As an additional cost to cast this spell, exile a creature you control.
+Flying
+When this creature enters, exile target creature an opponent controls.
+When this creature leaves the battlefield, put each card exiled with it into its owner's hand.
+```
+
+**Current tags:** `condition.cares_exile_pile`, `effect.exile_creature`, `effect.has_flying`, `trigger.creature_leaves_battlefield`, `trigger.enchantment_leaves_battlefield`, `trigger.self_etb`
+
+### Issues
+
+- **false-positive (self-leak)**: `trigger.creature_leaves_battlefield`
+  - **What's wrong:** Self-LTB phrasing ("when this creature leaves the battlefield") is leaking into the "another creature LTB" trigger, similar to the `self_etb` vs `another_creature_etb` split.
+  - **Evidence vs reality:** evidence was `"when this creature leaves the battlefield"`, but the trigger references THIS card's own LTB, not "a creature" (i.e. some other creature). No `trigger.self_ltb` exists yet — this is a missing partition.
+  - **Suggested fix:** narrow regex to exclude "this creature" / "this permanent" self-LTB phrasings, and add a new `trigger.self_ltb` rule.
+- **false-positive (self-leak)**: `trigger.enchantment_leaves_battlefield`
+  - **What's wrong:** Same self-LTB leak — the card's own LTB clause is being read as "an enchantment LTB" trigger.
+  - **Evidence vs reality:** evidence was `"when this creature leaves the battlefield"`; even though the card is an Enchantment Creature, this is its own LTB, not "an enchantment".
+  - **Suggested fix:** exclude "this creature/permanent" self-LTB phrasings from the typed-LTB rule.
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** The LTB clause puts exiled cards into their owners' hands — for the opponent's creature that was exiled by the ETB trigger, this functions as a bounce.
+  - **Evidence vs reality:** oracle has "put each card exiled with it into its owner's hand"; combined with the ETB exile of an opponent's creature, the net effect is bouncing that creature when this card leaves. Not strongly required given the indirection — judgment call.
+  - **Suggested fix:** consider whether "blink-and-return-on-LTB" patterns should pick up bounce edges; alternately leave as-is.
+---
+
+## Fear of Burning Alive  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Nightmare
+**Mana cost:** {4}{R}{R}
+
+**Oracle text:**
+
+```
+When this creature enters, it deals 4 damage to each opponent.
+Delirium — Whenever a source you control deals noncombat damage to an opponent, if there are four or more card types among cards in your graveyard, this creature deals that amount of damage to target creature that player controls.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.deals_damage`, `trigger.damage_dealt`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `condition.delirium`
+  - **What's wrong:** Coverage gap — no `condition.delirium` rule exists.
+  - **Evidence vs reality:** oracle has "Delirium — Whenever a source you control deals noncombat damage... if there are four or more card types among cards in your graveyard" — canonical Delirium ability word.
+  - **Suggested fix:** add a `condition.delirium` rule keyed on "Delirium —" / "four or more card types".
+---
+
+## Fear of Exposure  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Nightmare
+**Mana cost:** {2}{G}
+
+**Oracle text:**
+
+```
+As an additional cost to cast this spell, tap two untapped creatures and/or lands you control.
+Trample
+```
+
+**Current tags:** `condition.cares_lands`, `effect.has_trample`
+
+### Issues
+
+- **false-positive**: `condition.cares_lands`
+  - **What's wrong:** The "lands you control" appears only in the additional-cost clause (convoke-like tap), not as a scaling or payoff reference.
+  - **Evidence vs reality:** evidence was `"lands you control"`, but the full phrase is "tap two untapped creatures and/or lands you control" — that's a cost, not a "cares about land count" payoff. The tagDef targets ramp / landfall / land-scaling synergies.
+  - **Suggested fix:** narrow regex to exclude "tap N ... lands you control" additional-cost phrasing, or require quantifier/scaling context.
+---
+
+## Fear of Infinity  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Nightmare
+**Mana cost:** {1}{U}{B}
+
+**Oracle text:**
+
+```
+Flying, lifelink
+This creature can't block.
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, you may return this card from your graveyard to your hand.
+```
+
+**Current tags:** `condition.cares_enchantments`, `effect.has_flying`, `effect.has_lifelink`, `effect.return_from_graveyard_to_hand`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: `condition.eerie`
+  - **What's wrong:** Coverage gap — no `condition.eerie` rule exists.
+  - **Evidence vs reality:** "Eerie — Whenever an enchantment you control enters..." canonical Eerie clause.
+  - **Suggested fix:** add a `condition.eerie` rule.
+- **missing**: `trigger.door_unlocked`
+  - **What's wrong:** Coverage gap — "whenever you fully unlock a Room" goes untagged.
+  - **Evidence vs reality:** oracle contains "whenever you fully unlock a Room, you may return this card...".
+  - **Suggested fix:** add a `trigger.door_unlocked` rule.
+---
+
+## Fear of Missing Out  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment Creature — Nightmare
+**Mana cost:** {1}{R}
+
+**Oracle text:**
+
+```
+When this creature enters, discard a card, then draw a card.
+Delirium — Whenever this creature attacks for the first time each turn, if there are four or more card types among cards in your graveyard, untap target creature. After this phase, there is an additional combat phase.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.draws_or_discards`, `effect.untap`, `trigger.attack_or_block`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `condition.delirium`
+  - **What's wrong:** Coverage gap — no `condition.delirium` rule exists.
+  - **Evidence vs reality:** oracle has "Delirium — Whenever this creature attacks for the first time each turn, if there are four or more card types among cards in your graveyard" — Delirium ability word + threshold check.
+  - **Suggested fix:** add a `condition.delirium` rule.
+- **missing**: `effect.extra_combat` (or similar)
+  - **What's wrong:** Coverage gap — "an additional combat phase" goes untagged. This is the Combat Celebrant / Aggravated Assault payoff axis.
+  - **Evidence vs reality:** oracle has "After this phase, there is an additional combat phase."
+  - **Suggested fix:** add an `effect.extra_combat` rule.
+
+---
+
+## Fear of the Dark  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Enchantment Creature — Nightmare
+**Mana cost:** {4}{B}
+
+**Oracle text:**
+
+```
+Whenever this creature attacks, if defending player controls no Glimmer creatures, it gains menace and deathtouch until end of turn.
+```
+
+**Current tags:** `effect.gains_keyword_self_conditional`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.grants_deathtouch`
+  - **What's wrong:** Card grants deathtouch to itself but no deathtouch-grant tag fires. The conditional keyword tag covers menace (an evasion keyword) but deathtouch is a separate axis.
+  - **Evidence vs reality:** Oracle says "it gains menace and deathtouch until end of turn" — explicit deathtouch grant. The `effect.gains_keyword_self_conditional` tagDef is scoped to evasion keywords (flying/menace/intimidate); deathtouch falls outside.
+  - **Suggested fix:** Broaden the "gains <keyword> until end of turn" producer so it also fires `effect.grants_deathtouch` when deathtouch appears in the gained keyword list.
+
+---
+
+## Floodpits Drowner  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Creature — Merfolk
+**Mana cost:** {1}{U}
+
+**Oracle text:**
+
+```
+Flash
+Vigilance
+When this creature enters, tap target creature an opponent controls and put a stun counter on it.
+{1}{U}, {T}: Shuffle this creature and target creature with a stun counter on it into their owners' libraries.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.has_activated_ability`, `effect.has_flash`, `effect.has_mana_activated_ability`, `effect.has_vigilance`, `effect.stun_counter`, `effect.tap`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.tuck_to_library`
+  - **What's wrong:** Activated ability shuffles a creature into its owner's library — the canonical tuck-to-library shape — but no tuck tag fires.
+  - **Evidence vs reality:** Oracle has "Shuffle this creature and target creature with a stun counter on it into their owners' libraries." The tagDef describes "Puts a card from the battlefield or graveyard onto the top or bottom of a library — soft-bounce removal". "Shuffle into library" is the same removal axis.
+  - **Suggested fix:** Broaden `effect.tuck_to_library` regex to also catch "shuffle ... into (its owner's|their owners') library/libraries" battlefield-source phrasing.
+
+---
+
+## Get Out  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Instant
+**Mana cost:** {U}{U}
+
+**Oracle text:**
+
+```
+Choose one —
+• Counter target creature or enchantment spell.
+• Return one or two target creatures and/or enchantments you own to your hand.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.counterspell`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** The second mode self-bounces creatures, but the bounce-creature tag does not fire.
+  - **Evidence vs reality:** Oracle says "Return one or two target creatures and/or enchantments you own to your hand." `effect.bounce_creature` tagDef is "Returns a creature to hand". The fact that the target is "you own" doesn't exclude it from bounce — self-bounce is still creature bounce (and is itself a relevant synergy axis with ETB payoffs).
+  - **Suggested fix:** Ensure `effect.bounce_creature` regex matches "return ... target creature(s) ... to your/its owner's hand" including the self-target "you own" variant and the "creatures and/or enchantments" coordinated form.
+
+- **missing**: `effect.bounce_enchantment`
+  - **What's wrong:** Same mode also returns enchantments to hand; the enchantment-bounce tag does not fire.
+  - **Evidence vs reality:** Oracle: "Return one or two target creatures and/or enchantments you own to your hand." `effect.bounce_enchantment` tagDef is "Returns an enchantment to hand". The coordinated "creatures and/or enchantments" form is the canonical multi-type bounce phrasing.
+  - **Suggested fix:** Broaden `effect.bounce_enchantment` to recognize "and/or enchantments" within a coordinated multi-type return-to-hand clause.
+
+---
+
+## Ghost Vacuum  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Artifact
+**Mana cost:** {1}
+
+**Oracle text:**
+
+```
+{T}: Exile target card from a graveyard.
+{6}, {T}, Sacrifice this artifact: Put each creature card exiled with this artifact onto the battlefield under your control with a flying counter on it. Each of them is a 1/1 Spirit in addition to its other types. Activate only as a sorcery.
+```
+
+**Current tags:** `condition.cares_exile_pile`, `condition.cares_tribe.spirit`, `effect.cheat_into_play`, `effect.exile_from_graveyard`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.sacrifice_artifact`
+
+### Issues
+
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** Activated ability places a flying counter on a creature, which is a counter-placement effect; no counter-modified tag fires.
+  - **Evidence vs reality:** Oracle: "Put each creature card exiled with this artifact onto the battlefield under your control with a flying counter on it." The `effect.counter_modified` tagDef is "Places or removes counters." A flying counter qualifies.
+  - **Suggested fix:** Broaden `effect.counter_modified` regex to catch "with a <keyword> counter on it" non-+1/+1 counter placement clauses.
+
+---
+
+## Greenhouse // Rickety Gazebo  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {2}{G} // {3}{G}
+
+**Oracle text:**
+
+```
+Lands you control have "{T}: Add one mana of any color."
+(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)
+
+When you unlock this door, mill four cards, then return up to two permanent cards from among them to your hand.
+(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)
+```
+
+**Current tags:** `condition.cares_lands`, `effect.is_room`, `effect.mill`
+
+### Issues
+
+- **missing**: `effect.return_from_graveyard_to_hand`
+  - **What's wrong:** Mills four then returns up to two permanent cards "from among them" — those are in the graveyard at the moment of return.
+  - **Evidence vs reality:** oracle text says "mill four cards, then return up to two permanent cards from among them to your hand" — recursion from graveyard to hand.
+  - **Suggested fix:** Broaden `effect.return_from_graveyard_to_hand` regex to match the "mill … then return … from among them to your hand" frame.
+- **missing**: `effect.add_mana`
+  - **What's wrong:** Grants every land "{T}: Add one mana of any color" — that's a global mana-add ability.
+  - **Evidence vs reality:** oracle text grants lands a tap-add mana clause, classic ramp / fixing payoff.
+  - **Suggested fix:** Allow `effect.add_mana` to match when "Add … mana" appears inside a granted ability template (lands have "{T}: Add …").
+
+---
+
+## Grievous Wound  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Enchantment — Aura
+**Mana cost:** {3}{B}{B}
+
+**Oracle text:**
+
+```
+Enchant player
+Enchanted player can't gain life.
+Whenever enchanted player is dealt damage, they lose half their life, rounded up.
+```
+
+**Current tags:** `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.life_changed`
+  - **What's wrong:** Card causes a player to lose life ("they lose half their life, rounded up") — clear life_changed effect.
+  - **Evidence vs reality:** oracle text "they lose half their life, rounded up" — direct life-loss effect.
+  - **Suggested fix:** Broaden `effect.life_changed` to match "lose ... their life" / "lose half their life" phrasings.
+
+---
+
+## Growing Dread  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {G}{U}
+
+**Oracle text:**
+
+```
+Flash
+When this enchantment enters, manifest dread. (Look at the top two cards of your library. Put one onto the battlefield face down as a 2/2 creature and the other into your graveyard. Turn it face up any time for its mana cost if it's a creature card.)
+Whenever you turn a permanent face up, put a +1/+1 counter on it.
+```
+
+**Current tags:** `effect.cloak`, `effect.counter_modified`, `effect.has_flash`, `effect.plus_one_counter`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `trigger.turned_face_up`
+  - **What's wrong:** Has the canonical "Whenever you turn a permanent face up" trigger frame but no `trigger.turned_face_up` tag fired.
+  - **Evidence vs reality:** oracle text says "Whenever you turn a permanent face up, put a +1/+1 counter on it." — payoff trigger for Disguise/Manifest unflip.
+  - **Suggested fix:** Add "whenever you turn a permanent face up" to `trigger.turned_face_up` anchors.
+
+---
+
+## Hand That Feeds  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Creature — Mutant
+**Mana cost:** {1}{R}
+
+**Oracle text:**
+
+```
+Delirium — Whenever this creature attacks while there are four or more card types among cards in your graveyard, it gets +2/+0 and gains menace until end of turn. (It can't be blocked except by two or more creatures.)
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.grants_stat_buff`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.gains_keyword_self_conditional`
+  - **What's wrong:** Conditionally gains menace ("gains menace until end of turn" gated by delirium count).
+  - **Evidence vs reality:** oracle text "it ... gains menace until end of turn" under the four-card-types-in-graveyard gate — classic conditional self-gain frame.
+  - **Suggested fix:** Add the attack-trigger conditional frame ("while there are ... gains <keyword>") to `effect.gains_keyword_self_conditional`.
+
+---
+
+## Hedge Shredder  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Artifact — Vehicle
+**Mana cost:** {2}{G}{G}
+
+**Oracle text:**
+
+```
+Whenever this Vehicle attacks, you may mill two cards.
+Whenever one or more land cards are put into your graveyard from your library, put them onto the battlefield tapped.
+Crew 1 (Tap any number of creatures you control with total power 1 or more: This Vehicle becomes an artifact creature until end of turn.)
+```
+
+**Current tags:** `effect.has_activated_ability`, `effect.mill`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** "Put them onto the battlefield tapped" — lands moving from graveyard (via the mill-into-graveyard step) onto the battlefield is a reanimation effect.
+  - **Evidence vs reality:** oracle text "Whenever one or more land cards are put into your graveyard from your library, put them onto the battlefield tapped" — graveyard-to-battlefield motion.
+  - **Suggested fix:** Consider broadening `effect.reanimate` to cover the mill-trigger "put them onto the battlefield" frame (lands moving via this side-effect path).
+- **missing**: `condition.cares_lands`
+  - **What's wrong:** Card explicitly cares about "land cards" being milled and treats them specially.
+  - **Evidence vs reality:** oracle text "Whenever one or more land cards are put into your graveyard from your library" — direct reference to land cards as a payoff group.
+  - **Suggested fix:** Broaden `condition.cares_lands` to match "land cards are put into your graveyard" frame.
+
+---
+
+## House Cartographer  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Creature — Human Scout Survivor
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if this creature is tapped, reveal cards from the top of your library until you reveal a land card. Put that card into your hand and the rest on the bottom of your library in a random order.
+```
+
+**Current tags:** `(none)`
+
+### Issues
+
+- **missing**: `condition.cares_lands`
+  - **What's wrong:** Card explicitly searches for "a land card" — references land cards as the payoff.
+  - **Evidence vs reality:** oracle text "until you reveal a land card. Put that card into your hand" — direct land-card payoff frame.
+  - **Suggested fix:** Broaden `condition.cares_lands` to match "reveal a land card" phrasings.
+- **missing**: `effect.ramp_nonland` (or new `effect.tutors_land`)
+  - **What's wrong:** Nonland card that searches library for a land card and puts it in hand — classic land-tutor / ramp adjacent. Currently no catalog tag fires.
+  - **Evidence vs reality:** oracle text "reveal cards from the top of your library until you reveal a land card. Put that card into your hand" — Cultivate-style land tutor (to hand, not battlefield).
+  - **Suggested fix:** Either broaden `effect.ramp_nonland` to include "until you reveal a land card. Put that card into your hand" or add a `effect.tutors_land` axis.
+- **missing**: trigger covering "beginning of your second main phase" (catalog gap)
+  - **What's wrong:** No trigger tag fires for the "at the beginning of your second main phase" trigger frame.
+  - **Evidence vs reality:** oracle text "At the beginning of your second main phase, if this creature is tapped, ..." — clearly a triggered ability.
+  - **Suggested fix:** Add `trigger.second_main_phase` (catalog gap per v0.20.0 known state).
+
+---
+
+## Inquisitive Glimmer  <!-- audited 2026-05-31, ruleVersion v0.20.0 -->
+
+**Type:** Enchantment Creature — Fox Glimmer
+**Mana cost:** {W}{U}
+
+**Oracle text:**
+
+```
+Enchantment spells you cast cost {1} less to cast.
+Unlock costs you pay cost {1} less.
+```
+
+**Current tags:** `effect.cost_reduction`
+
+### Issues
+
+- **missing**: `condition.cares_enchantments`
+  - **What's wrong:** "Enchantment spells you cast cost {1} less to cast" gates the cost reduction on enchantment-type spells — direct enchantments-matter payoff.
+  - **Evidence vs reality:** oracle text "Enchantment spells you cast cost {1} less to cast" — references enchantment spells as a group.
+  - **Suggested fix:** Broaden `condition.cares_enchantments` to match "Enchantment spells you cast" frame.
+
+---
+
+## Kaito, Bane of Nightmares  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Planeswalker — Kaito
+**Mana cost:** {2}{U}{B}
+
+**Oracle text:**
+
+```
+Ninjutsu {1}{U}{B} ({1}{U}{B}, Return an unblocked attacker you control to hand: Put this card onto the battlefield from your hand tapped and attacking.)
+During your turn, as long as Kaito has one or more loyalty counters on him, he's a 3/4 Ninja creature and has hexproof.
++1: You get an emblem with "Ninjas you control get +1/+1."
+0: Surveil 2. Then draw a card for each opponent who lost life this turn.
+−2: Tap target creature. Put two stun counters on it.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.draws_or_discards`, `effect.stun_counter`, `effect.surveil`, `effect.tap`
+
+### Issues
+
+- **missing**: `effect.grants_stat_buff`
+  - **What's wrong:** The emblem grants Ninjas +1/+1, an anthem-style buff.
+  - **Evidence vs reality:** card creates an emblem with `"Ninjas you control get +1/+1."`, which is an anthem.
+  - **Suggested fix:** Broaden `effect.grants_stat_buff` rule to detect emblem-granted anthems (`emblem with "... get +N/+N"`).
+
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** Ninjutsu activation cost includes "Return an unblocked attacker you control to hand"; the reminder text is stripped, but the keyword itself implies bounce. (NOTE: reminder text is stripped before tagging, so this may be unfixable absent a dedicated `effect.has_ninjutsu` rule.)
+  - **Evidence vs reality:** reminder text gone; only "Ninjutsu {1}{U}{B}" survives. No `effect.has_ninjutsu` tag exists.
+  - **Suggested fix:** Consider adding `effect.has_ninjutsu` and `effect.bounce_creature` should fire on the bounce-as-cost printed text if reminder-text isn't stripped early.
+
+- **missing**: `condition.cares_lifeloss`
+  - **What's wrong:** "draw a card for each opponent who lost life this turn" scales on opponents losing life.
+  - **Evidence vs reality:** text explicitly says `"each opponent who lost life this turn"`.
+  - **Suggested fix:** Broaden `condition.cares_lifeloss` to detect "opponent who lost life this turn" / "lost life this turn" phrasing.
+
+---
+
+## Leyline of Hope  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {2}{W}{W}
+
+**Oracle text:**
+
+```
+If this card is in your opening hand, you may begin the game with it on the battlefield.
+If you would gain life, you gain that much life plus 1 instead.
+As long as you have at least 7 life more than your starting life total, creatures you control get +2/+2.
+```
+
+**Current tags:** `condition.cares_lifegain`, `effect.grants_stat_buff`
+
+### Issues
+
+- **missing**: `effect.life_changed`
+  - **What's wrong:** "you gain that much life plus 1 instead" — replacement effect that causes additional life gain.
+  - **Evidence vs reality:** text says `"you gain that much life plus 1 instead"`. Causes a player to gain life. No tag flagged.
+  - **Suggested fix:** Broaden `effect.life_changed` to detect replacement-effect lifegain phrasings ("gain that much life plus N instead").
+
+---
+
+## Leyline of Mutation  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {2}{G}{G}
+
+**Oracle text:**
+
+```
+If this card is in your opening hand, you may begin the game with it on the battlefield.
+You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for spells you cast.
+```
+
+**Current tags:** `(none)`
+
+### Issues
+
+- **missing**: `effect.cost_reduction`
+  - **What's wrong:** Card grants an alternate-cost casting option (pay {W}{U}{B}{R}{G} instead of mana cost), which functions as a cost modification for any spell.
+  - **Evidence vs reality:** text says `"You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for spells you cast"`. No tags fired at all (card is fully untagged).
+  - **Suggested fix:** Broaden `effect.cost_reduction` (or add an `effect.alternate_cost` family) to detect "pay X rather than pay the mana cost" phrasing.
+
+---
+
+## Leyline of the Void  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Enchantment
+**Mana cost:** {2}{B}{B}
+
+**Oracle text:**
+
+```
+If this card is in your opening hand, you may begin the game with it on the battlefield.
+If a card would be put into an opponent's graveyard from anywhere, exile it instead.
+```
+
+**Current tags:** `(none)`
+
+### Issues
+
+- **missing**: graveyard-hate coverage gap
+  - **What's wrong:** Card is a canonical graveyard-hate replacement effect ("exile instead of going to opponent's graveyard"), but no `effect.graveyard_hate` tag exists in the catalog.
+  - **Evidence vs reality:** card fully untagged. Replacement-effect graveyard hate is a real archetype (Leyline of the Void, Rest in Peace, Soul-Guide Lantern style passives) with no representation.
+  - **Suggested fix:** Add a new `effect.graveyard_hate` tag for "if a card would be put into [a/an opponent's] graveyard … exile it instead" phrasing.
+
+---
+
+## Manifest Dread  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+Manifest dread. (Look at the top two cards of your library. Put one onto the battlefield face down as a 2/2 creature and the other into your graveyard. Turn it face up any time for its mana cost if it's a creature card.)
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.cloak`
+  - **What's wrong:** This card IS the canonical "manifest dread" keyword action — the tagDef explicitly names "manifest dread" as a producer pattern. After reminder stripping the only oracle text is "manifest dread." but no tag fires.
+  - **Evidence vs reality:** normalized text is `"manifest dread."`; `effect.cloak` description names this exact keyword. Likely the rule requires more context than just the bare keyword + period.
+  - **Suggested fix:** Broaden `effect.cloak` rule to match the bare keyword "manifest dread" or "cloak N" at start of a sentence/line.
+
+- **missing**: `effect.look_at_top_n` / `effect.mill` (reminder text)
+  - **What's wrong:** Reminder text "look at the top two cards... put one... into your graveyard" is stripped, so dependent tags don't fire. Acceptable side effect of reminder stripping; flagging for awareness.
+  - **Evidence vs reality:** N/A — reminder text gone.
+  - **Suggested fix:** No action; ensure `effect.cloak` (which captures the underlying mechanic) fires correctly.
+
+---
+
+## Marina Vendrell  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Human Warlock
+**Mana cost:** {W}{U}{B}{R}{G}
+
+**Oracle text:**
+
+```
+When Marina Vendrell enters, reveal the top seven cards of your library. Put all enchantment cards from among them into your hand and the rest on the bottom of your library in a random order.
+{T}: Lock or unlock a door of target Room you control. Activate only as a sorcery.
+```
+
+**Current tags:** `effect.has_activated_ability`, `effect.look_at_top_n`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** "Put all enchantment cards from among them into your hand" — net card-advantage equivalent to multi-card draw.
+  - **Evidence vs reality:** text says `"Put all enchantment cards from among them into your hand"`. Acts as a draws-style card-advantage effect.
+  - **Suggested fix:** Broaden `effect.draws_or_discards` to detect "put [matching cards] into your hand" from a reveal-top-N pattern (Marina's pattern).
+
+- **missing**: Room-care coverage gap
+  - **What's wrong:** "Lock or unlock a door of target Room you control" is a Room-axis activated effect, but no `condition.cares_subtype.room` (known gap) or `effect.unlock_door` tag exists.
+  - **Evidence vs reality:** card explicitly references Room subtype interaction.
+  - **Suggested fix:** Add `effect.unlock_door` / `condition.cares_subtype.room` to the catalog (known coverage gap).
+
+
+---
+
+## Meathook Massacre II  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Enchantment
+**Mana cost:** {X}{X}{B}{B}{B}{B}
+
+**Oracle text:**
+
+```
+When Meathook Massacre II enters, each player sacrifices X creatures of their choice.
+Whenever a creature you control dies, you may pay 3 life. If you do, return that card under your control with a finality counter on it.
+Whenever a creature an opponent controls dies, they may pay 3 life. If they don't, return that card under your control with a finality counter on it.
+```
+
+**Current tags:** `condition.has_x_in_cost`, `effect.edict`, `effect.life_changed`, `effect.sacrifice_creature`, `trigger.creature_dies`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** Both dies-triggered abilities return that card to the battlefield under your control — textbook reanimation from graveyard.
+  - **Evidence vs reality:** oracle has "return that card under your control with a finality counter on it" twice; reanimate rule should catch "return that card" out of a dies trigger's graveyard context.
+  - **Suggested fix:** Broaden `effect.reanimate` to match the "return that card [...] with a finality counter" reanimation pattern off a death trigger.
+
+- **missing**: `effect.counter_modified`
+  - **What's wrong:** Both dies-triggered returns place a finality counter on the returned creature.
+  - **Evidence vs reality:** oracle has "with a finality counter on it" twice — clear counter placement.
+  - **Suggested fix:** Broaden `effect.counter_modified` to catch finality counter placement phrasing.
+
+---
+
+## Miasma Demon  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Creature — Demon
+**Mana cost:** {4}{B}{B}
+
+**Oracle text:**
+
+```
+Flying
+When this creature enters, you may discard any number of cards. When you do, up to that many target creatures each get -2/-2 until end of turn.
+```
+
+**Current tags:** `effect.debuff_minus_n`, `effect.has_flying`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** ETB ability has the controller discard any number of cards — clear self-discard effect.
+  - **Evidence vs reality:** oracle has "you may discard any number of cards"; the discard half of `effect.draws_or_discards` should match.
+  - **Suggested fix:** Broaden `effect.draws_or_discards` to catch "discard any number of cards" phrasing.
+
+- **missing**: `trigger.card_drawn_discarded`
+  - **What's wrong:** The "When you do" reflexive trigger fires off the discard action.
+  - **Evidence vs reality:** oracle has "When you do, up to that many target creatures..."; reflexive triggers off discards are a card-drawn/discarded event.
+  - **Suggested fix:** Consider whether reflexive "When you do" off a discard should fire `trigger.card_drawn_discarded`.
+
+---
+
+## Nashi, Searcher in the Dark  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Rat Ninja Wizard
+**Mana cost:** {U}{B}
+
+**Oracle text:**
+
+```
+Menace
+Whenever Nashi deals combat damage to a player, you mill that many cards. You may put any number of legendary and/or enchantment cards from among them into your hand. If you put no cards into your hand this way, put a +1/+1 counter on Nashi.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.has_menace`, `effect.plus_one_counter`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.mill`
+  - **What's wrong:** Combat-damage trigger explicitly mills cards equal to the damage dealt.
+  - **Evidence vs reality:** oracle has "you mill that many cards"; the canonical mill phrasing.
+  - **Suggested fix:** Broaden `effect.mill` to catch "mill that many cards" (variable-quantity mill phrased as "that many").
+
+---
+
+## Niko, Light of Hope  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Human Wizard
+**Mana cost:** {2}{W}{U}
+
+**Oracle text:**
+
+```
+When Niko enters, create two Shard tokens. (They're enchantments with "{2}, Sacrifice this token: Scry 1, then draw a card.")
+{2}, {T}: Exile target nonlegendary creature you control. Shards you control become copies of it until the next end step. Return it to the battlefield under its owner's control at the beginning of the next end step.
+```
+
+**Current tags:** `effect.create_token`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `trigger.beginning_of_end_step`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.bounce_creature`
+  - **What's wrong:** The activated ability exiles a target creature you control and returns it at the next end step — textbook blink (exile + return = re-ETB).
+  - **Evidence vs reality:** oracle has "Exile target nonlegendary creature you control...Return it to the battlefield...at the beginning of the next end step"; bounce_creature description explicitly covers "exiles and returns it (re-triggering ETB)".
+  - **Suggested fix:** Broaden `effect.bounce_creature` to catch "Exile target creature ... Return it ... at the beginning of the next end step" blink phrasing.
+
+---
+
+## Norin, Swift Survivalist  <!-- audited 2026-05-31, ruleVersion v0.8.0 -->
+
+**Type:** Legendary Creature — Human Coward
+**Mana cost:** {R}
+
+**Oracle text:**
+
+```
+Norin can't block.
+Whenever a creature you control becomes blocked, you may exile it. You may play that card from exile this turn.
+```
+
+**Current tags:** `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** Triggered ability explicitly grants "play that card from exile this turn".
+  - **Evidence vs reality:** oracle has "You may play that card from exile this turn"; canonical cast-from-exile phrasing.
+  - **Suggested fix:** Ensure `effect.cast_from_exile` matches the "play that card from exile" idiom.
+
+- **missing**: `effect.exile_creature`
+  - **What's wrong:** The trigger exiles the blocked creature you control from the battlefield.
+  - **Evidence vs reality:** oracle has "you may exile it" referring to "a creature you control" — exiles a creature from the battlefield.
+  - **Suggested fix:** Broaden `effect.exile_creature` to catch "you may exile it" anaphoric references where the antecedent is a creature.
+
+
+---
+
+# v0.22.0 audit batch (audited 2026-05-31)
+
+Processed 100 cards (cards 201-300); 43 issues logged. 15 fixes shipped (J1, J2, J3, J4, J6, J10, J11, J12, J14, J15, J16, J17, J18, J19, J20). Deferred regex broadenings: J5 (cheat_into_play multi-zone — reanimate already covers Say Its Name), J7 (typecycling reminder text stripped — needs matchCard keyword gate), J8 (Tale of Tamiyo saga IV — multi-rule coordination), J9 (multi-tribe anthem deathtouch — interacts with v0.21 H4 strip), J13 (cares_graveyard producer/consumer trap), J21 (no-op). Coverage gaps now include cumulative list from v0.20+v0.21+v0.22 (eerie, delirium, survival, door_unlocked, has_convoke, has_ward, create_land_token, etc.).
+
+---
+
+## Overlord of the Hauntwoods  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment Creature — Avatar Horror
+**Mana cost:** {3}{G}{G}
+
+**Oracle text:**
+
+```
+Impending 4—{1}{G}{G} (If you cast this spell for its impending cost, it enters with four time counters and isn't a creature until the last is removed. At the beginning of your end step, remove a time counter from it.)
+Whenever this permanent enters or attacks, create a tapped colorless land token named Everywhere that is every basic land type.
+```
+
+**Current tags:** `effect.create_token`, `trigger.attack_or_block`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.ramp_nonland`
+  - **What's wrong:** Creates a tapped land token "every basic land type" — that's a non-land card putting a land directly into play (textbook ramp via token).
+  - **Evidence vs reality:** rule probably looks for "search your library for a basic land" or "add mana"; creating a basic-type land token is functionally identical.
+  - **Suggested fix:** broaden `effect.ramp_nonland` to match "create a … land token (named …)" patterns, or add a dedicated `effect.create_land_token` tag.
+---
+
+## Painter's Studio // Defaced Gallery  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {2}{R} // {1}{R}
+
+**Oracle text:**
+
+```
+When you unlock this door, exile the top two cards of your library. You may play them until the end of your next turn.
+
+Whenever you attack, attacking creatures you control get +1/+0 until end of turn.
+```
+
+**Current tags:** `effect.exile_from_library`, `effect.grants_stat_buff`, `effect.impulse_draw`, `effect.is_room`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** "You may play them until the end of your next turn" — anaphoric play-from-exile of just-exiled cards. v0.21.0 broadened cast_from_exile for "play that card from exile" — same shape with plural "them".
+  - **Evidence vs reality:** rule may require singular "that card" or explicit "from exile"; here antecedent is "the top two cards … exile" plus "play them".
+  - **Suggested fix:** broaden `effect.cast_from_exile` to match anaphoric plural ("play them") following an exile-from-library clause within a window.
+---
+
+## Paranormal Analyst  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Human Detective
+**Mana cost:** {1}{U}
+
+**Oracle text:**
+
+```
+Whenever you manifest dread, put a card you put into your graveyard this way into your hand.
+```
+
+**Current tags:** `effect.cloak`
+
+### Issues
+
+- **false-positive**: `effect.cloak`
+  - **What's wrong:** This card does NOT perform manifest dread — it *triggers off* you manifesting dread. The phrase is a trigger condition, not an action this card takes.
+  - **Evidence vs reality:** evidence was `"manifest dread"`, but the surrounding "Whenever you manifest dread" makes it an observer/payoff, not a producer of cloak/manifest tokens.
+  - **Suggested fix:** require `effect.cloak` to match an imperative/action form ("manifest dread.", "cloak the next…") and exclude `whenever you (manifest dread|cloak)` trigger clauses.
+- **missing**: `effect.return_from_graveyard_to_hand`
+  - **What's wrong:** "put a card you put into your graveyard this way into your hand" — anaphoric recursion of just-milled card to hand.
+  - **Evidence vs reality:** rule may want "return … from your graveyard"; here phrasing is "put a card you put into your graveyard … into your hand".
+  - **Suggested fix:** broaden `effect.return_from_graveyard_to_hand` to match "put a card … into your graveyard … into your hand" anaphoric pattern (post-manifest-dread / post-mill).
+- **missing**: `trigger.card_drawn_discarded` or new manifest-dread trigger
+  - **What's wrong:** "Whenever you manifest dread" — there's no `trigger.cloak`/`trigger.manifest_dread` in the catalog; known coverage gap for these payoff cards.
+  - **Evidence vs reality:** payoff has no trigger anchor; effect-axis cloak should not double as the trigger.
+  - **Suggested fix:** consider `trigger.manifest_dread`/`trigger.cloak` (or generic "you cloak"/"you manifest") as a new tag.
+---
+
+## Patched Plaything  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Artifact Creature — Toy
+**Mana cost:** {2}{W}
+
+**Oracle text:**
+
+```
+Double strike
+This creature enters with two -1/-1 counters on it if you cast it from your hand.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.debuff_minus_n`, `effect.has_double_strike`, `effect.has_first_strike`
+
+### Issues
+
+- **false-positive**: `effect.debuff_minus_n`
+  - **What's wrong:** TagDef is "Gives a creature -N/-N until end of turn"; this card just enters with -1/-1 counters on itself as a downside, not a debuff effect on other creatures.
+  - **Evidence vs reality:** evidence was `" -1/-1"`, but the construction is "enters with two -1/-1 counters on it" — a self-applied permanent counter, not an "until end of turn" -N/-N grant.
+  - **Suggested fix:** require `effect.debuff_minus_n` to have "gets -N/-N" or "target … gets -N/-N" pattern; exclude bare "-N/-N counters" appearing in "enters with".
+---
+
+## Possessed Goat  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Goat
+**Mana cost:** {W}
+
+**Oracle text:**
+
+```
+{3}, Discard a card: Put three +1/+1 counters on this creature and it becomes a black Demon in addition to its other colors and types. Activate only once.
+```
+
+**Current tags:** `condition.cares_tribe.demon`, `effect.counter_modified`, `effect.draws_or_discards`, `effect.has_activated_ability`, `effect.has_mana_activated_ability`, `effect.plus_one_counter`
+
+### Issues
+
+- **false-positive**: `condition.cares_tribe.demon`
+  - **What's wrong:** The card mentions "Demon" only as a type-change clause for itself; it doesn't gate, count, or scale off other Demons. This is the type-change-leak pattern (similar to manland self-anim leaks).
+  - **Evidence vs reality:** evidence was `"demon"`, but the surrounding "becomes a black Demon" is a self-typing modification, not a Demon-tribal payoff/anchor.
+  - **Suggested fix:** require `condition.cares_tribe.<X>` to exclude "becomes a … <X>" / "is also a <X>" self-typing clauses; need a non-self anchor like "Demon you control" / "other Demons" / "for each Demon".
+
+---
+
+## Reluctant Role Model  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Human Survivor
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if this creature is tapped, put a flying, lifelink, or +1/+1 counter on it.
+Whenever this creature or another creature you control dies, if it had counters on it, put those counters on up to one target creature.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.has_lifelink`, `trigger.creature_dies`
+
+### Issues
+
+- **false-positive**: `effect.has_lifelink`
+  - **What's wrong:** Card does not have lifelink as a printed intrinsic ability — "lifelink" only appears as a counter-type choice ("a flying, lifelink, or +1/+1 counter").
+  - **Evidence vs reality:** evidence was `"Lifelink"`, but the word appears inside a list of counter types, not as an intrinsic keyword on this creature.
+  - **Suggested fix:** `effect.has_lifelink` should exclude matches where "lifelink" appears within a counter-naming list (e.g. preceded by `flying,` or followed by `, or +1/+1 counter`). Mirror existing guard used for `effect.has_flying`.
+- **missing**: `effect.plus_one_counter`
+  - **What's wrong:** Card can place a +1/+1 counter on the creature ("put a flying, lifelink, or +1/+1 counter on it").
+  - **Evidence vs reality:** rule likely requires unambiguous "put a +1/+1 counter on" anchor without an intervening list.
+  - **Suggested fix:** broaden `effect.plus_one_counter` to fire when "+1/+1 counter" appears as an element of a counter-type-choice list ("put a [list], or +1/+1 counter on").
+---
+
+## Rip, Spawn Hunter  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Creature — Human Survivor
+**Mana cost:** {2}{G}{W}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if Rip is tapped, reveal the top X cards of your library, where X is its power. Put any number of creature and/or Vehicle cards with different powers from among them into your hand. Put the rest on the bottom of your library in a random order.
+```
+
+**Current tags:** `condition.cares_subtype.vehicle`, `effect.look_at_top_n`
+
+### Issues
+
+- **missing**: `effect.draws_or_discards`
+  - **What's wrong:** Card reveals the top X cards and puts any number of qualifying cards into hand — equivalent to drawing them (matches v0.21.0 "reveal-to-hand" broadening pattern).
+  - **Evidence vs reality:** anchors "reveal the top X cards" + "put ... into your hand" should match the broadened draws_or_discards rule.
+  - **Suggested fix:** broaden `effect.draws_or_discards` to fire on "reveal the top N ... put ... into your hand" with a subset-selection clause (any number of, all, target).
+---
+
+## Say Its Name  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+Mill three cards. Then you may return a creature or land card from your graveyard to your hand.
+Exile this card and two other cards named Say Its Name from your graveyard: Search your graveyard, hand, and/or library for a card named Altanak, the Thrice-Called and put it onto the battlefield. If you search your library this way, shuffle. Activate only as a sorcery.
+```
+
+**Current tags:** `condition.cares_lands`, `effect.cast_noncreature_spell`, `effect.is_instant_or_sorcery`, `effect.mill`, `effect.reanimate`, `effect.return_from_graveyard_to_hand`
+
+### Issues
+
+- **missing**: `effect.cheat_into_play`
+  - **What's wrong:** The activated ability searches `your graveyard, hand, and/or library` for Altanak and puts it onto the battlefield without paying its cost — that's cheat-into-play when the find is in hand or library.
+  - **Evidence vs reality:** anchor "search your ... hand, and/or library for a card named ... and put it onto the battlefield" matches the cheat-from-non-graveyard-zone family.
+  - **Suggested fix:** broaden `effect.cheat_into_play` to fire on "search your ... hand ... and put it onto the battlefield" / "search your library for ... and put it onto the battlefield".
+
+---
+
+## Sheltered by Ghosts  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Aura
+**Mana cost:** {1}{W}
+
+**Oracle text:**
+
+```
+Enchant creature you control
+When this Aura enters, exile target nonland permanent an opponent controls until this Aura leaves the battlefield.
+Enchanted creature gets +1/+0 and has lifelink and ward {2}.
+```
+
+**Current tags:** `effect.exile_artifact`, `effect.exile_creature`, `effect.exile_enchantment`, `effect.exile_from_battlefield`, `effect.exile_planeswalker`, `effect.grants_lifelink`, `effect.grants_stat_buff`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.grants_ward` (does not exist in catalog)
+  - **What's wrong:** Card grants ward {2} to the enchanted creature via aura — no `effect.grants_ward` analog in catalog.
+  - **Evidence vs reality:** oracle text contains "has lifelink and ward {2}"; only the lifelink half is captured.
+  - **Suggested fix:** Add `effect.grants_ward` rule (and tagDef) mirroring `effect.grants_lifelink` shape.
+---
+
+## Shepherding Spirits  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Spirit
+**Mana cost:** {4}{W}{W}
+
+**Oracle text:**
+
+```
+Flying
+Plainscycling {2} ({2}, Discard this card: Search your library for a Plains card, reveal it, put it into your hand, then shuffle.)
+```
+
+**Current tags:** `effect.has_cycling`, `effect.has_flying`
+
+### Issues
+
+- **missing**: `effect.tutors_basic_land`
+  - **What's wrong:** Plainscycling tutors a Plains (basic land) from library to hand; `effect.tutors_basic_land` should fire.
+  - **Evidence vs reality:** evidence would be "search your library for a plains card", but rule likely requires "basic" or "basic land" wording and skips typecycling reminder.
+  - **Suggested fix:** Broaden `effect.tutors_basic_land` to match typecycling reminder ("search your library for a (plains|island|swamp|mountain|forest) card") or add a typecycling pattern.
+---
+
+## Shrewd Storyteller  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Human Survivor
+**Mana cost:** {1}{G}{W}
+
+**Oracle text:**
+
+```
+Survival — At the beginning of your second main phase, if this creature is tapped, put a +1/+1 counter on target creature.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.plus_one_counter`
+
+### Issues
+
+- **missing**: `condition.survival`, `trigger.second_main_phase` (do not exist in catalog — known gaps)
+  - **What's wrong:** Card's only trigger ("Survival — At the beginning of your second main phase, if this creature is tapped") is uncaptured by any trigger/condition tag.
+  - **Evidence vs reality:** evidence is "Survival —" + "second main phase" + "if this creature is tapped"; no `trigger.second_main_phase`, no `condition.survival`, no `condition.tapped_self` either.
+  - **Suggested fix:** Add `condition.survival` and `trigger.second_main_phase` per known v0.21.0 gaps.
+---
+
+## Skullsnap Nuisance  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Insect Skeleton
+**Mana cost:** {U}{B}
+
+**Oracle text:**
+
+```
+Flying
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, surveil 1. (Look at the top card of your library. You may put it into your graveyard.)
+```
+
+**Current tags:** `condition.cares_enchantments`, `effect.has_flying`, `effect.surveil`, `trigger.another_enchantment_etb`
+
+### Issues
+
+- **missing**: `condition.eerie`, `trigger.door_unlocked` (do not exist in catalog — known gaps)
+  - **What's wrong:** "Eerie —" mechanic + Room "fully unlock" trigger are uncaptured.
+  - **Evidence vs reality:** evidence is "Eerie —" and "whenever you fully unlock a Room"; neither maps to a catalog tag.
+  - **Suggested fix:** Add `condition.eerie` and `trigger.door_unlocked` per known v0.21.0 gaps.
+---
+
+## Slavering Branchsnapper  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Lizard
+**Mana cost:** {4}{G}{G}
+
+**Oracle text:**
+
+```
+Trample
+Forestcycling {2} ({2}, Discard this card: Search your library for a Forest card, reveal it, put it into your hand, then shuffle.)
+```
+
+**Current tags:** `effect.has_cycling`, `effect.has_trample`
+
+### Issues
+
+- **missing**: `effect.tutors_basic_land`
+  - **What's wrong:** Forestcycling tutors a Forest (basic land) from library to hand; rule doesn't fire on typecycling reminder text.
+  - **Evidence vs reality:** evidence would be "search your library for a forest card"; same pattern as Shepherding Spirits.
+  - **Suggested fix:** Broaden `effect.tutors_basic_land` to catch typecycling reminder (or add typecycling-specific pattern).
+---
+
+## Smoky Lounge // Misty Salon  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {2}{R} // {3}{U}
+
+**Oracle text:**
+
+```
+At the beginning of your first main phase, add {R}{R}. Spend this mana only to cast Room spells and unlock doors.
+
+When you unlock this door, create an X/X blue Spirit creature token with flying, where X is the number of unlocked doors among Rooms you control.
+```
+
+**Current tags:** `effect.add_mana`, `effect.create_creature_token`, `effect.create_token`, `effect.grants_evasion`, `effect.is_room`, `effect.ramp_nonland`
+
+### Issues
+
+- **missing**: `trigger.door_unlocked`, `trigger.beginning_of_main_phase` (do not exist in catalog — known gaps)
+  - **What's wrong:** Both triggers — "At the beginning of your first main phase" and "When you unlock this door" — are uncaptured.
+  - **Evidence vs reality:** evidence is "at the beginning of your first main phase" and "when you unlock this door"; no catalog match.
+  - **Suggested fix:** Add `trigger.door_unlocked` per known gap; consider adding `trigger.beginning_of_main_phase`.
+---
+
+## Spectral Snatcher  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Spirit
+**Mana cost:** {4}{B}{B}
+
+**Oracle text:**
+
+```
+Ward—Discard a card.
+Swampcycling {2} ({2}, Discard this card: Search your library for a Swamp card, reveal it, put it into your hand, then shuffle.)
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.has_cycling`, `effect.has_ward`
+
+### Issues
+
+- **false-positive**: `effect.draws_or_discards`
+  - **What's wrong:** The "discard a card" match is the Ward em-dash cost (opponent pays to counter ward), not a card effect this permanent produces.
+  - **Evidence vs reality:** evidence was "—discard a card", but this is a Ward cost suffix paid by the casting opponent, not the card's own discard effect.
+  - **Suggested fix:** Narrow rule to exclude "ward[—-]discard a card" prefix (and other ward-cost patterns).
+- **missing**: `effect.tutors_basic_land`
+  - **What's wrong:** Swampcycling tutors a Swamp; same typecycling gap as Shepherding Spirits / Slavering Branchsnapper.
+  - **Evidence vs reality:** "search your library for a swamp card" not matched.
+  - **Suggested fix:** Broaden `effect.tutors_basic_land` for typecycling reminder text.
+---
+
+## Spineseeker Centipede  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Insect
+**Mana cost:** {2}{G}
+
+**Oracle text:**
+
+```
+When this creature enters, search your library for a basic land card, reveal it, put it into your hand, then shuffle.
+Delirium — This creature gets +1/+2 and has vigilance as long as there are four or more card types among cards in your graveyard.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.grants_stat_buff`, `effect.grants_vigilance`, `effect.tutors_basic_land`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `condition.delirium` (does not exist in catalog — known gap)
+  - **What's wrong:** "Delirium —" mechanic uncaptured beyond `condition.cares_graveyard`.
+  - **Evidence vs reality:** evidence "Delirium —" and "four or more card types among cards in your graveyard"; only the generic graveyard-care fires.
+  - **Suggested fix:** Add `condition.delirium` per known v0.21.0 gap.
+---
+
+## Sporogenic Infection  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Aura
+**Mana cost:** {1}{B}
+
+**Oracle text:**
+
+```
+Enchant creature
+When this Aura enters, target player sacrifices a creature of their choice other than enchanted creature.
+When enchanted creature is dealt damage, destroy it.
+```
+
+**Current tags:** `effect.destroy_creature`, `effect.edict`, `effect.sacrifice_creature`, `trigger.damage_dealt`, `trigger.self_etb`
+
+### Issues
+
+- **false-positive**: `effect.sacrifice_creature`
+  - **What's wrong:** Card is an edict ("target player sacrifices"), not a self-sacrifice cost/effect. Listed recurring failure: typed-sacrifice leaks on edict / observer triggers.
+  - **Evidence vs reality:** evidence was "sacrifices a creature" matched on "target player sacrifices a creature of their choice"; the controller of the sacrifice is "target player", not the card's controller.
+  - **Suggested fix:** Narrow `effect.sacrifice_creature` to exclude "target player sacrifices" / "each player sacrifices" / "an opponent sacrifices".
+---
+
+## Stalked Researcher  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Human Wizard
+**Mana cost:** {1}{U}
+
+**Oracle text:**
+
+```
+Defender
+Eerie — Whenever an enchantment you control enters and whenever you fully unlock a Room, this creature can attack this turn as though it didn't have defender.
+```
+
+**Current tags:** `condition.cares_enchantments`, `trigger.another_enchantment_etb`, `trigger.attack_or_block`
+
+### Issues
+
+- **false-positive**: `trigger.attack_or_block`
+  - **What's wrong:** Card has no attacks/blocks trigger; "this creature can attack this turn" is a static permission, not a trigger that fires on attacks.
+  - **Evidence vs reality:** evidence was "whenever an enchantment you control enters... this creature can attack"; the "whenever" only scopes the enchantment-ETB trigger, and the consequent "can attack" is a static permission clause, not its own trigger.
+  - **Suggested fix:** Narrow `trigger.attack_or_block` regex to not match "can attack" / "this creature can attack" — require an actual "whenever <X> attacks/blocks" head clause.
+- **missing**: `condition.eerie`, `trigger.door_unlocked` (known catalog gaps)
+  - **What's wrong:** Eerie mechanic + Room unlock trigger uncaptured.
+  - **Suggested fix:** Add per known v0.21.0 gaps.
+---
+
+## Surgical Suite // Hospital Room  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {1}{W} // {3}{W}
+
+**Oracle text:**
+
+```
+When you unlock this door, return target creature card with mana value 3 or less from your graveyard to the battlefield.
+
+Whenever you attack, put a +1/+1 counter on target attacking creature.
+```
+
+**Current tags:** `condition.cares_low_mana_value`, `effect.counter_modified`, `effect.is_room`, `effect.plus_one_counter`, `effect.reanimate`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `trigger.door_unlocked` (does not exist in catalog — known gap)
+  - **What's wrong:** "When you unlock this door" trigger uncaptured.
+  - **Evidence vs reality:** "When you unlock this door"; no tag.
+  - **Suggested fix:** Add `trigger.door_unlocked` per known v0.21.0 gap.
+
+---
+
+## The Mindskinner  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Enchantment Creature — Nightmare
+**Mana cost:** {U}{U}{U}
+
+**Oracle text:**
+
+```
+The Mindskinner can't be blocked.
+If a source you control would deal damage to an opponent, prevent that damage and each opponent mills that many cards.
+```
+
+**Current tags:** `effect.mill`, `effect.unblockable`
+
+### Issues
+
+- **missing**: `effect.prevent_damage`
+  - **What's wrong:** Card has a replacement effect that prevents damage ("prevent that damage and each opponent mills that many cards") but is not tagged as a damage-preventer.
+  - **Evidence vs reality:** text contains `"prevent that damage"`, which is the canonical Fog/Healing-Salve language the tag is meant to cover.
+  - **Suggested fix:** Broaden `effect.prevent_damage` regex to match "prevent that damage" inside a replacement-effect clause (would deal damage … prevent that damage).
+
+---
+
+## The Rollercrusher Ride  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Enchantment
+**Mana cost:** {X}{2}{R}
+
+**Oracle text:**
+
+```
+Delirium — If a source you control would deal noncombat damage to a permanent or player while there are four or more card types among cards in your graveyard, it deals double that damage instead.
+When The Rollercrusher Ride enters, it deals X damage to each of up to X target creatures.
+```
+
+**Current tags:** `condition.cares_graveyard`, `condition.has_x_in_cost`, `effect.deals_damage`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.amplifies_damage_or_lifeloss`
+  - **What's wrong:** Card has a Furnace-of-Rath-style damage-doubling replacement effect that isn't tagged.
+  - **Evidence vs reality:** text contains `"it deals double that damage instead"`, the canonical amplifier phrasing.
+  - **Suggested fix:** Broaden `effect.amplifies_damage_or_lifeloss` to catch "deal[s] double that damage … instead" replacement-effect form.
+- **missing**: `condition.delirium` (known coverage gap — Delirium kicker not yet tagged).
+
+---
+
+## The Swarmweaver  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Artifact Creature — Scarecrow
+**Mana cost:** {2}{B}{G}
+
+**Oracle text:**
+
+```
+When The Swarmweaver enters, create two 1/1 black and green Insect creature tokens with flying.
+Delirium — As long as there are four or more card types among cards in your graveyard, Insects and Spiders you control get +1/+1 and have deathtouch.
+```
+
+**Current tags:** `condition.cares_graveyard`, `effect.create_creature_token`, `effect.create_token`, `effect.grants_evasion`, `effect.grants_stat_buff`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.grants_deathtouch`
+  - **What's wrong:** Anthem grants deathtouch to a tribal subset but the deathtouch-grant tag never fires.
+  - **Evidence vs reality:** text contains `"Insects and Spiders you control get +1/+1 and have deathtouch"`, a conditional anthem granting deathtouch.
+  - **Suggested fix:** Broaden `effect.grants_deathtouch` to catch tribal anthem "<tribe>s you control … have deathtouch" pattern.
+- **missing**: `condition.cares_tribe.insect`, `condition.cares_tribe.spider` (coverage gap — no Insect/Spider tribe in catalog).
+- **missing**: `condition.delirium` (known coverage gap).
+
+---
+
+## The Tale of Tamiyo  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Enchantment — Saga
+**Mana cost:** {2}{U}
+
+**Oracle text:**
+
+```
+(As this Saga enters and after your draw step, add a lore counter. Sacrifice after IV.)
+I, II, III — Mill two cards. If two cards that share a card type were milled this way, draw a card and repeat this process.
+IV — Exile any number of target instant, sorcery, and/or Tamiyo planeswalker cards from your graveyard. Copy them. You may cast any number of the copies.
+```
+
+**Current tags:** `effect.draws_or_discards`, `effect.exile_from_graveyard`, `effect.mill`
+
+### Issues
+
+- **missing**: `effect.copy_spell`
+  - **What's wrong:** IV chapter copies exiled instant/sorcery/planeswalker cards but no copy-spell tag fires.
+  - **Evidence vs reality:** text contains `"Copy them. You may cast any number of the copies."` — verbatim copy-spell pattern.
+  - **Suggested fix:** Broaden `effect.copy_spell` to catch graveyard-exile-then-copy form ("Exile … Copy them. You may cast any number of the copies").
+- **missing**: `effect.cast_from_exile`
+  - **What's wrong:** The cards are exiled from graveyard, then copies are cast — canonical cast-from-exile pattern.
+  - **Evidence vs reality:** text contains `"Exile any number of target … cards from your graveyard. Copy them. You may cast any number of the copies."`
+  - **Suggested fix:** Treat exile-then-copy-then-cast as cast-from-exile.
+- **missing**: `effect.cast_for_free`
+  - **What's wrong:** Copies have no mana cost; "you may cast any number of the copies" is a free-cast.
+  - **Evidence vs reality:** copies are cast without paying mana.
+  - **Suggested fix:** Detect "you may cast … the copies" as a free-cast trigger.
+- **missing**: `condition.cares_graveyard`
+  - **What's wrong:** IV chapter references "from your graveyard".
+  - **Evidence vs reality:** text contains `"target … cards from your graveyard"`.
+  - **Suggested fix:** Ensure `condition.cares_graveyard` matches "from your graveyard" in target clauses.
+
+---
+
+## The Wandering Rescuer  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Creature — Human Samurai Noble
+**Mana cost:** {3}{W}{W}
+
+**Oracle text:**
+
+```
+Flash
+Convoke (Your creatures can help cast this spell. Each creature you tap while casting this spell pays for {1} or one mana of that creature's color.)
+Double strike
+Other tapped creatures you control have hexproof.
+```
+
+**Current tags:** `effect.grants_hexproof`, `effect.has_double_strike`, `effect.has_first_strike`, `effect.has_flash`
+
+### Issues
+
+- **missing**: `effect.has_convoke` (known coverage gap — Convoke not yet in catalog).
+
+---
+
+## Thornspire Verge  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate (`condition.cares_lands`, `effect.add_mana`, `effect.has_activated_ability`).
+
+---
+
+## Threats Around Every Corner  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate. No "face-down permanent enters" trigger exists in catalog; mild coverage gap for cloak/disguise payoffs but no defined tag to flag.
+
+---
+
+## Ticket Booth // Tunnel of Hate  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {2}{R} // {4}{R}{R}
+
+**Oracle text:**
+
+```
+When you unlock this door, manifest dread.
+
+Whenever you attack, target attacking creature gains double strike until end of turn.
+```
+
+**Current tags:** `effect.cloak`, `effect.grants_double_strike`, `effect.grants_first_strike`, `effect.is_room`, `trigger.attack_or_block`
+
+### Issues
+
+- **missing**: `trigger.door_unlocked` (known coverage gap).
+
+---
+
+## Toby, Beastie Befriender  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Legendary Creature — Human Wizard
+**Mana cost:** {2}{W}
+
+**Oracle text:**
+
+```
+When Toby enters, create a 4/4 white Beast creature token with "This token can't attack or block alone."
+As long as you control four or more creature tokens, creature tokens you control have flying.
+```
+
+**Current tags:** `condition.cares_tokens`, `effect.create_creature_token`, `effect.create_token`, `effect.grants_evasion`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `condition.cares_tribe.beast` (coverage gap — no Beast tribe in catalog).
+
+---
+
+## Trapped in the Screen  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate.
+
+---
+
+## Trial of Agony  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate. "Can't block this turn" is one-direction temporary, doesn't match `effect.pacify`'s "can't attack or block" canonical form.
+
+---
+
+## Tunnel Surveyor  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate.
+
+---
+
+## Turn Inside Out  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Instant
+**Mana cost:** {R}
+
+**Oracle text:**
+
+```
+Target creature gets +3/+0 until end of turn. When it dies this turn, manifest dread.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.cloak`, `effect.grants_stat_buff`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `trigger.creature_dies`
+  - **What's wrong:** Delayed-trigger "when it dies this turn" is a dies-trigger but the tag never fires.
+  - **Evidence vs reality:** text contains `"When it dies this turn, manifest dread"`, an anaphoric delayed-dies trigger.
+  - **Suggested fix:** Broaden `trigger.creature_dies` to match "when it dies" / "when it dies this turn" anaphoric delayed triggers.
+
+---
+
+## Twist Reality  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate.
+
+---
+
+## Twitching Doll  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Artifact Creature — Spider Toy
+**Mana cost:** {1}{G}
+
+**Oracle text:**
+
+```
+{T}: Add one mana of any color. Put a nest counter on this creature.
+{T}, Sacrifice this creature: Create a 2/2 green Spider creature token with reach for each counter on this creature. Activate only as a sorcery.
+```
+
+**Current tags:** `effect.add_mana`, `effect.counter_modified`, `effect.create_creature_token`, `effect.create_token`, `effect.grants_reach`, `effect.has_activated_ability`, `effect.ramp_nonland`, `effect.sacrifice_creature`
+
+### Issues
+
+- **missing**: `effect.has_mana_activated_ability`
+  - **What's wrong:** Card has a `{T}: Add one mana of any color` activated mana ability — canonical mana-cost-includes form per the tagDef ("cost includes mana"). The tap-and-sacrifice ability also has mana implied via the activation cost line being mana-free, so this is at minimum the first ability.
+  - **Evidence vs reality:** text contains `"{T}: Add one mana of any color"`, an activated ability — but per tagDef this tag fires when the cost includes mana, which {T} does not. Re-read confirms tag scope; this may be a near-miss not a gap. Flag for reviewer.
+  - **Suggested fix:** Confirm whether there is a producer-side companion tag; if not, no fix needed.
+- **missing**: `condition.cares_tribe.spider` (coverage gap — no Spider tribe in catalog).
+
+NOTE: After re-reading the `effect.has_mana_activated_ability` description ("cost includes mana"), the first {T}: activation has no mana cost, so the tag is correctly NOT firing. Demote this finding.
+
+---
+
+## Tyvar, the Pummeler  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate. `effect.has_mana_activated_ability` correctly fires on the `{3}{G}{G}:` activated ability (cost includes mana).
+
+---
+
+## Unable to Scream  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — `effect.loses_abilities` is correct. No `is_aura` tag exists in catalog; the type-change-to-Toy effect has no dedicated tag.
+
+---
+
+## Undead Sprinter  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+No issues — tags accurate. `condition.cast_from_graveyard` is keyword-scoped per its description (Flashback/Disturb/etc.); Undead Sprinter uses an ad-hoc conditional cast-from-graveyard, so the tag is correctly NOT firing.
+
+---
+
+## Under the Skin  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Sorcery
+**Mana cost:** {2}{G}
+
+**Oracle text:**
+
+```
+Manifest dread.
+You may return a permanent card from your graveyard to your hand.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.cloak`, `effect.is_instant_or_sorcery`, `effect.return_from_graveyard_to_hand`
+
+### Issues
+
+- **missing**: `condition.cares_graveyard`
+  - **What's wrong:** Card references "from your graveyard" as effect source but does not fire the cares_graveyard condition.
+  - **Evidence vs reality:** text contains `"return a permanent card from your graveyard to your hand"`.
+  - **Suggested fix:** Ensure `condition.cares_graveyard` matches "from your graveyard" in return-target clauses.
+
+---
+
+## Underwater Tunnel // Slimy Aquarium  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Enchantment — Room // Enchantment — Room
+**Mana cost:** {U} // {3}{U}
+
+**Oracle text:**
+
+```
+When you unlock this door, surveil 2.
+
+When you unlock this door, manifest dread, then put a +1/+1 counter on that creature.
+```
+
+**Current tags:** `effect.cloak`, `effect.counter_modified`, `effect.is_room`, `effect.plus_one_counter`, `effect.surveil`
+
+### Issues
+
+- **missing**: `trigger.door_unlocked` (known coverage gap).
+
+---
+
+## Unidentified Hovership  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Artifact — Vehicle
+**Mana cost:** {1}{W}{W}
+
+**Oracle text:**
+
+```
+Flying
+When this Vehicle enters, exile up to one target creature with toughness 5 or less.
+When this Vehicle leaves the battlefield, the exiled card's owner manifests dread.
+Crew 1
+```
+
+**Current tags:** `effect.exile_creature`, `effect.has_activated_ability`, `effect.has_flying`, `trigger.artifact_leaves_battlefield`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.cloak`
+  - **What's wrong:** "manifests dread" is the manifest-dread keyword action which falls under the `effect.cloak` rule per its tagDef description, but it did not fire.
+  - **Evidence vs reality:** normalized text contains `"manifests dread"`, but rule likely matches only the bare-verb `"manifest dread"` not the conjugated third-person form.
+  - **Suggested fix:** broaden `effect.cloak` anchor to allow `manifests? dread`.
+---
+
+## Unstoppable Slasher  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Zombie Assassin
+**Mana cost:** {2}{B}
+
+**Oracle text:**
+
+```
+Deathtouch
+Whenever this creature deals combat damage to a player, they lose half their life, rounded up.
+When this creature dies, if it had no counters on it, return it to the battlefield tapped under its owner's control with two stun counters on it.
+```
+
+**Current tags:** `effect.counter_modified`, `effect.has_deathtouch`, `effect.life_changed`, `effect.stun_counter`, `trigger.creature_dies`, `trigger.damage_dealt`
+
+### Issues
+
+- **missing**: `effect.reanimate`
+  - **What's wrong:** "when this creature dies, ... return it to the battlefield" is the dies-return anaphoric self-reanimation pattern the v0.21.0 release notes call out as newly handled.
+  - **Evidence vs reality:** normalized text contains `"when this creature dies, ... return it to the battlefield"`, but `effect.reanimate` did not fire.
+  - **Suggested fix:** extend `effect.reanimate` anaphoric template to cover dies-trigger self-return (similar to Enduring).
+---
+
+## Unwanted Remake  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Instant
+**Mana cost:** {W}
+
+**Oracle text:**
+
+```
+Destroy target creature. Its controller manifests dread.
+```
+
+**Current tags:** `effect.cast_noncreature_spell`, `effect.destroy_creature`, `effect.is_instant_or_sorcery`
+
+### Issues
+
+- **missing**: `effect.cloak`
+  - **What's wrong:** "manifests dread" is the manifest-dread keyword action (third-person conjugation) which the cloak rule should recognize.
+  - **Evidence vs reality:** normalized text contains `"manifests dread"`, but `effect.cloak` did not fire (likely matches only bare `"manifest dread"`).
+  - **Suggested fix:** broaden `effect.cloak` anchor to allow `manifests? dread`.
+---
+
+## Vile Mutilator  <!-- audited 2026-05-31, ruleVersion v0.21.0 -->
+
+**Type:** Creature — Demon
+**Mana cost:** {5}{B}{B}
+
+**Oracle text:**
+
+```
+As an additional cost to cast this spell, sacrifice a creature or enchantment.
+Flying, trample
+When this creature enters, each opponent sacrifices a nontoken enchantment of their choice, then sacrifices a nontoken creature of their choice.
+```
+
+**Current tags:** `effect.has_flying`, `effect.has_trample`, `effect.sacrifice_creature`, `effect.sacrifice_enchantment`, `trigger.self_etb`
+
+### Issues
+
+- **missing**: `effect.edict`
+  - **What's wrong:** The ETB makes each opponent sacrifice a creature AND an enchantment — canonical edict effect that should fire.
+  - **Evidence vs reality:** normalized text contains `"each opponent sacrifices a nontoken enchantment ... sacrifices a nontoken creature"`, but `effect.edict` did not fire.
+  - **Suggested fix:** ensure `effect.edict` regex covers "each opponent sacrifices a <type>" (currently may require just "sacrifice"/"target opponent sacrifices").

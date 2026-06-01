@@ -34,6 +34,22 @@ describe('effect.bounce_creature', () => {
     ['whenever a creature you control deals combat damage to a player, you may exile it, then return it to the battlefield under its owner\'s control'],
     // Variant with period-bridge in the same sentence (after "creature").
     ['target creature you control: exile it. return it to the battlefield under its owner\'s control at the beginning of the next end step'],
+    // v0.20 — anaphoric "those creatures" with explicit prior target antecedent
+    // (Run Away Together: "Choose two target creatures controlled by different
+    // players. Return those creatures to their owners' hands.").
+    ["choose two target creatures controlled by different players. return those creatures to their owners' hands."],
+    // v0.20 — mass-bounce with comma-separated qualifiers (Season of Weaving:
+    // "Return each nonland, nontoken permanent to its owner's hand"). The
+    // filler now admits commas so the qualifier list is reached.
+    ["return each nonland, nontoken permanent to its owner's hand"],
+    // v0.21.0 — Get Out: "one or two target creatures and/or enchantments you
+    // own to your hand". Count slot now admits "one or two" and "up to two".
+    ['return one or two target creatures and/or enchantments you own to your hand'],
+    // v0.21.0 — Niko, Light of Hope: exile + delayed end-step return-to-
+    // battlefield. The exile and return are separated by intervening
+    // sentences (token copies, etc.); the return is a delayed end-step
+    // trigger that brings the same creature back — semantically a blink.
+    ['{2}, {t}: exile target nonlegendary creature you control. shards you control become copies of it until the next end step. return it to the battlefield under its owner\'s control at the beginning of the next end step.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

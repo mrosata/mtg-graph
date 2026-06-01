@@ -31,6 +31,10 @@ const PATTERNS = [
   // loss event in the same sentence; it's not a replacement effect proper but
   // it's the same axis from a deckbuilding perspective.
   /\b(?:deals?|loses?) twice that much (?:damage|life)\b/,
+  // v0.22.0 — The Rollercrusher Ride: "deals double that damage instead".
+  // Same replacement-effect semantic as "twice that much"; different lexical
+  // phrasing ("double" instead of "twice that much").
+  /\b(?:deals?|loses?)\s+double\s+that\s+(?:damage|life)\b[^.]*?\binstead\b/,
 ];
 
 export const rule: Rule = {

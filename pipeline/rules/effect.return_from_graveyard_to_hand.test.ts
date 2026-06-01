@@ -17,6 +17,10 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // Regression: Edgewall Inn — "card that has an Adventure" modifier
     // between the noun and the "from your graveyard" clause.
     ['return target card that has an adventure from your graveyard to your hand'],
+    // v0.21.0 — Greenhouse // Rickety Gazebo: mill-then-return-from-among-
+    // them frame. The mill puts cards into the graveyard then immediately
+    // returns some to hand — semantically a graveyard-to-hand recursion.
+    ['mill four cards, then return up to two permanent cards from among them to your hand'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

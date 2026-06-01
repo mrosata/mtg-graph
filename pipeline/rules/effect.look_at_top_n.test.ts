@@ -13,6 +13,9 @@ describe('effect.look_at_top_n', () => {
     // that many cards from the top of your library".
     ['reveal that many cards from the top of your library'],
     ['reveal that many cards from the top of target opponent\'s library'],
+    // v0.20 — multi-token quantifier (Stargaze: "look at twice X cards").
+    ['look at twice x cards from the top of your library'],
+    ['reveal three times that many cards from the top of your library'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

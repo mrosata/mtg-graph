@@ -23,6 +23,12 @@ const PATTERN = new RegExp(
     'lands? you control' +
     '|lands? (?:in|from) (?:your|a) graveyard' +
     '|land cards? (?:in|from) (?:your|a) graveyard' +
+    // v0.21.0 — Hedge Shredder: land cards going to the graveyard from
+    // a library / being revealed / being exiled from a graveyard is a
+    // typed land-count payoff (mill-into-play, reveal-trigger). The
+    // bare graveyard form already covers static gates; this admits the
+    // dynamic frame. Excludes "reveal a land card" (tutor signature).
+    '|land cards? (?:are )?(?:put into|reveal(?:ed)? (?:from|in)|exiled from) (?:your|a|target opponent\'s|each player\'s) graveyard' +
     '|each land you control' +
     '|for each land' +
     // v0.14.40 — admit "untapped|tapped|basic|snow" modifier between `more`
@@ -60,11 +66,18 @@ const SUBTYPE_PATTERN = new RegExp(
   ')\\b',
 );
 
+// v0.21.0 — Fear of Exposure: "as an additional cost to cast this spell,
+// tap two untapped creatures and/or lands you control" mentions "lands you
+// control" as a cost-clause, not a land-count payoff. Strip the additional-
+// cost span before running PATTERNS.
+const ADDITIONAL_COST_LANDS = /\bas an additional cost[^.]*?\btap\s+(?:two|three|\d+)\s+(?:untapped\s+)?creatures?\s+(?:and\/or\s+)?lands?\s+you\s+control\b/g;
+
 export const rule: Rule = {
   id: 'condition.cares_lands',
   axis: 'condition',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(SUBTYPE_PATTERN);
+    const stripped = t.replace(ADDITIONAL_COST_LANDS, '');
+    const m = stripped.match(PATTERN) ?? stripped.match(SUBTYPE_PATTERN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['land'], proximity: ['you control', 'graveyard', 'each', 'or more'], window: 4 },

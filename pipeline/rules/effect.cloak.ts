@@ -22,14 +22,38 @@ export const tagDef: TagDef = {
 // The verb-form alternation requires an object slot, so "cloaked creature"
 // (the noun result) and a bare "cloak." command cannot match.
 const PATTERN =
-  /\b(?:cloak (?:the top card|that card|an?\s+\w+|target [\w\s]+|(?:one|two|three|four|five|\d+) of (?:them|those\s+\w+))|manifest dread)\b/;
+  /\b(?:cloak (?:the top card|that card|an?\s+\w+|target [\w\s]+|(?:one|two|three|four|five|\d+) of (?:them|those\s+\w+))|manifests?\s+dread)\b/;
+
+// v0.22.0 — observer-side guard. "Whenever/when/each time you manifest dread"
+// (Paranormal Analyst) is a trigger that OBSERVES the keyword action — the
+// card itself doesn't cause a cloak. Suppress when the matched keyword is
+// preceded by such a trigger leadin within ~25 chars. A runtime guard is
+// cleaner than a fixed-width JS lookbehind here.
+const OBSERVER_LEADIN = /(?:whenever|when|each time)\s+you\s+$/;
 
 export const rule: Rule = {
   id: 'effect.cloak',
   axis: 'effect',
   match: (t) => {
     const m = t.match(PATTERN);
-    return m ? { evidence: m[0] } : false;
+    if (!m) return false;
+    if (m.index !== undefined) {
+      const before = t.substring(Math.max(0, m.index - 25), m.index);
+      if (OBSERVER_LEADIN.test(before)) return false;
+    }
+    return { evidence: m[0] };
+  },
+  // v0.21.0 — Manifest Dread (the sorcery card) collides with the keyword
+  // action "manifest dread". The case-insensitive name-substitution in
+  // pipeline/normalize.ts:42-44 replaces the card's own name with `__SELF__`
+  // BEFORE the rule runs, clobbering the keyword. A targeted matchCard gate
+  // keyed on `card.name` is the minimal fix. The broader bug (name segments
+  // colliding with known keywords) is deferred.
+  matchCard: (card) => {
+    if (card.name === 'Manifest Dread') {
+      return { evidence: 'Manifest Dread (card-name gate)' };
+    }
+    return false;
   },
   nearMiss: {
     anchors: ['cloak', 'manifest dread'],

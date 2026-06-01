@@ -15,6 +15,10 @@ const PATTERNS = [
   /\bfor each (?:[\w\s\-]+? )?enchantments? (?:you control )?/,
   /\benchantments? you control\b/,
   /\bif you control (?:[\d]+ or more |[\w\s\-]+ )?enchantments?\b/,
+  // v0.21.0 — Inquisitive Glimmer: static frame "enchantment/aura spells you
+  // cast cost {N} less" — cost-reduction payoff scoped to enchantments cast
+  // by the controller.
+  /\b(?:enchantment|aura)\s+spells?\s+you\s+cast\b/,
 ];
 
 export const rule: Rule = {

@@ -45,7 +45,7 @@ export const rule: Rule = {
     // Honored Dreyleader). The negative lookahead still gates the head tribe
     // slot so dedicated trigger.another_<type>_etb tags aren't poached.
     const tribal = t.match(
-      /whenever (?:a|another)\s+(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature)\b)[\w\-]+(?:\s+(?:or|and)\s+[\w\-]+)?\s+(?:you control\s+)?(?:enters?|enters or is turned face up)/,
+      /whenever (?:a|another|one or more (?:other )?)\s*(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature)\b)[\w\-]+s?(?:,\s+[\w\-]+s?){0,4}(?:,?\s+(?:or|and|and\/or)\s+[\w\-]+s?)?\s+(?:you control\s+)?(?:enters?|enter\b|enters or is turned face up)/,
     );
     if (tribal) return { evidence: tribal[0] };
     // v0.14.20 — compound subject "this <type> or another <subject>"

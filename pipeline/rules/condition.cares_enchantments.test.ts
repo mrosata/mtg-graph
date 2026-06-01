@@ -9,6 +9,11 @@ describe('condition.cares_enchantments', () => {
     ['enchantments you control have ward 1'],
     ['if you control three or more enchantments, draw a card'],
     ['this spell costs 1 less to cast for each enchantment you control'],
+    // v0.21.0 — Inquisitive Glimmer: "enchantment spells you cast cost {1}
+    // less to cast" — static frame, not whenever-triggered. Same axis as
+    // "whenever you cast an enchantment".
+    ['enchantment spells you cast cost {1} less to cast'],
+    ['aura spells you cast cost {2} less to cast'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

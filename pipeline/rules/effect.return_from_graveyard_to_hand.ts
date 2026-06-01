@@ -19,7 +19,15 @@ export const rule: Rule = {
     const m = t.match(
       /returns? [^.]*?cards? (?:[^.]*? )?(?:from|that w[ae]s? in)[^.]*?graveyards?[^.]*?to [\w'\s]*? hand/,
     );
-    return m ? { evidence: m[0] } : false;
+    if (m) return { evidence: m[0] };
+    // v0.21.0 — Greenhouse // Rickety Gazebo: "mill <N> cards, then return
+    // <count> [type] cards from among them to your hand". The mill creates
+    // the graveyard contents; "from among them" anaphorically refers to those
+    // milled cards — semantically a graveyard-to-hand recursion.
+    const millFromAmong = t.match(
+      /\bmills?\s+(?:\w+\s+)?cards?[^.]{0,80}?,?\s*(?:then\s+)?return\s+(?:up to\s+)?(?:\d+|one|two|three|four|five|x|any number of)\s+(?:[\w\-]+\s+)?cards?\s+from among them\s+to your hand\b/,
+    );
+    return millFromAmong ? { evidence: millFromAmong[0] } : false;
   },
   nearMiss: { anchors: ['graveyard', 'graveyards'], proximity: ['return', 'hand'], window: 8 },
 };

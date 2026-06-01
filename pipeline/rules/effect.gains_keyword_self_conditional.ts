@@ -44,7 +44,12 @@ const PATTERNS = [
   // v0.14.28 — filler broadened (Living Conundrum): cap 40→80, admit "/"
   // for stat notation ("10/10"), and allow a second verb ("and has flying")
   // to bridge in-clause stat boosts and the keyword.
-  new RegExp(`\\b(?:as long as|while|if)\\b[^.]{0,80}?,\\s*(?:it|${SELF_SUBJECT})\\s+(?:has|have|gains?)\\s+(?:[\\w\\-\\s,/]{0,80}?\\band\\s+(?:has\\s+|have\\s+|gains?\\s+)?)?${KEYWORD}\\b`),
+  // v0.21.0 — Hand That Feeds: leading verb may be `gets?` followed by an
+  // `and gains?` continuation ("it gets +2/+0 and gains menace"). Admit
+  // `gets?` to the leading-verb alternation; the continuation regex already
+  // handles "and gains?" via the inner bridge.
+  // v0.21.0 — filler also admits `+` for stat notation ("+2/+0").
+  new RegExp(`\\b(?:as long as|while|if)\\b[^.]{0,80}?,\\s*(?:it|${SELF_SUBJECT})\\s+(?:has|have|gains?|gets?)\\s+(?:[\\w\\-\\s,/+]{0,80}?\\band\\s+(?:has\\s+|have\\s+|gains?\\s+)?)?${KEYWORD}\\b`),
 ];
 
 export const rule: Rule = {

@@ -17,8 +17,11 @@ export const tagDef: TagDef = {
 // "power N or less" (N <= 2) and "with the least power" — discrete archetype
 // gate. Threshold N <= 2 to avoid matching high-stat tribal effects ("power 3
 // or less" still includes high-power outliers; the focused band is 1–2).
+// v0.20 — added copula arm "<name>'s/its power is N or less" (Reptilian
+// Recruiter: "if that creature's power is 2 or less"). Mirrors the
+// cares_high_power copula arm.
 const PATTERN =
-  /\bpower (?:[0-2]|one|two) or (?:less|fewer)\b|\bwith the least power\b/;
+  /\bpower (?:[0-2]|one|two) or (?:less|fewer)\b|\bwith the least power\b|\b(?:[\w']+?'s|its)\s+power\s+(?:is|are)\s+(?:[0-2]|one|two) or (?:less|fewer)\b/;
 
 // v0.14.4 Task 4.3: "can't be blocked by creatures with power N or less" is a
 // blocker-restriction (pseudo-evasion), NOT a cares-low-power payoff. Mirror

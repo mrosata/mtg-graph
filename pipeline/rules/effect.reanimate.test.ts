@@ -45,6 +45,10 @@ describe('effect.reanimate', () => {
     // boundary.
     ['return target permanent card with mana value 3 or less from your graveyard to your hand. return that card to the battlefield instead if you control a mount'],
     ['whenever a nontoken creature an opponent controls dies, you may pay {1}. if you do, return that card to the battlefield tapped under your control'],
+    // v0.20 — "return a creature card put into <your> graveyard this way to
+    // the battlefield" (Starfall Invocation). The card was milled/wiped to
+    // graveyard earlier in the same effect; "this way" binds back to that.
+    ['destroy all creatures. if the gift was promised, return a creature card put into your graveyard this way to the battlefield under your control'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -55,7 +59,38 @@ describe('effect.reanimate', () => {
   it.each([
     ['until end of turn, target creature you control gains "when this creature dies, return it to the battlefield tapped under its owner\'s control, then create a wicked role token attached to it."'],
     ['when this creature dies, return it to the battlefield under its owner\'s control'],
+    // v0.20.0 — Enduring cycle (Enduring Courage / Curiosity / Innocence /
+    // Tenacity / Vitality): "when __self__ dies, if it was a creature,
+    // return it to the battlefield ..." The "if it was a creature"
+    // interpolation between "dies," and "return it" must be admitted.
+    ["whenever another creature you control enters, it gets +2/+0 and gains haste until end of turn. when __self__ dies, if it was a creature, return it to the battlefield under its owner's control. it's an enchantment."],
+    // v0.20.0 — Come Back Wrong: anaphoric "if a creature card is put into
+    // a graveyard this way, return it to the battlefield".
+    ['destroy target creature. if a creature card is put into a graveyard this way, return it to the battlefield under your control. sacrifice it at the beginning of your next end step.'],
+    // v0.21.0 — Meathook Massacre II: dies-trigger → "return that card under
+    // your control with a finality counter on it". Destination is "under
+    // <X>'s control" (not "to the battlefield"), separated by a "pay 3 life"
+    // intermediate sentence. The anaphoric pattern bridges the period.
+    ['whenever a creature you control dies, you may pay 3 life. if you do, return that card under your control with a finality counter on it.'],
+    ['whenever a creature an opponent controls dies, they may pay 3 life. if they don\'t, return that card under your control with a finality counter on it.'],
+    // v0.22.0 — Unstoppable Slasher: "when this creature dies, if it had no
+    // counters on it, return it to the battlefield tapped under its owner's
+    // control..." The "if it had no counters on it" interpolation between
+    // "dies," and "return it" needs a broader filler than the v0.20 cycle's
+    // "if it was a creature".
+    ["deathtouch whenever this creature deals combat damage to a player, they lose half their life, rounded up. when this creature dies, if it had no counters on it, return it to the battlefield tapped under its owner's control with two stun counters on it."],
   ])('matches granted dies-then-reanimate triggers: %s', (text) => {
+    expect(rule.match(text)).toBeTruthy();
+  });
+
+  // v0.21.0 — Hedge Shredder: mill-trigger → "one or more land cards are put
+  // into your graveyard from your library, put them onto the battlefield
+  // tapped". The mill (well, library→graveyard via crew) creates the
+  // graveyard contents; "put them onto the battlefield" reanimates them.
+  it.each([
+    ['whenever this vehicle attacks, you may mill two cards. whenever one or more land cards are put into your graveyard from your library, put them onto the battlefield tapped.'],
+    ['whenever one or more creature cards are put into your graveyard from your library, put them onto the battlefield.'],
+  ])('matches mill-trigger reanimation: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
   // v0.14.x — search-graveyard-as-source variant (Agency Outfitter). The card

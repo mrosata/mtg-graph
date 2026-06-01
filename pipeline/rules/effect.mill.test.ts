@@ -27,6 +27,17 @@ describe('effect.mill', () => {
     ['look at the top two cards of your library. put one into your hand and the other into your graveyard'],
     // Variant — "into its owner's graveyard"
     ['put one into your hand and the other into its owner\'s graveyard'],
+    // v0.20.0 — Cynical Loner: tutor-to-graveyard. "Search your library for
+    // a card, put it into your graveyard, then shuffle". Functionally a
+    // self-mill — a card ends up in graveyard.
+    ['survival — at the beginning of your second main phase, if this creature is tapped, you may search your library for a card, put it into your graveyard, then shuffle.'],
+    ['search your library for a creature card, put it into your graveyard, then shuffle'],
+    // v0.21.0 — Nashi, Searcher in the Dark: "you mill that many cards" —
+    // anaphoric count bound to a prior numeric clause (combat-damage amount).
+    // Same axis as "mills cards equal to X", just an alternate phrasing.
+    ['menace whenever __self__ deals combat damage to a player, you mill that many cards'],
+    ['target player mills that many cards'],
+    ['each player mills that many cards'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

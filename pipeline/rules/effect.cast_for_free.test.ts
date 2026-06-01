@@ -29,6 +29,16 @@ describe('effect.cast_for_free', () => {
     // "cast" and "without paying"). Filler ceiling needed to bump from 12 to
     // ~16 to accept the extended qualifier.
     ['you may cast target instant or sorcery card with mana value 4 or less from your graveyard without paying its mana cost'],
+    // v0.20 — "rather than paying" alt-cost (The Infamous Cruelclaw).
+    ['you may cast that card by discarding a card rather than paying its mana cost'],
+    // v0.20.0 — long filler with X-equals-counter-count qualifier (Wishing
+    // Well): "cast target instant or sorcery card with mana value equal to
+    // the number of coin counters on this artifact from your graveyard
+    // without paying its mana cost" — ~22 tokens between cast and without.
+    ['{t}: put a coin counter on this artifact. when you do, you may cast target instant or sorcery card with mana value equal to the number of coin counters on this artifact from your graveyard without paying its mana cost.'],
+    // v0.20.0 — "pay {0} rather than pay the mana cost" frame (Charred Foyer
+    // // Warped Space). The cost is bypassed via the {0} alt-cost.
+    ['once each turn, you may pay {0} rather than pay the mana cost for a spell you cast from exile.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

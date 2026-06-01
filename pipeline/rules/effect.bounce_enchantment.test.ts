@@ -9,6 +9,9 @@ describe('effect.bounce_enchantment', () => {
     ['return target permanent to its owner\'s hand'],
     ['return target nonland permanent to its owner\'s hand'],
     ['return target noncreature permanent to its owner\'s hand'],
+    // v0.21.0 — Get Out: "one or two target creatures and/or enchantments you
+    // own to your hand". Count slot admits "one or two" and "up to two".
+    ['return one or two target creatures and/or enchantments you own to your hand'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

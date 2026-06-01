@@ -35,6 +35,11 @@ const PATTERNS = [
   // is anchored to "opponent/player/you" so generic "lost life" prose
   // (battlefield trivia) doesn't leak.
   /\b(?:an? |any |each |target |another )?(?:opponent|player|you) (?:has |have )?lost life this turn\b/,
+  // v0.21.0 — Kaito, Bane of Nightmares: "for each opponent who lost life
+  // this turn" — relative-clause frame ("opponent(s) WHO (has|have)? lost
+  // life this turn") gates a per-opponent count. Same axis as the bare
+  // subject-lost-life frame above.
+  /\b(?:opponent|player)s?\s+who\s+(?:has\s+|have\s+)?lost life this turn\b/,
 ];
 
 export const rule: Rule = {

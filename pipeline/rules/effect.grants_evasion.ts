@@ -78,7 +78,25 @@ function stripSelfAnaphor(t: string): string {
       /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?)\s+[^.]*?\./g,
       '',
     )
-    .replace(TRIGGERED_SELF_BUFF, '');
+    .replace(TRIGGERED_SELF_BUFF, '')
+    // v0.20 — clone-frame self-anaphor (Mockingbird): "you may have this
+    // creature enter as a copy of any creature ... except it's a Bird ...
+    // and it has flying." The "it" is the freshly-entered self in clone
+    // form; the keyword belongs to self, not to a separate creature, so
+    // strip the entire clone clause before the grants-keyword regex sees
+    // "it has flying".
+    .replace(/\benter(?:s)? as a copy of [^.]*?\bit (?:has|have|gains?) [^.]*?\./g, '')
+    // v0.20.0 — self-antecedent keyword-counter grant (Acrobatic
+    // Cheerleader: "if this creature is tapped, put a flying counter on it").
+    // The "it" antecedent is self (established by "this <type>" in the gate
+    // clause), so the keyword belongs to self — not an other-creature grant.
+    // Strip the entire self-conditional clause before the keyword-counter
+    // pattern at PATTERNS[3] runs. Bare "put a flying counter on it"
+    // without the gate clause is preserved.
+    .replace(
+      /\b(?:if|while|when|whenever|as long as)\s+[^.]*?\bthis\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)\b[^.]*?,\s*put a (?:flying|menace|intimidate) counter on it\b[^.]*\./g,
+      '',
+    );
 }
 
 export const rule: Rule = {

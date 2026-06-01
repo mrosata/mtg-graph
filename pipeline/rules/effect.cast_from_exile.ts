@@ -42,12 +42,22 @@ export const tagDef: TagDef = {
   pairsWith: ['condition.cares_exile_pile'],
 };
 
+// Pattern 2 ("cast a spell this way") is anaphoric — it back-references an
+// exile clause earlier in the same ability. v0.20: guard with a backward
+// 200-char window check requiring `exile|exiled|from exile`, otherwise the
+// phrase FPs on graveyard-recast templating (Osteomancer Adept: "you may
+// cast that card from your graveyard ... cast a spell this way").
+const PATTERN_2 = /\b(?:you may )?cast (?:a |an )?spells? this way\b/;
+
+// v0.22.0 — Painter's Studio / Defaced Gallery: anaphoric "play them/it/those
+// cards" follows an exile-top-N clause. Same backward exile-window guard as
+// PATTERN_2 keeps it from FPing on graveyard reanimation.
+const PATTERN_PLAY_ANAPHOR =
+  /\b(?:you may )?play (?:it|them|those cards)(?:\s+(?:this turn|until end of turn|until the end of your next turn))?\b/;
+
 const PATTERNS = [
   // (1) Theft / opponent's exiled cards remain available
   /\bfor as long as (?:they|it) remains? exiled\b/,
-  // (2) Anaphoric "cast a spell this way" — back-reference to a prior exile
-  // clause. Bare phrase, no need for the verb to lead.
-  /\b(?:you may )?cast (?:a |an )?spells? this way\b/,
   // (3) Explicit cast from the exile pile. Filler accepts up to 12 tokens
   // between "cast" and "from among" (handles "any number of instant and/or
   // sorcery spells" — 7 tokens of qualifier plus headroom).
@@ -60,6 +70,11 @@ const PATTERNS = [
   // (MTG oracle templating only uses "from among those cards" after an
   // exile clause).
   /\bcast (?:[\w\-'/]+\s+){0,12}?from among those cards\b/,
+  // (5) v0.21.0 — Norin, Swift Survivalist: explicit impulse-cast permission
+  // "play that card from exile (this turn)?". The "play that card" verb
+  // covers both creature and land plays; "from exile" anchors to the source
+  // zone — distinct phrasing from the existing anaphoric forms.
+  /\bplay that card from exile(?:\s+this turn)?\b/,
 ];
 
 export const rule: Rule = {
@@ -69,6 +84,25 @@ export const rule: Rule = {
     for (const re of PATTERNS) {
       const m = t.match(re);
       if (m) return { evidence: m[0] };
+    }
+    // Pattern 2 — anaphoric, requires a backward exile-token within 200 chars
+    // to disambiguate from graveyard-recast templating (Osteomancer Adept).
+    const m2 = t.match(PATTERN_2);
+    if (m2 && m2.index !== undefined) {
+      const before = t.substring(Math.max(0, m2.index - 200), m2.index);
+      if (/\b(?:exile|exiles|exiled|exiling|from exile)\b/.test(before)) {
+        return { evidence: m2[0] };
+      }
+    }
+    // v0.22.0 — "play them/it/those cards" anaphoric arm. Same 200-char
+    // backward exile-window guard as PATTERN_2. Disambiguates from graveyard
+    // reanimation ("return ... to your hand. you may play them this turn").
+    const mPlay = t.match(PATTERN_PLAY_ANAPHOR);
+    if (mPlay && mPlay.index !== undefined) {
+      const before = t.substring(Math.max(0, mPlay.index - 200), mPlay.index);
+      if (/\b(?:exile|exiles|exiled|exiling|from exile)\b/.test(before)) {
+        return { evidence: mPlay[0] };
+      }
     }
     return false;
   },

@@ -26,7 +26,9 @@ export const rule: Rule = {
     // active-voice triggers ("one or more creatures you control deal combat
     // damage to a player", Yarus, Roar of the Old Gods) also match. Common
     // in face-down / token go-wide payoffs.
-    const m = t.match(/whenever (?:[^,.]*?)(?:deal(?:s)? (?:[\w\s]+?\s)?damage|(?:is|are) dealt (?:[\w\s]+?\s)?damage)/);
+    // v0.20.0 — `when(?:ever)?` admits single-fire `when` triggers
+    // (Cracked Skull aura: "when enchanted creature is dealt damage").
+    const m = t.match(/when(?:ever)? (?:[^,.]*?)(?:deal(?:s)? (?:[\w\s]+?\s)?damage|(?:is|are) dealt (?:[\w\s]+?\s)?damage)/);
     return m ? { evidence: m[0] } : false;
   },
 };

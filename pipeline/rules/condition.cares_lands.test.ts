@@ -39,11 +39,19 @@ describe('condition.cares_lands', () => {
     ['if you control five or more untapped lands, this creature enters with two +1/+1 counters and a lifelink counter on it.'],
     ['if you control three or more basic lands, draw a card'],
     ['if you control four or more snow lands, gain 2 life'],
+    // v0.21.0 — Hedge Shredder: "land cards are put into your graveyard from
+    // your library" is a typed land-count payoff (mill-into-play). Distinct
+    // from "land card in your graveyard" (static gate) but same semantics.
+    ['whenever one or more land cards are put into your graveyard from your library, put them onto the battlefield tapped'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
 
   it.each([
+    // v0.21.0 — Fear of Exposure: "as an additional cost ... tap two untapped
+    // creatures and/or lands you control" is a cost-clause mention of lands,
+    // not a land-count gate. Must be stripped before PATTERNS run.
+    ['as an additional cost to cast this spell, tap two untapped creatures and/or lands you control. trample'],
     // Tutor — mentions "land card" but doesn't care about lands as a count/class
     ['search your library for a basic land card, reveal it, put it into your hand'],
     // Destroy — mentions land as target but doesn't care about lands

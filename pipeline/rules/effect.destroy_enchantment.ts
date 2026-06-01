@@ -32,11 +32,21 @@ const PATTERN_BROAD =
 const PATTERN_CHAINED =
   /\bdestroy(?:s)?\b[^.\n]*?\btarget\s+(?:[\w\-]+\s+)?enchantments?\b/;
 
+// v0.20.0 — enchantment-subtype-named destroys. "Destroy target Room" (and
+// Aura / Saga / Class / Curse / Shrine / Background) destroys an
+// enchantment because those types are all enchantment subtypes.
+const PATTERN_SUBTYPE =
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:rooms?|auras?|sagas?|classes|curses?|shrines?|backgrounds?)\b/;
+
 export const rule: Rule = {
   id: 'effect.destroy_enchantment',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN_OWN) ?? t.match(PATTERN_BROAD) ?? t.match(PATTERN_CHAINED);
+    const m =
+      t.match(PATTERN_OWN) ??
+      t.match(PATTERN_BROAD) ??
+      t.match(PATTERN_CHAINED) ??
+      t.match(PATTERN_SUBTYPE);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['destroy'], proximity: ['enchantment', 'permanent'], window: 8 },

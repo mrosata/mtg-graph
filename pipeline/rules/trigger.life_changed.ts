@@ -14,7 +14,12 @@ export const rule: Rule = {
   id: 'trigger.life_changed',
   axis: 'trigger',
   match: (t) => {
-    const m = t.match(/whenever (?:you|an opponent|a player) (?:gains?|loses?) life/);
+    // v0.20 — admit "gains or loses life" / "loses or gains life" disjunction
+    // (Moonstone Harbinger). The disjunction interrupts the gain/lose to
+    // life adjacency the base pattern requires.
+    const m = t.match(
+      /whenever (?:you|an opponent|a player) (?:gains? or loses?|loses? or gains?|gains?|loses?) life/,
+    );
     return m ? { evidence: m[0] } : false;
   },
 };

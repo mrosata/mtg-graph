@@ -20,6 +20,13 @@ describe('effect.untap', () => {
     ['target creatures you control get +1/+1 until end of turn. untap them.'],
     // Essence of Antiquity — anaphoric "untap them" referencing "creatures you control" antecedent.
     ['creatures you control gain hexproof until end of turn. untap them'],
+    // v0.20 — chained "gain control + untap" (Reptilian Recruiter): the
+    // untap rides on a comma-clause within the same sentence rather than
+    // across a sentence boundary.
+    ["gain control of that creature until end of turn, untap it, and it gains haste until end of turn"],
+    // v0.20.0 — tribal-list antecedent (Valley Floodcaller): plural tribal
+    // nouns + "you control" + buff clause + "untap them".
+    ['flash you may cast noncreature spells as though they had flash. whenever you cast a noncreature spell, birds, frogs, otters, and rats you control get +1/+1 until end of turn. untap them.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

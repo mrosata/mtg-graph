@@ -54,6 +54,12 @@ describe('trigger.another_creature_etb', () => {
     ['whenever another squirrel or food you control enters, put a +1/+1 counter on this creature'],
     // Knightfisher — tribal arm with pre-tribe adjective ("nontoken Bird").
     ['whenever another nontoken bird you control enters, create a 1/1 blue fish creature token'],
+    // v0.20.0 — multi-tribe comma list with "or"/"and/or" conjunction.
+    // Valley Mightcaller — "another frog, rabbit, raccoon, or squirrel".
+    ['trample whenever another frog, rabbit, raccoon, or squirrel you control enters, put a +1/+1 counter on this creature.'],
+    // Valley Questcaller — "one or more other rabbits, bats, birds, and/or mice"
+    // (plural tribes, "one or more other" determiner, plural verb "enter").
+    ['whenever one or more other rabbits, bats, birds, and/or mice you control enter, scry 1. other rabbits, bats, birds, and mice you control get +1/+1.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -13,6 +13,13 @@ describe('effect.destroy_enchantment', () => {
     ['destroy target noncreature permanent'],
     // v0.14.1 — Molten Collapse two-comma chain.
     ['destroy target noncreature, nonland permanent with mana value 1 or less'],
+    // v0.20.0 — enchantment-subtype-named destroy (Anthropede: "destroy
+    // target Room"). Rooms (and Auras / Sagas / Classes / Curses / Shrines /
+    // Backgrounds) are enchantment subtypes — destroying them removes an
+    // enchantment.
+    ['reach when this creature enters, you may discard a card or pay {2}. when you do, destroy target room.'],
+    ['destroy target aura'],
+    ['destroy target saga'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

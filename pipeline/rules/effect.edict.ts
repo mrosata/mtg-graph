@@ -40,11 +40,29 @@ export const tagDef: TagDef = {
 const PATTERN =
   /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player)\s+(?:may\s+(?:[^.]{0,40}?\s+or\s+)?)?sacrifices?\s+(?:a\s+|an\s+|two\s+|three\s+|x\s+|that\s+many\s+|half\s+(?:the\s+)?(?:non-?\w+\s+)?)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent)s?\b/;
 
+// v0.20 — "unless <opponent> sacrifices" punisher-edict (Rottenmouth Viper:
+// "each opponent loses 4 life unless that player sacrifices a nonland
+// permanent ..."). The opponent's choice gates a sacrifice on a tax — same
+// opponent-side sacrifice semantic as classic edicts. The opponent subject
+// appears BEFORE the `unless` clause, and the `unless they/that player`
+// re-introduces the sacrifice obligation. Allows an optional `<X> or` arm
+// (Rottenmouth: "sacrifices ... or discards a card").
+const UNLESS_PATTERN =
+  /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player)\b[^.]{0,80}?\bunless\s+(?:they|that\s+player|he\s+or\s+she)\s+(?:[^.]{0,40}?\s+or\s+)?sacrifices?\s+(?:a\s+|an\s+|two\s+|three\s+|x\s+|that\s+many\s+|half\s+(?:the\s+)?(?:non-?\w+\s+)?)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent)s?\b/;
+
+// v0.22.0 — Vile Mutilator: chained "each opponent sacrifices X, then
+// sacrifices Y" where X is non-creature/permanent (e.g. enchantment) and Y is
+// the creature/permanent. The first clause's noun is irrelevant; the second
+// clause re-introduces the opponent's forced sacrifice with the creature
+// /permanent noun anchor.
+const CHAINED_PATTERN =
+  /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player)\s+sacrifices?\s+(?:a\s+|an\s+)?[\w\-]+(?:\s+[\w\-]+){0,5}?,\s+then\s+sacrifices?\s+(?:a\s+|an\s+)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent)s?\b/;
+
 export const rule: Rule = {
   id: 'effect.edict',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN);
+    const m = t.match(PATTERN) ?? t.match(UNLESS_PATTERN) ?? t.match(CHAINED_PATTERN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['sacrifice'], proximity: ['opponent', 'player', 'each', 'target'], window: 6 },

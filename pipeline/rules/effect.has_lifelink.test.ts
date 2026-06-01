@@ -14,11 +14,11 @@ function card(keywords: string[], oracleText = ''): Card {
 
 describe('effect.has_lifelink', () => {
   it.each([
-    [['Lifelink']],
-    [['Flying', 'Lifelink']],
-    [['Lifelink', 'Trample']],
-  ])('matches when keywords include Lifelink: %j', (kw) => {
-    expect(rule.matchCard!(card(kw), '')).toBeTruthy();
+    [['Lifelink'], 'Lifelink'],
+    [['Flying', 'Lifelink'], 'Flying, lifelink'],
+    [['Lifelink', 'Trample'], 'Lifelink\nTrample'],
+  ])('matches when keyword Lifelink is intrinsic: %j', (kw, text) => {
+    expect(rule.matchCard!(card(kw, text), text.toLowerCase())).toBeTruthy();
   });
 
   it.each([
@@ -37,5 +37,17 @@ describe('effect.has_lifelink', () => {
   it('does not fire from temporary grants alone', () => {
     const c = card([], 'target creature gains lifelink until end of turn');
     expect(rule.matchCard!(c, c.oracleText)).toBe(false);
+  });
+
+  // v0.22.0 — Reluctant Role Model: "put a flying, lifelink, or +1/+1 counter
+  // on it". Lifelink appears inside a counter-list, not on an intrinsic
+  // keyword-block line. Scryfall puts Lifelink in `keywords` because the
+  // word appears in oracle text; the isIntrinsicKeyword gate filters this.
+  it('does not fire when Lifelink appears only inside a counter-list grant', () => {
+    const c = card(
+      ['Lifelink'],
+      'survival — at the beginning of your second main phase, if this creature is tapped, put a flying, lifelink, or +1/+1 counter on it.',
+    );
+    expect(rule.matchCard!(c, c.oracleText.toLowerCase())).toBe(false);
   });
 });

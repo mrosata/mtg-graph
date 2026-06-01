@@ -137,4 +137,48 @@ describe('effect.has_mana_activated_ability', () => {
     });
     expect(rule.matchCard!(c)).toBeTruthy();
   });
+
+  // v0.20 — Tender Wildguide regression: Offspring {2}'s cost is a KEYWORD
+  // cost, not an activation cost. After newline collapse, the normalized
+  // text reads "offspring {2} {t}: add one mana of any color. {t}: put ..."
+  // and the activation-symbol regex greedily binds {2} to the next {T}:
+  // ability. Both real activations are TAP-ONLY (no mana cost), so the
+  // card has no mana-cost-reducible activation. Must NOT match.
+  it('does not match Tender Wildguide (Offspring keyword cost + tap-only activations)', () => {
+    const c = card({
+      types: ['Creature'],
+      typeLine: 'Creature — Possum Druid',
+      keywords: ['Offspring'],
+      oracleText: 'Offspring {2}\n{T}: Add one mana of any color.\n{T}: Put a +1/+1 counter on this creature.',
+    });
+    expect(rule.matchCard!(c)).toBe(false);
+  });
+
+  // v0.20.0 — Dissection Tools regression: Equipment with em-dash cost
+  // ("Equip—Sacrifice a creature") has no mana component. Training Grounds
+  // cannot reduce it. The keyword short-circuit must gate on the oracle
+  // text actually showing a mana form ("Equip {N}") before firing.
+  it('does not match Equipment whose Equip cost is non-mana (Dissection Tools)', () => {
+    const c = card({
+      types: ['Artifact'],
+      typeLine: 'Artifact — Equipment',
+      keywords: ['Equip'],
+      oracleText:
+        'When this Equipment enters, manifest dread, then attach this Equipment to that creature.\nEquipped creature gets +2/+2 and has deathtouch and lifelink.\nEquip—Sacrifice a creature.',
+    });
+    expect(rule.matchCard!(c)).toBe(false);
+  });
+
+  // Sanity: a kicker-cost card with a separate real mana-bearing activation
+  // should still match (the kicker {2} gets skipped, but the {1}{G}: activation
+  // is independently valid).
+  it('matches kicker-keyword card with a separate mana-bearing activation', () => {
+    const c = card({
+      types: ['Creature'],
+      typeLine: 'Creature',
+      keywords: ['Kicker'],
+      oracleText: 'Kicker {2}\n{1}{G}: This creature gets +1/+1 until end of turn.',
+    });
+    expect(rule.matchCard!(c)).toBeTruthy();
+  });
 });

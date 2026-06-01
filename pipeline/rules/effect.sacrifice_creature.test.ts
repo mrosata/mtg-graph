@@ -55,6 +55,11 @@ describe('effect.sacrifice_creature', () => {
     // sacrifices anything.
     ['each opponent loses 3 life unless they discard a card or sacrifice a creature.'],
     ['target opponent loses 4 life unless they sacrifice a creature.'],
+    // v0.22.0 — Sporogenic Infection: "target player sacrifices a creature
+    // of their choice". `target player` belongs in the NEGATIVE_EDICT span
+    // alongside `target opponent` / `each opponent` — same edict semantic.
+    ['enchant creature when this aura enters, target player sacrifices a creature of their choice other than enchanted creature.'],
+    ['target player sacrifices a creature of their choice.'],
     // v0.14.24 negative: "sacrifice it" with NO creature-card antecedent
     // should not satisfy the temporary-reanimate broadening below.
     ['search your library for an artifact card. put it onto the battlefield. sacrifice it.'],

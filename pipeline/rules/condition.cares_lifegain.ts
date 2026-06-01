@@ -33,6 +33,11 @@ const PATTERNS = [
   // The Case-solve clause has no whenever/if/when/as long as anchor; this
   // pattern catches the bare "you've/you have gained N or more life" frame.
   /\byou(?:'ve| have) gained (?:\d+ |x )?(?:or more )?life(?:\s+this turn)?\b/,
+  // v0.20 — "gain or lose life" disjunction (Moonstone Harbinger, Star
+  // Charter): "if you gained or lost life", "whenever you gain or lose life".
+  // The base "gain ... life" regex requires `gain(ed|s)? life` adjacency,
+  // which the "or los[et]" interpolation breaks.
+  /\bgain(?:ed|s|ing)?\s+or\s+los(?:e|t|es|ing)?\s+life\b/,
 ];
 
 export const rule: Rule = {

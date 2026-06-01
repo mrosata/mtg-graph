@@ -18,6 +18,9 @@ describe('condition.cares_high_power', () => {
     ["activate only if __self__'s power is 3 or greater"],
     ['if its power is 4 or greater, draw a card'],
     ['this ability triggers only if your commander\'s power is 5 or greater'],
+    // v0.20 — "power or toughness N or greater" disjunction (Repel Calamity:
+    // "destroy target creature with power or toughness 5 or greater").
+    ['destroy target creature with power or toughness 5 or greater'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

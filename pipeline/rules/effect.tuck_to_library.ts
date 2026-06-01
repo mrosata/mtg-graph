@@ -49,7 +49,12 @@ export const rule: Rule = {
       // Frame D2: "shuffles (it|that card|target X) into (their|its owner's) library"
       // Requires a possessive owner phrase to avoid catching plain self-shuffles like
       // "shuffle the rest into your library".
-      + `|\\bshuffles? (?:it|that card|target \\w[\\w ]*?|(?:enchanted|attached|equipped) (?:creature|permanent|artifact)) into ${LIBRARY_OWNER_D} library\\b`,
+      + `|\\bshuffles? (?:it|that card|target \\w[\\w ]*?|(?:enchanted|attached|equipped) (?:creature|permanent|artifact)) into ${LIBRARY_OWNER_D} library\\b`
+      // v0.21.0 — Frame D3: multi-subject shuffle, "shuffle this creature
+      // and target X into their owners' libraries" (Floodpits Drowner).
+      // TIGHTLY anchored on possessive/multi-owner library phrase to avoid
+      // self-shuffle FPs ("shuffle the rest into your library").
+      + `|\\bshuffles?\\s+(?:this\\s+(?:creature|permanent)|[^.]{0,80}?target\\s+\\w+[^.]{0,80}?)\\s+(?:and\\s+[^.]{0,40}?\\s+)?into\\s+(?:its owner's|their owners'|target opponent's)\\s+librar(?:y|ies)\\b`,
     );
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;

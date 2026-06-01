@@ -35,7 +35,18 @@ const PATTERNS = [
   /\bputs? [^.]*?cards?[^.]{0,80}?from among (?:the|those) (?:milled|exiled) cards[^.]*?(?:to|onto) (?:the )?battlefield/,
   // Granted dies → return-it-to-battlefield triggers (Not Dead After All).
   // The "dies" → "return it to the battlefield" pair is sufficient signal.
-  /\bdies, return (?:it|that creature|them) to the battlefield/,
+  // v0.20.0 — Enduring cycle: optional "if it was a creature" interpolation
+  // between "dies," and "return it" (Enduring Courage/Curiosity/Innocence/
+  // Tenacity/Vitality). The bounded interpolation keeps the adjacency tight.
+  // v0.22.0 — Unstoppable Slasher: "if it had no counters on it" interpolation.
+  // The optional conditional slot was previously hard-coded to "if it was a
+  // creature"; broaden to any short conditional clause.
+  /\bdies,(?:\s+if [^,.]{1,40},)?\s+return (?:it|that creature|them) to the battlefield/,
+  // v0.20.0 — Come Back Wrong: anaphoric "if a creature card is put into
+  // a graveyard this way, return it to the battlefield". The "this way"
+  // (or "from the battlefield") anaphor binds back to a prior graveyard
+  // -putting clause in the same effect.
+  /\bput into a graveyard (?:this way|from the battlefield),\s+return (?:it|that creature|them)\s+to the battlefield/,
   // v0.14.1 — reversed-clause order. Squirming Emergence: "return to the
   // battlefield target ... card in your graveyard". The "to battlefield"
   // appears BEFORE the "from/in graveyard" mention.
@@ -55,6 +66,24 @@ const PATTERNS = [
   // window — guards against unrelated battlefield-return triggers later
   // in the same card.
   /(?:from (?:your|a|an opponent's|any) graveyard|graveyards?|\bdies)[^.]{0,200}?\.[^.]{0,100}?return that card[^.]{0,40}?(?:to|onto) (?:the )?battlefield/,
+  // v0.20 — "put into graveyard this way" reanimation (Starfall Invocation:
+  // "destroy all creatures. if the gift was promised, return a creature card
+  // put into your graveyard this way to the battlefield"). The "this way"
+  // back-references the wipe clause; the card is in graveyard at resolution
+  // time, so the return-to-battlefield is reanimation.
+  /\breturn (?:a |target )?creature card put into (?:your|a|each\s+player'?s) graveyard this way to the battlefield/,
+  // v0.21.0 — dies-trigger with "under <X>'s control" destination (Meathook
+  // Massacre II). The reanimation may be separated from the "dies" by a
+  // "pay N life" intermediate sentence; anaphoric "return that card" binds
+  // back. Destination is "under your/its owner's control" OR "to the
+  // battlefield". The bounded period-bridge (0,200 then \. then 0,100)
+  // mirrors the v0.18 anaphoric arm; this arm only differs in destination.
+  /\bdies[^.]{0,200}?\.[^.]{0,100}?return (?:it|that card|that creature)\s+(?:to the battlefield|under (?:your|its owner'?s|their) control)\b/,
+  // v0.21.0 — mill-trigger reanimation (Hedge Shredder): "one or more
+  // [type] cards are put into <X>'s graveyard from <X>'s library, put them
+  // onto the battlefield". The library→graveyard transition is mill;
+  // the "put them onto the battlefield" right after is reanimation.
+  /\bone or more (?:land |creature |artifact |enchantment |planeswalker )?cards?\s+(?:are\s+)?put into [\w']+? graveyard from [\w']+? library,[^.]{0,40}?put them onto the battlefield\b/,
 ];
 
 export const rule: Rule = {

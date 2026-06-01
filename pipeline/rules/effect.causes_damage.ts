@@ -40,10 +40,20 @@ const PATTERNS = [
   // A prior clause establishes "target creature you control", then a new
   // sentence starts with "it deals damage equal to its power". The sentence
   // boundary (\.\s+) keeps us from matching free-floating "it deals" fragments.
-  /\btarget creature(?:s)? you control\b[^.]*\.\s+it deals damage equal to its (?:power|toughness) to target creature\b/,
+  // v0.20 — admit optional "then" filler before the anaphoric "it deals"
+  // (Rabid Gnaw: "target creature you control fights ... . then it deals
+  // damage ..."). The sentence-boundary anchor stays the same.
+  /\btarget creature(?:s)? you control\b[^.]*\.\s+(?:then\s+)?it deals damage equal to its (?:power|toughness) to target creature\b/,
   // Group-bolt — Case of the Gateway Express:
   // "Each creature you control deals N damage to …"
   /\beach creature you control deals \d+ (?:combat )?damage\b/,
+  // v0.20.0 — target-establishing antecedent + plural-anaphoric "they each
+  // deal" or singular "the creature(s) you control deals" (Coordinated
+  // Clobbering, Beastie Beatdown). Prior clause establishes "target ...
+  // creature(s) you control"; later sentence resolves the damage via the
+  // bound noun phrase. The interpolation [\s\S]{0,300} tolerates one or two
+  // intervening sentences (Beastie Beatdown has a delirium clause between).
+  /\btarget(?:\s+[\w\-]+)?\s+(?:untapped\s+)?creatures? you control\b[\s\S]{0,300}?\.\s*(?:they each|the creature(?:s)? you control)\s+deals?\s+(?:combat\s+)?damage equal to\b/,
 ];
 
 export const rule: Rule = {

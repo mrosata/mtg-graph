@@ -39,6 +39,12 @@ describe('effect.exile_creature', () => {
     // creature-removal effect for graph-edge purposes.
     ['whenever a creature you control with an impostor counter on it dies, exile it. return up to one other target creature card from your graveyard to the battlefield.'],
     ['when a creature you control dies, exile it'],
+    // v0.21.0 — anaphoric "you may exile it" with combat-verb antecedent
+    // ("a creature you control attacks/becomes blocked/enters/deals damage,
+    // you may exile it"). Bare form (no impulse-recast or flicker tail) is
+    // permanent removal — fires exile_creature.
+    ['whenever a creature you control attacks, you may exile it.'],
+    ['whenever a creature you control deals damage to a player, you may exile it.'],
   ])('anaphoric exile-it: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -61,6 +67,12 @@ describe('effect.exile_creature', () => {
     ['target player exiles a card from their hand. they may play it this turn.'],
     // "exile it" with no preceding target creature antecedent
     ['if it has flying, you may exile it'],
+    // v0.21.0 — Norin, Swift Survivalist: anaphoric "you may exile it"
+    // with combat-verb antecedent + impulse-recast tail. The exile is
+    // followed by "play that card from exile this turn", which is impulse-
+    // recast (not removal). Must NOT fire exile_creature.
+    ['__self__ can\'t block. whenever a creature you control becomes blocked, you may exile it. you may play that card from exile this turn.'],
+    ['whenever a creature you control attacks, you may exile it. you may play that card from exile this turn.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

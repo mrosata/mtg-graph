@@ -62,4 +62,20 @@ describe('trigger.enchantment_leaves_battlefield', () => {
     const normalizedText = 'when __self__ is put into a graveyard from the battlefield, draw a card';
     expect(rule.matchCard!(card, normalizedText)).toBeTruthy();
   });
+
+  // v0.20.0 — Disturbing Mirth: "when you sacrifice this enchantment, ..."
+  // The self-sacrifice templating uses an active-voice "you sacrifice" form
+  // rather than "this enchantment leaves the battlefield". Same axis — the
+  // enchantment is leaving the battlefield via sacrifice. Self-typed match.
+  it('matchCard: self-sacrifice templating on an enchantment DOES match', () => {
+    const card = makeCard({ types: ['Enchantment'] });
+    const normalizedText = 'when this enchantment enters, you may sacrifice another enchantment or creature. if you do, draw two cards. when you sacrifice this enchantment, manifest dread.';
+    expect(rule.matchCard!(card, normalizedText)).toBeTruthy();
+  });
+
+  it('matchCard: self-sacrifice templating with __self__ DOES match', () => {
+    const card = makeCard({ types: ['Enchantment'] });
+    const normalizedText = 'when you sacrifice __self__, draw a card';
+    expect(rule.matchCard!(card, normalizedText)).toBeTruthy();
+  });
 });

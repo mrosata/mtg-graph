@@ -18,8 +18,12 @@ const PATTERN_BLINK_OWN =
 
 // `(?!\s+card)` + graveyard guard reject "return target permanent card from
 // your graveyard to your hand" (graveyard recursion, e.g. Coati Scavenger).
+// v0.20 — admit commas in the qualifier filler so "nonland, nontoken
+// permanent" (Season of Weaving) is reached. Both occurrences of the filler
+// updated: the negative lookahead's "nonartifact" gate must also span commas
+// so it still rejects "nontoken nonartifact permanent" forms.
 const PATTERN_BROAD =
-  /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+|this\s+)?(?!(?:[\w\-]+\s+){0,5}nonartifact\s+)(?:[\w\-]+\s+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+|this\s+)?(?!(?:[\w\-]+[,\s]+){0,5}nonartifact\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
 
 export const rule: Rule = {
   id: 'effect.bounce_artifact',

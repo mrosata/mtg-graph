@@ -19,8 +19,10 @@ export const tagDef: TagDef = {
 // (Kitsa, Otterball Elite: "activate only if __self__'s power is 3 or
 // greater"). Distinct from the bare "power N or greater" arm which doesn't
 // admit an intervening copula between the noun and the numeric phrase.
+// v0.20 — admit "power or toughness N or greater" disjunction (Repel
+// Calamity: "destroy target creature with power or toughness 5 or greater").
 const PATTERN =
-  /\bpower (?:[3-9]|\d{2,}) or (?:greater|more|higher)\b|\b(?:with|is) the greatest power\b|\b(?:[3-9]|\d{2,}) or greater power\b|\b(?:[\w']+?'s|its)\s+power\s+(?:is|are)\s+(?:[3-9]|\d{2,}) or (?:greater|more|higher)\b/;
+  /\bpower (?:or toughness )?(?:[3-9]|\d{2,}) or (?:greater|more|higher)\b|\b(?:with|is) the greatest power\b|\b(?:[3-9]|\d{2,}) or greater power\b|\b(?:[\w']+?'s|its)\s+power\s+(?:is|are)\s+(?:[3-9]|\d{2,}) or (?:greater|more|higher)\b/;
 
 // v0.14.4 Task 4.2: "can't be blocked by creatures with power N or greater"
 // is a blocker-restriction (pseudo-evasion), NOT a cares-high-power payoff.
@@ -28,7 +30,7 @@ const PATTERN =
 // lookbehind is brittle, so we slice an 80-char window ending at the match
 // and probe it with a forward regex.
 const BLOCKER_GUARD =
-  /can't be blocked by\s+(?:[\w\-]+\s+){0,4}(?:with\s+)?power\s+(?:[3-9]|\d{2,})\s+or\s+(?:greater|more|higher)/;
+  /can't be blocked by\s+(?:[\w\-]+\s+){0,4}(?:with\s+)?power\s+(?:or toughness\s+)?(?:[3-9]|\d{2,})\s+or\s+(?:greater|more|higher)/;
 
 export const rule: Rule = {
   id: 'condition.cares_high_power',

@@ -93,4 +93,36 @@ describe('expandChildren', () => {
       /a\.parent.*a\.missing/,
     );
   });
+
+  // v0.20 — typed-suppression. When the parent's evidence explicitly excludes
+  // a permanent type ("nonland", "noncreature", ...), don't emit the typed
+  // child for that type. Season of the Burrow's "exile target nonland
+  // permanent" was leaking into effect.exile_land.
+  it('suppresses a typed child when parent evidence contains non<type>', () => {
+    const tags: CardTag[] = [
+      { tagId: 'effect.destroy_permanent', axis: 'effect', evidence: 'destroy target nonland permanent' },
+    ];
+    const expanded = expandChildren(tags, catalog);
+    const ids = expanded.map((t) => t.tagId).sort();
+    expect(ids).toContain('effect.destroy_creature');
+    expect(ids).toContain('effect.destroy_artifact');
+    expect(ids).toContain('effect.destroy_enchantment');
+    expect(ids).toContain('effect.destroy_planeswalker');
+    expect(ids).not.toContain('effect.destroy_land');
+  });
+
+  it('suppresses multiple typed children when multiple non<type> tokens appear', () => {
+    const tags: CardTag[] = [
+      {
+        tagId: 'effect.destroy_permanent',
+        axis: 'effect',
+        evidence: 'destroy target noncreature, nonland permanent',
+      },
+    ];
+    const expanded = expandChildren(tags, catalog);
+    const ids = expanded.map((t) => t.tagId).sort();
+    expect(ids).not.toContain('effect.destroy_creature');
+    expect(ids).not.toContain('effect.destroy_land');
+    expect(ids).toContain('effect.destroy_artifact');
+  });
 });

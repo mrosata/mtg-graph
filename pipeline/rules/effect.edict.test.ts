@@ -32,6 +32,15 @@ describe('effect.edict', () => {
     // cost or accept the alternative effect ("if they don't, you draw").
     ["at the beginning of your end step, target opponent may sacrifice two nonland, nontoken permanents of their choice. if they don't, you draw two cards."],
     ['target opponent may sacrifice three creatures of their choice.'],
+    // v0.20 — "unless that player sacrifices" punisher-edict (Rottenmouth
+    // Viper). The opponent has a choice between the loss-of-life effect
+    // and an enforced sacrifice; pairs the same as a classic edict.
+    ['each opponent loses 4 life unless that player sacrifices a nonland permanent of their choice or discards a card'],
+    // v0.22.0 — Vile Mutilator: chained "each opponent sacrifices a nontoken
+    // enchantment ..., then sacrifices a nontoken creature ...". The first
+    // sacrifice is non-creature/permanent; the second is the creature. The
+    // chained-edict arm picks up the creature sacrifice in the second clause.
+    ['each opponent sacrifices a nontoken enchantment of their choice, then sacrifices a nontoken creature of their choice.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

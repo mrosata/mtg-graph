@@ -15,6 +15,11 @@ describe('effect.amplifies_damage_or_lifeloss', () => {
     ['if a source would deal damage to a permanent or player, it deals twice that much damage to that permanent or player instead'],
     // Wound-Reflection wording.
     ['at the beginning of each opponent\'s end step, that player loses twice that much life'],
+    // v0.22.0 — The Rollercrusher Ride: "deals double that damage instead".
+    // Same axis as the twice-that-much shape; just different lexical phrasing.
+    ['delirium — if a source you control would deal noncombat damage to a permanent or player while there are four or more card types among cards in your graveyard, it deals double that damage instead.'],
+    ['it deals double that damage instead'],
+    ['that player loses double that life instead'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

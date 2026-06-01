@@ -14,13 +14,15 @@ export const tagDef: TagDef = {
   tagId: 'condition.gift_promised',
   axis: 'condition',
   label: 'Cares about gift being promised',
-  description: 'Has an "if the gift was promised" gate inside another ability. The conditional half of the Duskmourn Gift axis.',
+  description: 'Has an "if the gift was promised" / "if the gift wasn\'t promised" gate inside another ability. The conditional half of the Duskmourn Gift axis (covers both polarities).',
   pairsWith: ['effect.has_gift', 'trigger.gift_promised'],
 };
 
 const PATTERNS = [
-  // "if the gift was promised" — canonical conditional gate.
-  /\bif (?:the |a )?gift was promised\b/,
+  // "if the gift was promised" / "if the gift wasn't promised" — canonical
+  // conditional gate. v0.20 broadened to admit the negative polarity (Nocturnal
+  // Hunger, Parting Gust: "if the gift wasn't promised, ...").
+  /\bif (?:the |a )?gift was(?:n'?t| not)? promised\b/,
   // "if you promised a gift" — active-voice variant.
   /\bif you promised (?:a |the )?gift\b/,
 ];

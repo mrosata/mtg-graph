@@ -28,6 +28,14 @@ describe('effect.causes_damage', () => {
     // Group-bolt -- Case of the Gateway Express shape
     ['each creature you control deals 1 damage to that creature'],
     ['each creature you control deals 3 damage to target creature an opponent controls'],
+    // v0.20 — anaphoric "then it deals damage" (Rabid Gnaw).
+    ["target creature you control gets +1/+0 until end of turn. then it deals damage equal to its power to target creature you don't control."],
+    // v0.20.0 — plural anaphoric "they each deal" with target-establishing
+    // antecedent (Coordinated Clobbering).
+    ['tap one or two target untapped creatures you control. they each deal damage equal to their power to target creature an opponent controls.'],
+    // v0.20.0 — singular anaphoric "the creature you control deals damage"
+    // with target-establishing antecedent (Beastie Beatdown).
+    ['choose target creature you control and target creature an opponent controls. delirium — if there are four or more card types among cards in your graveyard, put two +1/+1 counters on the creature you control. the creature you control deals damage equal to its power to the creature an opponent controls.'],
   ])('matches indirect damage: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

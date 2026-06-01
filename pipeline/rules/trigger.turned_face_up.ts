@@ -33,11 +33,18 @@ const WHENEVER_ANY =
 const COMPOUND_SUBJECT =
   /\b(?:when|whenever) this (?:creature|land|permanent|artifact|equipment|enchantment|saga|case|vehicle) or (?:a|another|one or more) [\w\-\s]{1,40}? is turned face up\b/;
 
+// v0.21.0 — active-voice "you turn X face up" (Growing Dread: "whenever you
+// turn a permanent face up, put a +1/+1 counter on it"). Same axis as the
+// passive "is turned face up" — just framed from the controller's
+// perspective. Bound the noun-phrase filler at 3 words to stay tight.
+const ACTIVE_VOICE =
+  /\bwhen(?:ever)?\s+you\s+turn\s+(?:a|an|another|target)\s+[\w\-]+(?:\s+\w+){0,3}?\s+face up\b/;
+
 export const rule: Rule = {
   id: 'trigger.turned_face_up',
   axis: 'trigger',
   match: (t) => {
-    const m = t.match(SELF_FRAME) ?? t.match(WHENEVER_ANY) ?? t.match(COMPOUND_SUBJECT);
+    const m = t.match(SELF_FRAME) ?? t.match(WHENEVER_ANY) ?? t.match(COMPOUND_SUBJECT) ?? t.match(ACTIVE_VOICE);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: {

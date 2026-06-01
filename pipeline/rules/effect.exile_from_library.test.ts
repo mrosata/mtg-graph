@@ -31,6 +31,18 @@ describe('effect.exile_from_library', () => {
     // from the top of <library>" (Rakdos, the Muscle).
     ["exile cards equal to its mana value from the top of target player's library"],
     ['exile cards equal to the number of artifacts you control from the top of your library'],
+    // v0.20 — Frame C with optional NUM (The Infamous Cruelclaw):
+    // "exile cards from the top of your library until you exile a nonland card".
+    ['exile cards from the top of your library until you exile a nonland card'],
+    // v0.20 — Frame E broadened to admit `reveal` (Portent of Calamity):
+    // "reveal the top X cards of your library ... you may exile a card ...
+    // from among them".
+    ['reveal the top x cards of your library. for each card type, you may exile a card of that type from among them.'],
+    // v0.20.0 — Doomsday Excruciator: "exile all but the bottom N cards"
+    // — the rest of the library is exiled.
+    ['flying when this creature enters, if it was cast, each player exiles all but the bottom six cards of their library face down. at the beginning of your upkeep, draw a card.'],
+    ['each player exiles all but the bottom six cards of their library face down'],
+    ['you exile all but the top three cards of your library'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

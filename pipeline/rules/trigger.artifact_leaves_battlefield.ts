@@ -38,7 +38,9 @@ const PATTERN_SELF = new RegExp(
 // active-voice frame with a pronoun antecedent. Scoped via matchCard to
 // artifact-typed cards (the caller checks card.types) so it doesn't leak onto
 // creatures, where trigger.permanent_sacrificed is the correct home.
-const PATTERN_SELF_ACTIVE_SACRIFICE = /\bwhen(?:ever)?\s+you\s+sacrifice\s+(?:it|this|__self__)\b/;
+// v0.20.0 — extend to admit "this artifact / equipment / vehicle / food /
+// clue / treasure" typed forms (Disturbing Mirth family-wide mirror).
+const PATTERN_SELF_ACTIVE_SACRIFICE = /\bwhen(?:ever)?\s+you\s+sacrifices?\s+(?:it|this(?:\s+(?:artifact|equipment|vehicle|food|clue|treasure))?|__self__)\b/;
 
 // Active-voice sacrifice frame: "Whenever {opponent|player|each opponent}
 // sacrifices a/an {artifact-or-subtype}". Sacrificing IS a LtB event, so

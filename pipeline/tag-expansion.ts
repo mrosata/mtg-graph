@@ -28,6 +28,20 @@ export function expandChildren(
           `expandChildren: parent ${tag.tagId} declares child ${childId} which is not in the catalog`,
         );
       }
+      // v0.20 — typed-suppression. If the parent's evidence explicitly excludes
+      // a permanent type via `non<type>` (e.g. "exile target nonland
+      // permanent"), don't emit the typed child for that type. Generalizes
+      // across `_creature`, `_artifact`, `_enchantment`, `_planeswalker`, and
+      // `_land`. Season of the Burrow is the canonical regression — its
+      // "exile target nonland permanent" evidence on an effect.exile_*
+      // parent was leaking into effect.exile_land children. The check is on
+      // the trailing `_<type>` segment of childId, matched against `\bnon<type>\b`
+      // in the parent evidence (case-insensitive).
+      const childType = childId.match(/_(creature|artifact|enchantment|planeswalker|land)$/)?.[1];
+      if (childType) {
+        const nonRe = new RegExp(`\\bnon${childType}\\b`, 'i');
+        if (tag.evidence && nonRe.test(tag.evidence)) continue;
+      }
       seen.add(childId);
       result.push({
         tagId: childId,

@@ -53,12 +53,23 @@ const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponent|player)'
 // passive references like "cards in your graveyard" or "tokens in a
 // graveyard".
 const IN_GRAVEYARD = /exile (?:up to [\w-]+ |any number of )?target [^.]{0,60}? card in (?:a |an |the |your |any )?graveyard\b/;
+// v0.20.0 — Abhorrent Oculus: "exile six cards from your graveyard" as an
+// additional cost to cast a spell. Numeric-count additional-cost graveyard
+// exile (1+ cards, fixed N). The negative lookahead `(?!\s*[:—])` preserves
+// Renew-style cost suppression (those use a colon/em-dash terminator).
+const OWN_NUMBER_QUANTIFIED = /\bexile (?:\d+|two|three|four|five|six|seven|eight|nine|ten) cards? from your graveyard(?!\s*[:—])/;
 
 export const rule: Rule = {
   id: 'effect.exile_from_graveyard',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(FOREIGN_OR_GENERIC) ?? t.match(OWN_TARGETED) ?? t.match(OWN_QUANTIFIED) ?? t.match(MASS_WIPE) ?? t.match(IN_GRAVEYARD);
+    const m =
+      t.match(FOREIGN_OR_GENERIC) ??
+      t.match(OWN_TARGETED) ??
+      t.match(OWN_QUANTIFIED) ??
+      t.match(MASS_WIPE) ??
+      t.match(IN_GRAVEYARD) ??
+      t.match(OWN_NUMBER_QUANTIFIED);
     return m ? { evidence: m[0] } : false;
   },
 };

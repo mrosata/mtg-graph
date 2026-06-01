@@ -172,4 +172,17 @@ describe('condition.cares_subtype', () => {
     const r = ruleFor('condition.cares_subtype.food');
     expect(r.match('create a food token')).toBe(false);
   });
+
+  // v0.20.0 — Valley Rally: "gift a food" is the Gift-keyword token-name
+  // line, not a Food-caring payoff. The Gift keyword names which token
+  // type is promised to an opponent; the card does not actually care about
+  // Food as a resource. Strip the "gift a <subtype>" line family-wide.
+  it('food does NOT match "gift a food" keyword token-naming alone', () => {
+    const r = ruleFor('condition.cares_subtype.food');
+    expect(
+      r.match(
+        'gift a food creatures you control get +2/+0 until end of turn. if the gift was promised, target creature you control gains first strike until end of turn.',
+      ),
+    ).toBe(false);
+  });
 });

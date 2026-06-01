@@ -16,7 +16,10 @@ export const tagDef: TagDef = {
 // debuffs like Cogwork Wrestler also count). Also "-X/-X". The "/-" is
 // anchored to "-" on both sides so "+1/-1" (asymmetric pump) is not matched.
 // Exclude "-0/-0" by requiring the first digit to be 1-9 or X.
-const PATTERN = /(?:^|[\s(])-(?:[1-9]\d*\/-\d+|x\/-x)\b/;
+// v0.22.0 — Patched Plaything: exclude "-N/-N counters" — the counter-as-noun
+// form (Persist, Wither, enters-with-counters) is not a debuff effect; it's a
+// counter axis. Negative lookahead `(?!\s+counters?)`.
+const PATTERN = /(?:^|[\s(])-(?:[1-9]\d*\/-\d+|x\/-x)(?!\s+counters?)\b/;
 
 export const rule: Rule = {
   id: 'effect.debuff_minus_n',

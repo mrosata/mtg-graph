@@ -30,6 +30,23 @@ export const tagDef: TagDef = {
 
 const SYMBOL_ACTIVATED_PATTERN = /\{[wubrgcxstq0-9](?:\/[wubrgcps])?\}[^.\n]{0,60}?:\s/;
 
+// v0.20 — keyword-cost prefix exclusion. After normalization collapses
+// newlines into spaces, a keyword's mana cost (Offspring {2}, Kicker {1},
+// Equip {3}) sits adjacent to the next ability's activation symbol on the
+// same "line". The SYMBOL_ACTIVATED_PATTERN then captures the keyword cost
+// as if it were the activation cost (Tender Wildguide:
+// "offspring {2} {t}: add one mana ..." matches `{2} {t}: ` and falsely
+// claims a mana-bearing activation, when in reality the {T} activation has
+// no mana). We strip these keyword-cost sequences ("<keyword> {mana}")
+// from the normalized text BEFORE scanning. Crew and ward are intentionally
+// included even though they're not activated abilities — their costs can
+// leak into a following real activation.
+// Match a keyword followed by one mana cost (a contiguous run of mana
+// symbols, no spaces between them — `{2}{R}{R}`). Stops before a space-
+// separated next symbol cluster so a subsequent real activation cost
+// (`{1}{G}:`) isn't consumed.
+const KEYWORD_COST_PREFIX_STRIP = /\b(?:offspring|bargain|buyback|multikicker|kicker|prowl|cleave|disturb|squad|escalate|entwine|overload|replicate|surge|conspire|spectacle|awaken|crew|reconfigure|equip|ward)\s+(?:\{[wubrgcxstq0-9](?:\/[wubrgcps])?\})+/gi;
+
 const PROSE_ACTIVATED_PATTERN =
   /(?:^|\.\s|\n|—\s)(?:sacrifice|discard|exile|pay|tap|untap|reveal|remove|return) [^.\n]{0,80}?:\s/i;
 
@@ -51,8 +68,24 @@ export const rule: Rule = {
   matchCard: (card) => {
     if (!card.types.some((t) => PERMANENT_TYPES.includes(t))) return false;
     const kw = card.keywords.find((k) => BATTLEFIELD_MANA_ACTIVATED_KEYWORDS.has(k));
-    if (kw) return { evidence: kw.toLowerCase() };
-    const normalized = normalizeOracleText(card.oracleText, card.name);
+    if (kw) {
+      // v0.20.0 — Dissection Tools FP narrow. Equip can be printed with a
+      // non-mana cost via the em-dash form ("Equip—Sacrifice a creature").
+      // Only fire the keyword short-circuit when the oracle text actually
+      // contains a mana-form for the keyword (`Equip {N}` / `Equip {1}{G}`).
+      // Use raw oracle text (case-insensitive); the keyword cost survives
+      // normalization but case may vary.
+      const kwManaForm = new RegExp(`\\b${kw}\\s*(?:\\{[\\dxwubrgcps\\/]+\\})+`, 'i');
+      if (kwManaForm.test(card.oracleText)) return { evidence: kw.toLowerCase() };
+      // No mana form — fall through to scanning normalized text for any
+      // genuine mana-bearing activation on the same card.
+    }
+    // v0.20 — strip keyword-cost sequences before scanning. "Offspring {2}"
+    // / "Kicker {1}{R}" / "Ward {2}" are NOT activation costs but the
+    // collapsed-newline normalization places them adjacent to the next
+    // ability's `{T}:` cost. Stripping them removes the FP source.
+    const normalized = normalizeOracleText(card.oracleText, card.name)
+      .replace(KEYWORD_COST_PREFIX_STRIP, ' ');
     // Walk every match of the activation patterns (not just the first) — a
     // card can have a tap-only mana ability followed later by a mana-bearing
     // ability, and we need to fire on the latter even if the former precedes.

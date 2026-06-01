@@ -12,6 +12,11 @@ describe('condition.cares_low_power', () => {
     ['target creature with the least power'],
     // "or fewer" variant — rare but valid.
     ['creatures with power 2 or fewer'],
+    // v0.20 — copula form (Reptilian Recruiter: "if that creature's power
+    // is 2 or less"). Mirror of the cares_high_power copula arm.
+    ["if that creature's power is 2 or less or if you control another lizard, gain control of that creature"],
+    ['if its power is 1 or less, sacrifice it'],
+    ["only if your commander's power is 2 or less"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

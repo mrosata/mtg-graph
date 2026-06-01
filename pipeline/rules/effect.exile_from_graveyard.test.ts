@@ -35,6 +35,12 @@ describe('effect.exile_from_graveyard', () => {
     // graveyard removed at once.
     ['when this enchantment enters, exile all graveyards'],
     ['exile all graveyards'],
+    // v0.20.0 — Abhorrent Oculus: "as an additional cost to cast this spell,
+    // exile six cards from your graveyard". Numeric-count additional-cost
+    // graveyard exile. Distinct from Renew-style activation costs (which
+    // exile __self__ from graveyard); here the controller's whole graveyard
+    // pays a constant N-card price.
+    ['as an additional cost to cast this spell, exile six cards from your graveyard. flying at the beginning of each opponent\'s upkeep, manifest dread.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

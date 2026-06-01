@@ -37,11 +37,24 @@ const PATTERN_ANAPHORIC =
 const PATTERN_ANAPHORIC_SAME_SENTENCE =
   /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\bexile it(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
 
+// v0.21.0 — Anaphoric "you may exile it" with combat-verb antecedent on a
+// "creature you control" subject. The antecedent isn't an explicit "target
+// creature" — it's the creature that triggered the ability via attack/block/
+// ETB/damage. The FLICKER_TAIL suppression (extended to also catch impulse-
+// recast tails like "play that card from exile") handles Norin Swift
+// Survivalist's "you may play that card from exile" tail.
+const PATTERN_COMBAT_ANAPHORIC =
+  /\b(?:another\s+creature|a\s+creature|creatures?\s+you\s+control)[^.]{0,40}?(?:becomes blocked|attacks|enters|deals damage)[^.]{0,40}?,\s*you may exile it\b/;
+
 // Flicker frame: "exile … Return [it|them|that creature|target creature] to the
 // battlefield". This is bounce/blink (covered by `effect.bounce_creature`), not
 // removal. If the local tail contains a "return … to the battlefield" clause we
 // suppress the exile-as-removal interpretation.
-const FLICKER_TAIL = /\breturn (?:it|them|that creature|target creature|those creatures|each of those cards)\b[^.]*?\bto the battlefield\b/;
+// v0.21.0 — Norin, Swift Survivalist: also suppress on impulse-cast tail
+// ("play that card from exile (this turn)?"). The exile is followed by
+// permission to play the exiled card — same axis as flicker (the card isn't
+// permanently removed).
+const FLICKER_TAIL = /\b(?:return (?:it|them|that creature|target creature|those creatures|each of those cards)\b[^.]*?\bto the battlefield|play (?:it|that card) from exile)\b/;
 
 // Split-mode punisher: "exile X. if you controlled it, return it to the
 // battlefield ..." gates the return on ownership. For opponent-controlled
@@ -61,7 +74,8 @@ export const rule: Rule = {
       t.match(PATTERN_REPLACEMENT) ??
       t.match(PATTERN_DIES_EXILE) ??
       t.match(PATTERN_ANAPHORIC) ??
-      t.match(PATTERN_ANAPHORIC_SAME_SENTENCE);
+      t.match(PATTERN_ANAPHORIC_SAME_SENTENCE) ??
+      t.match(PATTERN_COMBAT_ANAPHORIC);
     if (!m || m.index === undefined) return false;
     // Check the next ~200 chars after the match for a flicker tail.
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);

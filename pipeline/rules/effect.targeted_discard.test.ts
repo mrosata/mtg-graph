@@ -37,6 +37,10 @@ describe('effect.targeted_discard', () => {
     ['when this creature enters, any number of target opponents each discard a card.'],
     ['target opponents each discard a card'],
     ['each of those opponents discards a card'],
+    // Regression (Thought-Stalker Warlock): "choose target opponent" antecedent
+    // followed by "they discard a card / that card" — bound-pronoun antecedent
+    // form that the existing "target opponent reveals their hand" gate misses.
+    ['menace when this creature enters, choose target opponent. if they lost life this turn, they reveal their hand, you choose a nonland card from it, and they discard that card. otherwise, they discard a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

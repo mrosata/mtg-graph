@@ -21,6 +21,9 @@ describe('trigger.counter_changed', () => {
     ['whenever one or more counters are placed on a permanent'],
     ['whenever a counter is removed from a creature'],
     ['whenever you put a counter on a permanent'],
+    // v0.20 — counter-type slot (Stocking the Pantry).
+    ['whenever you put one or more +1/+1 counters on a creature you control, put a supply counter on this enchantment'],
+    ['whenever you put a charge counter on an artifact, draw a card'],
   ])('matches (added): %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

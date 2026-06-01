@@ -20,6 +20,10 @@ describe('condition.cares_lifegain', () => {
     // Bare "if you gained N life this turn" already covered by existing pattern;
     // include as smoke-check that the change doesn't break it.
     ['if you gained 3 or more life this turn, draw a card'],
+    // v0.20 — "gain or lose life" disjunction (Moonstone Harbinger).
+    ['whenever you gain or lose life, put a +1/+1 counter on this creature.'],
+    // v0.20 — past-tense disjunction (Star Charter).
+    ['if you gained or lost life this turn, draw a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -63,6 +63,20 @@ describe('effect.grants_evasion', () => {
     ['whenever one or more creature cards leave your graveyard, this creature gets +1/+0 and gains menace and lifelink until end of turn.'],
     // Variant: "when ..." gate (single-fire trigger).
     ['when this creature attacks, it gets +1/+1 and gains menace until end of turn.'],
+    // v0.20 — clone-frame self-anaphor (Mockingbird). "You may have this
+    // creature enter as a copy of any creature on the battlefield, except
+    // it's a 1/1 bird in addition to its other types and it has flying."
+    // The flying belongs to the cloned self, not to a separate creature.
+    [`you may have this creature enter as a copy of any creature on the battlefield, except it's a 1/1 bird in addition to its other types and it has flying.`],
+    // v0.20.0 — Acrobatic Cheerleader: "if this creature is tapped, put a
+    // flying counter on it" — self-conditional keyword-counter grant.
+    // Pre-strip removes the entire if/while/when antecedent clause before
+    // the keyword-counter pattern runs. The "it" antecedent is self.
+    ['survival — at the beginning of your second main phase, if this creature is tapped, put a flying counter on it. this ability triggers only once.'],
+    // v0.20.0 — bonus catch (Inventive Wingsmith): "this creature doesn't
+    // have a flying counter on it" — self-referential conditional, not a
+    // grant. The strip catches the if/while form.
+    ['if this creature doesn\'t have a flying counter on it, put a flying counter on it.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

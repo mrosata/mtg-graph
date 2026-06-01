@@ -31,6 +31,29 @@ export const rule: Rule = {
     const m = t.match(
       /(?:when|whenever) (?:a |another |this |one or more )?(?:[\w\- ]{0,30}?\s+)?(?:creatures?|__self__)(?:\s+[\w'+\/\-]+){0,10}\s+(?:dies|die)\b/,
     );
-    return m ? { evidence: m[0] } : false;
+    if (m) return { evidence: m[0] };
+    // v0.20.0 — Come Back Wrong: "if a creature card is put into a graveyard
+    // this way, return it to the battlefield". The "this way" / "from the
+    // battlefield" anaphor binds back to a prior destroy/wipe clause —
+    // semantically a death trigger conditioned on the card being a creature.
+    // Tight scope: requires the explicit "this way" / "from the battlefield"
+    // anaphor so a generic "card is put into a graveyard" frame doesn't FP.
+    const anaphor = t.match(
+      /\bif (?:a |any |one or more )?creatures? cards? (?:is|are) put into (?:a |your |its owner's )?graveyards? (?:this way|from the battlefield)\b/,
+    );
+    if (anaphor) return { evidence: anaphor[0] };
+    // v0.22.0 — Turn Inside Out: anaphoric "when it/that creature dies this
+    // turn" after a `target creature` antecedent (the +N/+0 pump clause).
+    // Backward 120-char window guard requires `target creature` to be in
+    // scope so the "it" anaphor has something to bind to. The `this turn`
+    // tail keeps the arm bounded; bare "when it dies" is too generic.
+    const itDies = t.match(/\bwhen\s+(?:it|that creature)\s+dies\s+this turn\b/);
+    if (itDies && itDies.index !== undefined) {
+      const before = t.substring(Math.max(0, itDies.index - 120), itDies.index);
+      if (/\btarget\s+creature\b/.test(before)) {
+        return { evidence: itDies[0] };
+      }
+    }
+    return false;
   },
 };

@@ -33,9 +33,19 @@ const SUBTYPE_ALT_PATTERNS: Record<string, RegExp | undefined> = {
   aura: /\benchanted (?:creatures|permanents)\b/,
 };
 
+// v0.20.0 — strip Gift-keyword token-naming. "Gift a <subtype>" is the
+// keyword's token-name line (Valley Rally: "gift a food creatures you
+// control get +2/+0..."), not a payoff that cares about the subtype.
+// Family-wide strip (the leak is symmetric across all subtypes).
+const GIFT_TOKEN_NAME = /\bgift a [a-z\-]+\b/g;
+
 function stripFraming(t: string, subtype: string): string {
   const selfRef = new RegExp(`\\bthis ${subtypePattern(subtype)}\\b`, 'g');
-  return t.replace(selfRef, '').replace(TOKEN_CREATE, '').replace(BECOMES_CREATURE, '');
+  return t
+    .replace(selfRef, '')
+    .replace(TOKEN_CREATE, '')
+    .replace(BECOMES_CREATURE, '')
+    .replace(GIFT_TOKEN_NAME, '');
 }
 
 function makeRule(subtype: string): Rule {

@@ -139,6 +139,22 @@ describe('effect.grants_keyword parametric', () => {
       const r = ruleFor('effect.grants_trample');
       expect(r.match('flying, trample')).toBe(false);
     });
+
+    // v0.20 — 4-item list (Sword of Vengeance): "has first strike, vigilance,
+    // trample, and haste". Frame (f)'s inner pre-item filler was bumped from
+    // {0,1}? to {0,4}? so haste at position 4 still matches.
+    it('grants_haste matches fourth item in has-list (Sword of Vengeance)', () => {
+      const r = ruleFor('effect.grants_haste');
+      expect(r.match('equipped creature has first strike, vigilance, trample, and haste')).toBeTruthy();
+    });
+    it('grants_trample matches third item in 4-item has-list', () => {
+      const r = ruleFor('effect.grants_trample');
+      expect(r.match('equipped creature has first strike, vigilance, trample, and haste')).toBeTruthy();
+    });
+    it('grants_vigilance matches second item in 4-item has-list', () => {
+      const r = ruleFor('effect.grants_vigilance');
+      expect(r.match('equipped creature has first strike, vigilance, trample, and haste')).toBeTruthy();
+    });
   });
 
   describe('grants_double_strike', () => {
@@ -344,41 +360,42 @@ describe('effect.grants_keyword parametric', () => {
 
   // ── Self-anaphoric "it has <kw>" narrowing ───────────────────────────────
   // Regression (Warden of the Inner Sky): "as long as this creature has [cond],
-  // it has flying and vigilance" — the "it" antecedent is "this creature" and
-  // the grant belongs to gains_keyword_self_conditional, not grants_<kw>.
-  describe('self-anaphoric "it has <kw>" in gating clause must NOT fire grants_<kw>', () => {
+  // it has flying and vigilance" — flying is evasion (stripped, fires on
+  // gains_keyword_self_conditional); vigilance is non-evasion grantable so
+  // v0.21.0 the clause is PRESERVED and grants_vigilance fires.
+  describe('self-anaphoric "it has <kw>" — evasion strip only (v0.21)', () => {
     const wardenTxt = 'as long as this creature has three or more counters on it, it has flying and vigilance.';
 
-    it('grants_vigilance does NOT fire on Warden self-conditional', () => {
+    it('grants_vigilance FIRES on Warden (vigilance is non-evasion grantable)', () => {
       const r = ruleFor('effect.grants_vigilance');
-      expect(r.match(wardenTxt)).toBe(false);
+      expect(r.match(wardenTxt)).toBeTruthy();
     });
   });
 
-  // ── v0.14.14 — gate-first self-conditional with EXPLICIT self subject ────
+  // ── v0.14.14 → v0.21.0 — gate-first self-conditional, EXPLICIT self subj ─
   // Living Conundrum / Pompous Gadabout: "(as long as|while|if|during) X,
   // this creature has Y." — gate clause comes FIRST, post-comma subject is
-  // an explicit "this creature" / "__self__" (not anaphoric "it"). Same
-  // axis as the Warden anaphoric case — belongs to
-  // gains_keyword_self_conditional, not grants_<kw>.
-  describe('gate-first self-conditional with explicit subject must NOT fire grants_<kw>', () => {
+  // an explicit "this creature" / "__self__" (not anaphoric "it").
+  // v0.21.0 — strip is evasion-only; non-evasion grantable keywords in the
+  // clause (vigilance, hexproof, etc.) are preserved and fire grants_<kw>.
+  describe('gate-first self-conditional — evasion-only strip (v0.21)', () => {
     const livingConundrumTxt =
       'as long as there are no cards in your library, this creature has base power and toughness 10/10 and has flying and vigilance.';
     const pompousGadaboutTxt = 'during your turn, this creature has hexproof.';
 
-    it('grants_vigilance does NOT fire on Living Conundrum', () => {
+    it('grants_vigilance FIRES on Living Conundrum (non-evasion preserved)', () => {
       const r = ruleFor('effect.grants_vigilance');
-      expect(r.match(livingConundrumTxt)).toBe(false);
+      expect(r.match(livingConundrumTxt)).toBeTruthy();
     });
 
-    it('grants_hexproof does NOT fire on Pompous Gadabout ("during your turn" gate)', () => {
+    it('grants_hexproof FIRES on Pompous Gadabout (non-evasion preserved)', () => {
       const r = ruleFor('effect.grants_hexproof');
-      expect(r.match(pompousGadaboutTxt)).toBe(false);
+      expect(r.match(pompousGadaboutTxt)).toBeTruthy();
     });
 
     // Sanity — subject-first self-conditional ("this creature has X as long
     // as Y") IS still a grants_<kw> match (Grand Ball Guest, Gallant
-    // Pie-Wielder). Gate-first only is the new exclusion.
+    // Pie-Wielder). Subject-first never strips.
     it('grants_trample STILL fires on Grand Ball Guest (subject-first)', () => {
       const r = ruleFor('effect.grants_trample');
       const grandBallTxt =
@@ -411,26 +428,46 @@ describe('effect.grants_keyword parametric', () => {
     });
   });
 
-  // ── v0.14.26 — triggered self-buff exclusion ─────────────────────────────
+  // ── v0.14.26 → v0.21.0 — triggered self-buff: evasion-only strip ─────────
   // Rot Farm Mortipede: "Whenever one or more creature cards leave your
   // graveyard, this creature gets +1/+0 and gains menace and lifelink until
   // end of turn." The verb after the self subject is "gets" (not "has"), and
   // the gate is a `whenever` trigger (not the `as long as|while|if|during`
-  // family the v0.14.14 strip handled). Extend the strip to cover these
-  // shapes; the trailing "gains lifelink" must NOT fire grants_lifelink.
-  describe('triggered self-buff must NOT fire grants_<kw>', () => {
+  // family the v0.14.14 strip handled).
+  //
+  // v0.21.0 design change: the strip ONLY fires when the self-conditional
+  // clause is purely evasion (flying/menace/intimidate) — those keywords have
+  // a dedicated `effect.gains_keyword_self_conditional` axis. Non-evasion
+  // grantable keywords (haste/trample/lifelink/deathtouch/first strike/
+  // double strike/vigilance/hexproof/indestructible/reach/prowess) have NO
+  // self-conditional companion tag, so they MUST still fire grants_<kw> here.
+  describe('triggered self-buff — evasion-only strip (v0.21)', () => {
     const rotFarmTxt =
       'whenever one or more creature cards leave your graveyard, this creature gets +1/+0 and gains menace and lifelink until end of turn.';
 
-    it('grants_lifelink does NOT fire on Rot Farm Mortipede', () => {
+    // v0.21.0 — lifelink is non-evasion grantable; the strip preserves the
+    // clause so grants_lifelink fires.
+    it('grants_lifelink FIRES on Rot Farm Mortipede (non-evasion preserved)', () => {
       const r = ruleFor('effect.grants_lifelink');
-      expect(r.match(rotFarmTxt)).toBe(false);
+      expect(r.match(rotFarmTxt)).toBeTruthy();
     });
 
-    // Single-fire "when" gate with anaphoric "it" subject.
-    it('grants_trample does NOT fire on "when this creature attacks, it gets +1/+1 and gains trample"', () => {
+    // Single-fire "when" gate with anaphoric "it" subject. v0.21.0 — trample
+    // is non-evasion grantable; clause preserved, grants_trample fires.
+    it('grants_trample FIRES on "when this creature attacks, it gets +1/+1 and gains trample"', () => {
       const r = ruleFor('effect.grants_trample');
-      expect(r.match('when this creature attacks, it gets +1/+1 and gains trample until end of turn.')).toBe(false);
+      expect(r.match('when this creature attacks, it gets +1/+1 and gains trample until end of turn.')).toBeTruthy();
+    });
+
+    // v0.21.0 — Fear of the Dark regression: "it gains menace and deathtouch"
+    // grants deathtouch (non-evasion).
+    it('grants_deathtouch FIRES on Fear of the Dark', () => {
+      const r = ruleFor('effect.grants_deathtouch');
+      expect(
+        r.match(
+          'whenever this creature attacks, if defending player controls no glimmer creatures, it gains menace and deathtouch until end of turn.',
+        ),
+      ).toBeTruthy();
     });
 
     // Sanity — real triggered ANTHEM must still fire (different subject:

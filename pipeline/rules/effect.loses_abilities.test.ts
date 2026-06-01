@@ -17,6 +17,9 @@ describe('effect.loses_abilities', () => {
     ['up to one target artifact, creature, or planeswalker an opponent controls loses all abilities'],
     // "Has/have no abilities" alternative phrasing.
     ['that creature has no abilities'],
+    // v0.20 — "loses all (other) card types and abilities" (Sugar Coat).
+    ['enchanted permanent is a colorless food artifact with " {2}, {t}, sacrifice this artifact: you gain 3 life " and loses all other card types and abilities.'],
+    ['enchanted creature loses all other card types and abilities until end of turn'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

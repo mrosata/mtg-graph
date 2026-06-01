@@ -25,6 +25,11 @@ const PATTERN_SELF = new RegExp(
   `\\bwhen(?:ever)?\\s+(?:this\\s+\\w+\\s+|__self__\\s+)${LTB_VERB}\\b`,
 );
 
+// v0.20.0 — self-sacrifice templating "when you sacrifice this planeswalker /
+// __self__". Active-voice form, same axis as a self-LtB. Family-wide mirror
+// of G31 (Disturbing Mirth).
+const PATTERN_SELF_SACRIFICE = /\bwhen(?:ever)?\s+you\s+sacrifices?\s+(?:this\s+planeswalker|__self__)\b/;
+
 export const rule: Rule = {
   id: 'trigger.planeswalker_leaves_battlefield',
   axis: 'trigger',
@@ -34,7 +39,7 @@ export const rule: Rule = {
   },
   matchCard: (card: Card, normalizedText: string) => {
     if (!card.types.includes('Planeswalker')) return false;
-    const m = normalizedText.match(PATTERN_SELF);
+    const m = normalizedText.match(PATTERN_SELF) ?? normalizedText.match(PATTERN_SELF_SACRIFICE);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['leaves the battlefield'], proximity: ['planeswalker'], window: 6 },

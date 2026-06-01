@@ -12,17 +12,34 @@ import { THEME_TRIBES, tribePattern, capitalize, pluralize } from '../themes';
 const TOKEN_CREATE = /\bcreates?\s+(?:[\w\/]+\s+){1,12}?tokens?\b/g;
 const BECOMES_CREATURE = /\bbecomes?\s+(?:[\w\/]+\s+){1,12}?creature\b/g;
 
-function stripFraming(t: string): string {
-  return t.replace(TOKEN_CREATE, '').replace(BECOMES_CREATURE, '');
+// v0.22.0 — Possessed Goat: "it becomes a black demon in addition to its other
+// colors and types" is self-typing transformation, not a tribal payoff. The
+// distinctive "in addition to (its other|all other) (colors|types|colors and
+// types)" tail only appears in self-typing transformation clauses. Anchor the
+// strip on that tail so it doesn't over-strip. This strip is tribe-aware
+// (built per-tribe) so it requires the tribe word inside the "becomes ..."
+// span. Coexists with BECOMES_CREATURE — the existing strip handles manland
+// self-animation (with "creature"); this one handles tribe transformation
+// without "creature".
+function becomesTribePattern(tribe: string): RegExp {
+  return new RegExp(
+    `\\bbecomes?\\s+(?:a\\s+|an\\s+)?(?:[\\w\\-]+\\s+){0,5}?${tribePattern(tribe)}\\b(?:\\s+in addition to (?:its other|all other)\\s+(?:colors|types|colors and types))`,
+    'g',
+  );
 }
 
 function makeRule(tribe: string): Rule {
   const re = new RegExp(`\\b${tribePattern(tribe)}\\b`);
+  const becomesTribe = becomesTribePattern(tribe);
   return {
     id: `condition.cares_tribe.${tribe}`,
     axis: 'condition',
-    match: (t) => {
-      const m = stripFraming(t).match(re);
+    match: (raw) => {
+      const t = raw
+        .replace(TOKEN_CREATE, '')
+        .replace(BECOMES_CREATURE, '')
+        .replace(becomesTribe, '');
+      const m = t.match(re);
       return m ? { evidence: m[0] } : false;
     },
     // nearMiss is degenerate for a single-keyword rule; coverage CLI skips it.

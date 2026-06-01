@@ -38,6 +38,22 @@ describe('effect.counter_modified', () => {
     ['each opponent gets a poison counter'],
     ['you get an experience counter'],
     ['target player gets a rad counter'],
+    // v0.20 — return-to-battlefield-with-counter (Parting Gust).
+    ['return target creature to the battlefield under its owner\'s control with a +1/+1 counter on it'],
+    // v0.20 — Salvation Swan.
+    ['return that card to the battlefield with a flying counter on it'],
+    // v0.20 — multi-clause filler.
+    ['return target creature card from your graveyard to the battlefield with two +1/+1 counters on it'],
+    // v0.21.0 — Ghost Vacuum: "put each creature card ... onto the
+    // battlefield under your control with a flying counter on it". The
+    // existing "return ... with <kw> counter" arm covered return-shaped
+    // reanimation; this admits put-onto-battlefield-with-counter where
+    // "under your control" stands in for "to the battlefield".
+    ['put each creature card exiled with this artifact onto the battlefield under your control with a flying counter on it'],
+    // v0.21.0 — Meathook Massacre II: "return that card under your control
+    // with a finality counter on it". Dies-trigger reanimate with counter
+    // — no explicit "to the battlefield" between verb and "with <counter>".
+    ['return that card under your control with a finality counter on it'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

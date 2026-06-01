@@ -129,6 +129,25 @@ describe('condition.cares_tribe parametric', () => {
     expect(w.match('create a 5/5 green wolf creature token')).toBe(false);
   });
 
+  // v0.22.0 — Possessed Goat: "it becomes a black Demon in addition to its
+  // other colors and types" is self-typing transformation, NOT a Demon
+  // tribal payoff. The strip must remove the becomes-tribe clause anchored
+  // on the "in addition to its other [colors|types|colors and types]" tail,
+  // which only appears in self-typing transformations. Coexists with the
+  // existing BECOMES_CREATURE strip (which handles manland self-animation
+  // ending in "creature").
+  it('demon does NOT match "becomes a <Demon> in addition to its other colors and types" self-typing', () => {
+    const dm = rules.find((r) => r.id === 'condition.cares_tribe.demon')!;
+    expect(dm.match('{3}, discard a card: put three +1/+1 counters on this creature and it becomes a black demon in addition to its other colors and types. activate only once.')).toBe(false);
+  });
+
+  it('manland self-animation still strips correctly (Vampire becomes manland)', () => {
+    // Manland-style: "becomes a 1/1 vampire creature" — handled by existing
+    // BECOMES_CREATURE strip. Adding the tribe-tail strip must not break this.
+    const v = rules.find((r) => r.id === 'condition.cares_tribe.vampire')!;
+    expect(v.match('target land becomes a 1/1 vampire creature with flying until end of turn')).toBe(false);
+  });
+
   it('spirit / cat / dog / angel / demon FP-resistant on substrings', () => {
     const sp = rules.find((r) => r.id === 'condition.cares_tribe.spirit')!;
     expect(sp.match('this creature has spiritual energy')).toBe(false); // 'spiritual'

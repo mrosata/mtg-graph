@@ -32,9 +32,11 @@ export const rule: Rule = {
       // Frame B: "<player> exiles the top [N] cards? of <library>" — opponent-
       // performs-it templating (Ashiok −7, Memory Plunder, etc.).
       + `|\\b(?:target (?:player|opponent)|each opponent|each player) exiles the top (?:${NUM} )?cards? of ${LIBRARY_OWNER} library\\b`
-      // Frame C: "exile (that many|N) cards from the top of <library>" —
-      // life-cost replacement and Embereth-style payoffs.
-      + `|\\bexile ${NUM} cards? from the top of ${LIBRARY_OWNER} library\\b`
+      // Frame C: "exile (that many|N|count-less) cards from the top of
+      // <library>" — life-cost replacement and Embereth-style payoffs.
+      // v0.20 — NUM made optional so "exile cards from the top of your
+      // library until ..." (The Infamous Cruelclaw) matches.
+      + `|\\bexile (?:${NUM} )?cards? from the top of ${LIBRARY_OWNER} library\\b`
       // v0.15 — Frame D: tutor-then-exile. "search your library for X cards
       // [...filter...], exile them" / "search your library for a card [...]
       // and exile it" (Omenpath Journey). The library is searched, matched
@@ -46,11 +48,15 @@ export const rule: Rule = {
       // separated by a period; the exile is opt-in. NOTE: forbid `.`
       // and `,` in the filler so we can't span across an unrelated later
       // sentence's exile clause.
-      + `|\\blook at (?:the top (?:${NUM} )?cards?|that many cards) (?:of |from the top of )${LIBRARY_OWNER} library\\.[^.]{0,80}?(?:you may )?exile (?:up to )?(?:a|an|one|two|three) (?:[\\w\\-]+\\s+){0,2}?card from among them\\b`
+      + `|\\b(?:look at|reveal) (?:the top (?:${NUM} )?cards?|that many cards) (?:of |from the top of )${LIBRARY_OWNER} library\\.[^.]{0,80}?(?:you may )?exile (?:up to )?(?:a|an|one|two|three) (?:[\\w\\-]+\\s+){0,2}?card (?:of [\\w\\s]+? )?from among them\\b`
       // v0.18 — Frame F: variable-expression count. "exile cards equal to
       // <expr> from the top of <library>" (Rakdos, the Muscle). The count
       // is an arithmetic phrase rather than a literal NUM token.
-      + `|\\bexile cards equal to [^.]{0,80}? from the top of ${LIBRARY_OWNER} library\\b`,
+      + `|\\bexile cards equal to [^.]{0,80}? from the top of ${LIBRARY_OWNER} library\\b`
+      // v0.20.0 — Frame G: "exile all but the (top|bottom) N cards of
+      // their/your library" (Doomsday Excruciator). The complement is
+      // exiled; the small remainder stays in the library.
+      + `|\\b(?:each player|you|target opponent|target player)\\s+exiles? all but the (?:bottom|top) (?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|x) cards? of (?:their|your|each opponent's) library\\b`,
     );
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;

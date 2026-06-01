@@ -56,6 +56,11 @@ const PATTERNS = [
   // a card" — refers back to the targeted set above and forces each
   // member to discard. Same disruption semantic.
   /\beach of those opponents discards?\b/,
+  // v0.20.0 — Thought-Stalker Warlock template: "choose target opponent
+  // ... they discard <a card | that card | the chosen card>". The
+  // antecedent gate (within 200 chars) binds "they" to the chosen
+  // opponent without admitting bare "they discard".
+  /\bchoose target opponent\b[\s\S]{0,200}?\bthey discards?\s+(?:a card|that card|the chosen card)\b/,
 ];
 
 export const rule: Rule = {
