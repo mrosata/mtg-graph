@@ -34,7 +34,12 @@ export const rule: Rule = {
       + `|\\b(?:target (?:player|opponent)|each opponent|each player) exiles the top (?:${NUM} )?cards? of ${LIBRARY_OWNER} library\\b`
       // Frame C: "exile (that many|N) cards from the top of <library>" —
       // life-cost replacement and Embereth-style payoffs.
-      + `|\\bexile ${NUM} cards? from the top of ${LIBRARY_OWNER} library\\b`,
+      + `|\\bexile ${NUM} cards? from the top of ${LIBRARY_OWNER} library\\b`
+      // v0.15 — Frame D: tutor-then-exile. "search your library for X cards
+      // [...filter...], exile them" / "search your library for a card [...]
+      // and exile it" (Omenpath Journey). The library is searched, matched
+      // cards are exiled to enable a later play-from-exile payoff.
+      + `|\\bsearch your library for [^.]{0,120}?(?:,\\s+exile (?:them|it|that card|those cards)|\\s+and exile (?:them|it|that card|those cards))\\b`,
     );
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;

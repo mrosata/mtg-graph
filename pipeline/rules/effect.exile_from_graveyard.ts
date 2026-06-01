@@ -42,7 +42,10 @@ const OWN_TARGETED = /exile (?:up to [\w-]+ |any number of )?target [^.]+? from 
 const OWN_QUANTIFIED = /exile one or more [^:.—]+? from your graveyard(?!s*\s*[:—])/;
 // Bulk single-graveyard exile ("exile target player's graveyard" — Sentinel
 // of Lost Lore) joins the plural mass-wipe form on this arm.
-const MASS_WIPE = /exile (?:each opponent's|target (?:opponent|player)'s) graveyard/;
+// v0.15 — "exile all graveyards" / "exile each graveyard" added (Rest in
+// Peace's ETB). Broadest possible graveyard-exile — every card in every
+// graveyard at once.
+const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponent|player)'s) graveyards?/;
 // v0.14.22 — "exile target X card IN a graveyard" — modern templating
 // (Reenact the Crime). Semantically the same as "from a graveyard": the
 // graveyard is the source zone, and the targeted card is what's exiled.

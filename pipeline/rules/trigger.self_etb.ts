@@ -25,10 +25,14 @@ export const tagDef: TagDef = {
 // Inspector ("Whenever this creature or another Detective you control
 // enters") — the self-half of the disjunction is a real self-ETB trigger.
 // The other-half fires trigger.another_creature_etb separately.
+// v0.15 — other-half slot widened from 40 → 80 chars to admit intervening
+// "with <stat-filter>" qualifier tails (Vaultborn Tyrant: "another creature
+// you control with power 4 or greater enters"). Non-greedy match still
+// stops at the earliest "enters".
 const SELF_ETB = new RegExp(
   '\\b(?:when|whenever|as) ' +
   '(?:__self__|this (?:__self__|creature|artifact|enchantment|land|permanent|planeswalker|vehicle|saga|aura|room|equipment|battle|case|class))' +
-  '(?: or (?:a|another|one or more) [\\w\\-\\s]{1,40}?)?' +
+  '(?: or (?:a|another|one or more) [\\w\\-\\s]{1,80}?)?' +
   ' (?:enters(?:\\s+or (?:attacks|is turned face up))?(?!\\s+(?:with|tapped|untapped))|attacks or enters)' +
   '\\b[^.]*?,',
 );

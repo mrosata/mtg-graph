@@ -65,6 +65,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.sacrifice_planeswalker': 'destruction',
   'effect.prevent_damage': 'destruction',
   'effect.amplifies_damage_or_lifeloss': 'destruction',
+  'effect.loses_abilities': 'destruction',
   'trigger.artifact_leaves_battlefield': 'destruction',
   'trigger.creature_dies': 'destruction',
   'trigger.creature_leaves_battlefield': 'destruction',
@@ -77,6 +78,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
 
   // counter-magic
   'effect.counterspell': 'counter-magic',
+  'effect.silence_opponents': 'counter-magic',
 
   // bounce-blink
   'effect.bounce_artifact': 'bounce-blink',
@@ -135,6 +137,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.tutors_creature': 'card-selection',
   'effect.tutors_subtype': 'card-selection',
   'trigger.card_drawn_discarded': 'card-selection',
+  'condition.cares_hand_size': 'card-selection',
 
   // tap-untap-steal
   'effect.control_change': 'tap-untap-steal',
@@ -212,6 +215,11 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'trigger.discovered': 'set-mechanics',
   'trigger.explored': 'set-mechanics',
   'trigger.turned_face_up': 'set-mechanics',
+  // Bloomburrow mechanics.
+  'condition.valiant': 'set-mechanics',
+  'trigger.expend': 'set-mechanics',
+  'effect.has_offspring': 'set-mechanics',
+  'effect.forage': 'set-mechanics',
 
   // keywords
   'condition.cares_deathtouch': 'keywords',
@@ -237,6 +245,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.grants_trample': 'keywords',
   'effect.grants_vigilance': 'keywords',
   'effect.unblockable': 'keywords',
+  'effect.partial_unblockable': 'keywords',
   'effect.has_double_strike': 'keywords',
   'effect.has_first_strike': 'keywords',
   'effect.has_flash': 'keywords',

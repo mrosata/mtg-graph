@@ -47,6 +47,11 @@ describe('condition.cares_exile_pile', () => {
     // v0.14.7 — duration framing — the exile pile is the persistence anchor
     // for a recasting permission. Outrageous Robbery.
     ['you may look at and play those cards for as long as they remain exiled'],
+    // v0.15 — intervening qualifier ("at random") between card and exiled
+    // (Omenpath Journey). The "card exiled with this enchantment" anchor
+    // survives but the slot between card and exiled needs to admit
+    // adverbial qualifiers.
+    ['choose a card at random exiled with this enchantment and put it onto the battlefield tapped'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

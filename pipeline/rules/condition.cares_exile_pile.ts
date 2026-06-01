@@ -30,7 +30,9 @@ const PATTERNS = [
   // Lazav). Optional "you own" / "owned by you" qualifier between cards and
   // exiled. "it" is the anaphoric pronoun for a permanent referenced earlier
   // in the same ability (v0.14.7 broadening).
-  /\bcards? (?:you own |owned by you )?exiled with (?:__self__|it|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker))\b/,
+  // v0.15 — qualifier slot relaxed to admit short adverbial modifiers
+  // ("at random") between the card and "exiled" (Omenpath Journey).
+  /\bcards? (?:(?:you own |owned by you |at random )+)?exiled with (?:__self__|it|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker))\b/,
   // (3) Turn-scoped exile gating — "if a card was put into exile this turn",
   // "if a card was exiled this turn". The Nightmare-token frame from Ashiok.
   /\bif a card was (?:put into exile|exiled) this turn\b/,

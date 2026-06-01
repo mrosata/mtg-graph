@@ -50,14 +50,21 @@ export const THEME_TRIBES = [
   'wizard', 'dwarf', 'zombie', 'vampire', 'merfolk',
   'elemental', 'rat', 'dinosaur', 'pirate', 'skeleton',
   'detective',
+  // v0.16 — Bloomburrow animal tribes. Full color-cycle of payoffs across
+  // BLB, plus assorted reprints in FDN / later sets. Mouse uses the
+  // irregular plural "mice".
+  'rabbit', 'raccoon', 'mouse', 'otter', 'squirrel',
+  'bat', 'bird', 'lizard', 'frog',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];
 
 // Simple noun-plural pattern for tribes; tribes never end in 's' in MTG.
 // Special-cased F-pluralization for elf/elves and dwarf/dwarves.
+// v0.16 — mouse/mice irregular plural.
 export function tribePattern(s: string): string {
   if (s === 'elf') return 'el(?:f|ves)';
   if (s === 'dwarf') return 'dwar(?:f|ves)';
+  if (s === 'mouse') return '(?:mouse|mice)';
   return `${s}s?`;
 }

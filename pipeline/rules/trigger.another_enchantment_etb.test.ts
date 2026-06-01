@@ -15,6 +15,12 @@ describe('trigger.another_enchantment_etb', () => {
     ['whenever an aura you control enters, draw a card'],
     // Other enchantment subtypes that follow the same pattern.
     ['whenever a saga you control enters, scry 1'],
+    // v0.15 — intervening "with <stat-filter>" qualifier (consistency with
+    // creature/artifact widening). Post-noun slot widened from 3 to 8.
+    ['whenever another enchantment you control with mana value 3 or greater enters, draw a card'],
+    // v0.15 — broad "noncreature, nonland permanents" framing (Builder's
+    // Talent) is a superset that includes enchantments. Fires this trigger.
+    ['whenever one or more noncreature, nonland permanents you control enter, put a +1/+1 counter on target creature you control'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

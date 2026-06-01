@@ -24,6 +24,11 @@ describe('effect.impulse_draw', () => {
     ['exile the top card of your library. if it\'s a land card, create a 2/2 white ox creature token. otherwise, you may cast it until the end of your next turn.'],
     ['exile the top card of your library. you may cast it this turn.'],
     ['exile the top card of your library. you may cast that card until end of turn.'],
+    // v0.15 — comma-and-long-intermediate frame (Loot, the Key to Everything).
+    // After "library" can come a comma (not a period) followed by a longer
+    // intermediate clause (~80 chars defining X), then the play-from-exile
+    // permission in the next sentence.
+    ['exile the top x cards of your library, where x is the number of card types among other nonland permanents you control. you may play those cards this turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

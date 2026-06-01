@@ -43,6 +43,11 @@ describe('trigger.self_etb', () => {
     // other-ETB half fires another_creature_etb separately.
     ['whenever this creature or another detective you control enters and whenever a detective you control is turned face up, you may draw a card'],
     ['whenever this creature or another creature you control enters, draw a card'],
+    // v0.15 — compound subject with intervening "with <stat-filter>" qualifier
+    // tail (Vaultborn Tyrant): "this creature or another creature you control
+    // with power 4 or greater enters". The other-half subject now exceeds the
+    // legacy 40-char window; widened to 80.
+    ['whenever this creature or another creature you control with power 4 or greater enters, you gain 3 life and draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

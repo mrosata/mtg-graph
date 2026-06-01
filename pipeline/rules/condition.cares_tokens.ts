@@ -32,7 +32,10 @@ const PATTERNS = [
   /\bif (?:a|one or more) [\w\s]+? tokens? would be created\b/,
   // v0.14.9 — "sacrifice N tokens" activation-cost frame (Izoni, Center of
   // the Web). Tokens used as a paid resource is a token-payoff signal.
-  /\bsacrifice (?:a|an|one|two|three|four|five|six|seven|x|\d+) tokens?\b/,
+  // v0.15 — type-adjective slot admitted between count and "tokens"
+  // (Transmutation Font: "sacrifice three artifact tokens with different
+  // names"). Up to 2 adjective tokens; still token-as-resource.
+  /\bsacrifice (?:a|an|one|two|three|four|five|six|seven|x|\d+)(?:\s+[\w\-]+){0,2}\s+tokens?\b/,
 ];
 
 export const rule: Rule = {

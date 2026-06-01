@@ -43,6 +43,9 @@ describe('trigger.another_creature_etb', () => {
     ['whenever another creature you control with power 3 or greater enters, draw a card'],
     ['whenever another creature you control with mana value 4 or less enters, scry 1'],
     ['whenever a nontoken creature you control with power 2 or less enters, gain 1 life'],
+    // v0.15 — compound subject with intervening "with <stat-filter>" qualifier
+    // (Vaultborn Tyrant). Other-half slot widened from 40 to 80 chars.
+    ['whenever this creature or another creature you control with power 4 or greater enters, you gain 3 life and draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -3,7 +3,7 @@ import { rules, tagDefs } from './condition.cares_tribe';
 
 describe('condition.cares_tribe parametric', () => {
   it('exports a rule per tribe', () => {
-    expect(rules.length).toBe(16);
+    expect(rules.length).toBe(25);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -12,10 +12,15 @@ describe('condition.cares_tribe parametric', () => {
     expect(ids.has('condition.cares_tribe.pirate')).toBe(true);
     expect(ids.has('condition.cares_tribe.skeleton')).toBe(true);
     expect(ids.has('condition.cares_tribe.detective')).toBe(true);
+    // v0.16 — BLB animal tribes.
+    expect(ids.has('condition.cares_tribe.rabbit')).toBe(true);
+    expect(ids.has('condition.cares_tribe.raccoon')).toBe(true);
+    expect(ids.has('condition.cares_tribe.mouse')).toBe(true);
+    expect(ids.has('condition.cares_tribe.bat')).toBe(true);
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(16);
+    expect(tagDefs.length).toBe(25);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');
@@ -88,5 +93,27 @@ describe('condition.cares_tribe parametric', () => {
     const d = rules.find((r) => r.id === 'condition.cares_tribe.detective')!;
     expect(d.match("enchanted creature gets +2/+2 as long as it's a detective you control")).toBeTruthy();
     expect(d.match("can't block detectives")).toBeTruthy();
+  });
+
+  // v0.16 — Bloomburrow tribes. Mouse uses irregular plural "mice".
+  it('mouse matches both "mouse" and "mice" plural', () => {
+    const m = rules.find((r) => r.id === 'condition.cares_tribe.mouse')!;
+    expect(m.match('mice you control gain +1/+1')).toBeTruthy();
+    expect(m.match('this mouse gains haste')).toBeTruthy();
+    expect(m.match('create a 1/1 white mouse creature token')).toBe(false); // strip
+  });
+
+  it('bat does not false-match on "battle" or "combat"', () => {
+    const b = rules.find((r) => r.id === 'condition.cares_tribe.bat')!;
+    expect(b.match('whenever this creature attacks during combat, draw a card')).toBe(false);
+    expect(b.match('whenever a battle enters')).toBe(false);
+    expect(b.match('bats you control have flying')).toBeTruthy();
+  });
+
+  it('raccoon and squirrel match BLB tribal payoffs', () => {
+    const r = rules.find((r) => r.id === 'condition.cares_tribe.raccoon')!;
+    expect(r.match('raccoons you control get +1/+1 and gain vigilance until end of turn')).toBeTruthy();
+    const s = rules.find((r) => r.id === 'condition.cares_tribe.squirrel')!;
+    expect(s.match('whenever another squirrel you control enters, you gain 1 life')).toBeTruthy();
   });
 });

@@ -14,6 +14,13 @@ describe('effect.exile_from_library', () => {
     ['each opponent exiles the top five cards of their library'],
     // "exile the top card of their library" — opponent-scoped variants.
     ['target opponent exiles the top three cards of their library'],
+    // v0.15 — tutor-then-exile frame (Omenpath Journey):
+    // "search your library for X cards, exile them". The library is searched,
+    // matching cards are exiled (typically to enable a later play-from-exile
+    // payoff). Distinct from a pure tutor — the exile destination is what
+    // qualifies it for this tag.
+    ['search your library for up to five land cards that have different names, exile them, then shuffle'],
+    ['search your library for a card and exile it'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

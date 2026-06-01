@@ -25,6 +25,11 @@ describe('trigger.card_drawn_discarded', () => {
     ['whenever you discard one or more cards, exile the top card of your library.'],
     ['whenever an opponent draws one or more cards, you gain 1 life.'],
     ['whenever you discard one or more land cards, create a treasure token.'],
+    // v0.15 — "one or more players discard one or more cards" plural-subject
+    // frame (Hostile Investigator). The trigger fires on any draw/discard
+    // event across all players — a global observer.
+    ['whenever one or more players discard one or more cards, investigate'],
+    ['whenever one or more players draw one or more cards, you gain 1 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

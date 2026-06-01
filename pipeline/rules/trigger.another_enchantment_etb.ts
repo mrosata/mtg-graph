@@ -28,10 +28,20 @@ export const rule: Rule = {
     // (Aura, Saga, Class, Curse, Role, Shrine) — e.g. Tanglespan Lookout
     // ("whenever an aura you control enters"). Self-ETB on the card itself
     // is handled by trigger.self_etb via "this <type>" subject.
+    // v0.15 — post-noun qualifier slot widened from {0,3} → {0,8} to admit
+    // "with <stat-filter>" qualifier tails. Parallel to v0.14.13 widening
+    // on trigger.another_creature_etb.
     const m = t.match(
-      /whenever (?:a |an |another |one or more )?(?:enchantment|aura|saga|class|curse|role|shrine)s?(?:\s+\w+){0,3}\s+enters?/,
+      /whenever (?:a |an |another |one or more )?(?:enchantment|aura|saga|class|curse|role|shrine)s?(?:\s+\w+){0,8}\s+enters?/,
     );
-    return m ? { evidence: m[0] } : false;
+    if (m) return { evidence: m[0] };
+    // v0.15 — broad "noncreature, nonland permanents" superset framing
+    // (Builder's Talent). Covers artifact + enchantment + planeswalker
+    // permanents — fires both this trigger and another_artifact_etb.
+    const broad = t.match(
+      /whenever (?:a |an |another |one or more )?(?:noncreature, nonland|nonland, noncreature) permanents?(?:\s+\w+){0,8}\s+enters?/,
+    );
+    return broad ? { evidence: broad[0] } : false;
   },
   nearMiss: { anchors: ['enters'], proximity: ['enchantment', 'enchantments'], window: 6 },
 };

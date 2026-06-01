@@ -30,7 +30,12 @@ export const tagDef: TagDef = {
 // using the `if it's a land ... otherwise, you may cast it` conditional
 // impulse-draw shape). The "play" form is the historic templating; "cast"
 // became more common when the effect was scoped to non-land cards.
-const PATTERN = /\b(?:exile the top (?:\S+ )?cards? of (?:your|their) library|exile (?:\S+ ){0,2}cards? from the top of (?:your|their) library)\.(?:[^.]{0,60}\.)?[^.]{0,40}?(?:you may |they may |that player may )?(?:play|cast) (?:it|that card|those cards|them)(?:[^.]{0,40}?(?:this turn|until (?:your |their |the )?(?:next end step|end of (?:their|your) next turn)|until end of turn))?/;
+// v0.15 — boundary loosened from `\.` to `[.,]` (allow a comma after
+// "library" instead of requiring a period — Loot, the Key to Everything:
+// "exile the top X cards of your library, where X is …"). The intermediate
+// clause length raised from 60 to 140 chars to admit the longer "where X
+// is …" definition before the play-from-exile permission.
+const PATTERN = /\b(?:exile the top (?:\S+ )?cards? of (?:your|their) library|exile (?:\S+ ){0,2}cards? from the top of (?:your|their) library)[.,](?:[^.]{0,140}\.)?[^.]{0,40}?(?:you may |they may |that player may )?(?:play|cast) (?:it|that card|those cards|them)(?:[^.]{0,40}?(?:this turn|until (?:your |their |the )?(?:next end step|end of (?:their|your) next turn)|until end of turn))?/;
 
 export const rule: Rule = {
   id: 'effect.impulse_draw',

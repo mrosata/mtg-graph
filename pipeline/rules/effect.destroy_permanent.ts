@@ -24,8 +24,12 @@ export const tagDef: TagDef = {
 // cover all permanent types, so "destroy target token" is semantically
 // wildcard removal (Kraul Whipcracker: "destroy target token an opponent
 // controls").
+// v0.15 — `nonland` removed from the exclusion list. `nonland permanent`
+// is functionally universal and is the canonical Vindicate-style parent
+// frame (Bumbleflower's Sharepot, Vindicate). The remaining non* qualifiers
+// are real single-type exclusions and stay excluded.
 const PATTERN =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|nonland)\s+)(?:[\w\-]+\s+){0,5}?(?:permanents?|tokens?)\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+\s+){0,5}?(?:permanents?|tokens?)\b/;
 
 export const rule: Rule = {
   id: 'effect.destroy_permanent',

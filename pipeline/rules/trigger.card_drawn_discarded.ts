@@ -28,9 +28,12 @@ export const rule: Rule = {
     // Sun ("whenever you discard one or more cards") and similar batched
     // draw/discard triggers.
     const TYPE = '(?:land|creature|noncreature|nonland|artifact|enchantment|planeswalker|instant|sorcery)';
+    // v0.15 — plural "one or more players" subject added (Hostile
+    // Investigator: "Whenever one or more players discard one or more cards,
+    // investigate"). Global discard/draw observer across all players.
     const m = t.match(
       new RegExp(
-        `whenever (?:you|an opponent|a player) (?:draws?|discards?) (?:a (?:${TYPE} )?card|one or more (?:${TYPE} )?cards?|(?:your|their) (?:first|second|third|fourth|fifth) card)|when (?:you|an opponent|a player) (?:draws?|discards?) a (?:${TYPE} )?card this way`,
+        `whenever (?:you|an opponent|a player|one or more players) (?:draws?|discards?|draw|discard) (?:a (?:${TYPE} )?card|one or more (?:${TYPE} )?cards?|(?:your|their) (?:first|second|third|fourth|fifth) card)|when (?:you|an opponent|a player) (?:draws?|discards?) a (?:${TYPE} )?card this way`,
       ),
     );
     return m ? { evidence: m[0] } : false;

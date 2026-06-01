@@ -17,8 +17,14 @@ export const tagDef: TagDef = {
   ],
 };
 
+// v0.15 — `nonland` removed from the type-restricting exclusion list.
+// `nonland permanent` is functionally universal (covers creature, artifact,
+// enchantment, planeswalker) and the canonical Oblivion-Ring / Banishing
+// Light parent frame. The remaining non* qualifiers (noncreature,
+// nonartifact, etc.) are real single-type exclusions and stay excluded
+// so the typed children fire alone.
 const PATTERN =
-  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|nonland)\s+)(?:[\w\-]+\s+){0,5}?permanents?(?! cards?)\b/;
+  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+\s+){0,5}?permanents?(?! cards?)\b/;
 
 export const rule: Rule = {
   id: 'effect.exile_from_battlefield',

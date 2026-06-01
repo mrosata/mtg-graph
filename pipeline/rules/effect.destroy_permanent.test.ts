@@ -15,13 +15,19 @@ describe('effect.destroy_permanent (parent, universal-only)', () => {
     ['destroy target token an opponent controls'],
     ['destroy all tokens'],
     ['destroy each token a player controls'],
+    // v0.15 — `nonland permanent` is functionally universal (covers
+    // creature/artifact/enchantment/planeswalker) and the canonical
+    // Vindicate parent frame. Previously excluded as a "type-restricting"
+    // qualifier; now accepted (Bumbleflower's Sharepot, Pest Control's
+    // singular-target sibling, Vindicate, Anguished Unmaking).
+    ['destroy target nonland permanent'],
+    ['destroy target nonland permanent an opponent controls'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
 
   it.each([
     // Type-restricting modifiers — parent must NOT match these
-    ['destroy target nonland permanent'],
     ['destroy target nonartifact permanent'],
     ['destroy target nonenchantment permanent'],
     ['destroy target noncreature permanent'],

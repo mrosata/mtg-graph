@@ -20,6 +20,12 @@ describe('condition.cares_tokens', () => {
     ['sacrifice four tokens: surveil 2, then draw two cards'],
     ['sacrifice a token: gain 1 life'],
     ['sacrifice three tokens: draw a card'],
+    // v0.15 — "sacrifice N <adj> tokens" cost frame (Transmutation Font):
+    // "sacrifice three artifact tokens with different names". Type adjective
+    // ("artifact") between the count and "tokens" is admitted — still a
+    // token-as-resource cost.
+    ['sacrifice three artifact tokens with different names: search your library'],
+    ['sacrifice two creature tokens: draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -1484,3 +1484,50 @@ Whenever this creature attacks, it deals damage to defending player equal to the
   - **What's wrong:** "Equal to the number of artifacts they control" is artifact-count scaling — but the rule likely scopes to "artifacts you control" (the standard payoff frame). Generous Plunderer scales on OPPONENT's artifact count (an anti-artifact-deck punisher). Real but edge family (Manic Vandal-style + artifacts-they-control payoffs).
   - **Evidence vs reality:** oracle `"equal to the number of artifacts they control"` — same scaling structure as `artifacts you control`, just other-player-scoped.
   - **Suggested fix:** broaden `condition.cares_artifacts` to include `artifacts they control` and `artifacts your opponents control`. Pair-wise this is mostly with other artifact-producers/destroyers; semantically belongs in the same payoff category.
+
+
+---
+
+## Remaining from 2026-05-31 audit batch (v0.16.0 catchup)
+
+The bulk of the 2026-05-31 audit batch was shipped under v0.15.1 (narrowings +
+broadenings across 16 rules) and v0.16.0 (9 new rules: BLB tribes extension,
+`condition.expend`, `condition.valiant`, `effect.has_offspring`,
+`effect.forage`, `effect.silence_opponents`, `condition.cares_hand_size`,
+`effect.loses_abilities`, `effect.partial_unblockable`). The items below were
+deliberately deferred — small families or niche structures that don't justify
+new rules yet.
+
+### Torpor Orb (ETB-shutoff hate-piece) — 2-card family
+
+Standard only has Torpor Orb + Doorkeeper Thrull with the
+"creatures entering don't cause abilities to trigger" replacement effect.
+Too narrow to author a dedicated `effect.replace_etb_trigger` rule. Revisit if
+a future set adds Hushbringer-style cards.
+
+### Rest in Peace's graveyard-hate replacement — small family
+
+The "if a card or token would be put into a graveyard from anywhere, exile it
+instead" replacement effect is iconic but the family in Standard is essentially
+Rest in Peace + Leyline of the Void variants. The ETB clause ("exile all
+graveyards") IS now tagged via the broadened `effect.exile_from_graveyard`.
+
+### Alania, Divergent Storm — ordinal qualifier with separate spell types
+
+"If it's the first instant spell, the first sorcery spell, or the first Otter
+spell" — the rule's existing ordinal slot accepts "first instant or sorcery
+spell" (conjunction) but not the comma-separated form. Single-card scope in
+Standard; deferred until a second example appears.
+
+### Bandit's Talent — beginning-of-draw-step trigger
+
+`trigger.beginning_of_draw_step` would mirror the upkeep / combat / end-step
+phase-trigger family but Standard has very few draw-step triggers. Bandit's
+Talent's level-3 ability is the canonical example.
+
+### Builder's Talent — class-level-up trigger
+
+"When this Class becomes level N" is a real trigger frame across the Class
+enchantment cycle, but the per-Class payoff variance and small total card
+count make a dedicated `trigger.class_levels_up` rule low-value today.
+

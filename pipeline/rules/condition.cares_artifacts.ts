@@ -26,10 +26,17 @@ const PATTERNS = [
   // creatures you control" (Sunshot Militia). "you control" qualifies the
   // second noun, not "artifacts"; the conjunction still establishes artifacts
   // as a payoff resource.
-  /\bartifacts?\s+(?:and\/or|or)\s+\w+\s+you control\b/,
+  // v0.15: negative lookbehind for `target ` / `enchant ` — single-target type
+  // filters (Molten Duplication's "target artifact or creature you control",
+  // Moonlit Meditation's "enchant artifact or creature you control") are one-
+  // time type filters at cast time, not artifact-payoff resource frames.
+  /\b(?<!target\s)(?<!enchant\s)artifacts?\s+(?:and\/or|or)\s+\w+\s+you control\b/,
   // v0.14.1: disjunctive dig/reveal filter — "an artifact or <X> card"
   // (Staunch Crewmate's ETB digs for "artifact or Pirate card").
-  /\ban? artifact or [\w\-]+ card\b/,
+  // v0.15: negative lookahead for ` from your hand` — "exile/discard an
+  // artifact or <type> card from your hand" (Nexus of Becoming) is a cost
+  // type filter, not a dig-from-pile payoff that scales on artifact presence.
+  /\ban? artifact or [\w\-]+ card\b(?! from your hand)/,
   // v0.14.6: artifact-aristocrats payoff (Anzrag's Rampage). X scales off the
   // count of "artifacts that were put into graveyards from the battlefield
   // this turn" — same as creatures_died but for artifacts.

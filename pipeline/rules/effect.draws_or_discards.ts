@@ -28,6 +28,14 @@ export const rule: Rule = {
     const m = t.match(
       /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player)\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
     );
-    return m ? { evidence: m[0] } : false;
+    if (m) return { evidence: m[0] };
+    // v0.15 — causative "have <opponent> draw/discard" frame (Alania,
+    // Divergent Storm: "you may have target opponent draw a card"). The
+    // controller is causing the opponent to draw; semantically still a
+    // draw effect with this card as the source.
+    const causative = t.match(
+      /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent)\s+(?:draws?|discards?) (?:a card|that many cards|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?)/,
+    );
+    return causative ? { evidence: causative[0] } : false;
   },
 };

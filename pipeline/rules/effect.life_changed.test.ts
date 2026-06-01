@@ -40,6 +40,16 @@ describe('effect.life_changed', () => {
     // which wasn't in the allowlist.
     ['whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, that opponent loses 3 life and you draw a card'],
     ['that opponent loses 2 life'],
+    // v0.15 — anaphoric "they" subject (Bandit's Talent): "at the beginning
+    // of each opponent's upkeep, if that player has one or fewer cards in
+    // hand, they lose 2 life". The "they" pronoun back-references the
+    // "that player" mentioned in the preceding conditional clause.
+    ['if that player has one or fewer cards in hand, they lose 2 life'],
+    // v0.15 — "pay N life" cost frame (Bonecache Overseer): "{T}, Pay 1
+    // life: Draw a card". Pay-life-as-cost causes life loss the same way
+    // "lose N life" does.
+    ['{t}, pay 1 life: draw a card'],
+    ['{2}, pay 3 life, {t}: scry 2'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

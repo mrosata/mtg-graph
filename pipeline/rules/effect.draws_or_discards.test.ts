@@ -43,6 +43,11 @@ describe('effect.draws_or_discards', () => {
     ['{1}{r}, discard your hand, sacrifice this enchantment: put all cards exiled with this enchantment into their owners hands'],
     // Hellbent-enabler variant.
     ['discard your hand. then draw a card for each card discarded this way'],
+    // v0.15 — causative "you may have target opponent draw a card" frame
+    // (Alania, Divergent Storm). The card causes the opponent to draw; the
+    // subject is the opponent but the controller is doing the causing.
+    ['you may have target opponent draw a card'],
+    ['have target player draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -65,6 +65,20 @@ describe('condition.cares_artifacts', () => {
     // v0.14.12 guards — type-removal effects shouldn't match the LtB-observer
     // pattern. "destroy target artifact" is removal, not observation.
     ['destroy an artifact and a creature'],
+    // v0.15 — single-target type filter "target artifact or <type> you control"
+    // (Molten Duplication). The "target" qualifier identifies a removal/copy
+    // target, not artifacts as a payoff resource.
+    ["create a token that's a copy of target artifact or creature you control"],
+    ['destroy target artifact or creature you control'],
+    // v0.15 — exile-from-hand cost frame "an artifact or <type> card from your
+    // hand" (Nexus of Becoming). The cost specifies a card type filter for
+    // an exile-as-cost, not artifact count or artifact-as-resource scaling.
+    ['you may exile an artifact or creature card from your hand'],
+    ['discard an artifact or creature card from your hand'],
+    // v0.15 — aura enchant filter "enchant artifact or <type> you control"
+    // (Moonlit Meditation). Same structural FP as "target" — one-time type
+    // filter at cast time, not artifact-payoff.
+    ['enchant artifact or creature you control'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

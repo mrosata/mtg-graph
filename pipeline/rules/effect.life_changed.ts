@@ -31,9 +31,16 @@ export const rule: Rule = {
     //       from matching.
     // v0.14.1 — digit slot relaxed to `[\d,]+` so comma-separated amounts
     // like "1,000 life" (The Millennium Calendar) match.
-    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent) (?:may )?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
-    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent) (?:may )?)?(?:gains?|loses?) life equal to /;
-    const m = t.match(QUANT) ?? t.match(VARIABLE);
+    // v0.15 — anaphoric "they" added to the subject list (Bandit's Talent:
+    // "if that player has one or fewer cards in hand, they lose 2 life" —
+    // "they" back-references "that player" in the preceding clause).
+    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they) (?:may )?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
+    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they) (?:may )?)?(?:gains?|loses?) life equal to /;
+    // v0.15 — "pay N life" cost frame (Bonecache Overseer: "Pay 1 life" as
+    // activation cost). Paying life is functionally life loss for the
+    // controller. Allows X / digit / comma-amount.
+    const PAY = /\bpay (?:[\d,]+|x) life\b/;
+    const m = t.match(QUANT) ?? t.match(VARIABLE) ?? t.match(PAY);
     return m ? { evidence: m[0] } : false;
   },
 };

@@ -48,8 +48,10 @@ export const rule: Rule = {
     // (Projektor Inspector). The other-ETB half of the disjunction should
     // fire even though the leading "this <type>" is the trigger.self_etb
     // half. Accepts both generic "creature" and tribal sub-subjects.
+    // v0.15 — other-half slot widened from 40 → 80 chars to admit
+    // "with <stat-filter>" qualifier tails (Vaultborn Tyrant).
     const compound = t.match(
-      /whenever this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker) or (?:a|another|one or more) [\w\-\s]{1,40}?(?:enters?|enters or is turned face up)/,
+      /whenever this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker) or (?:a|another|one or more) [\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
     );
     return compound ? { evidence: compound[0] } : false;
   },

@@ -30,6 +30,11 @@ describe('effect.exile_from_graveyard', () => {
     // the card is the target, the graveyard is the source zone.
     ['exile target nonland card in a graveyard that was put there from anywhere this turn'],
     ['exile target creature card in a graveyard'],
+    // v0.15 — mass graveyard wipe "exile all graveyards" (Rest in Peace's ETB).
+    // The broadest possible graveyard-exile effect — every card in every
+    // graveyard removed at once.
+    ['when this enchantment enters, exile all graveyards'],
+    ['exile all graveyards'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
