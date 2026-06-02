@@ -61,8 +61,14 @@ export const rule: Rule = {
     // "with <stat-filter>" qualifier tails (Vaultborn Tyrant).
     // v0.19 — leading subject also admits the bare `__self__` placeholder
     // (Clement, the Worrywort — legendary-name rewritten subject).
+    // v0.30 Group 13 — other-half subject gated: it MUST start with either
+    // "creature" or a creature-subtype word (not artifact/enchantment/land/
+    // planeswalker/battle/permanent/token), mirroring the tribal arm's gate
+    // at line 52. Pactdoll Terror's "this creature or another artifact you
+    // control" must not fire here — non-creature permanent ETBs have their
+    // own dedicated trigger.another_<type>_etb tags.
     const compound = t.match(
-      /whenever (?:__self__|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)) or (?:a|another|one or more) [\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
+      /whenever (?:__self__|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)) or (?:a|another|one or more) (?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|gate|cave|sphere|plains|island|swamp|mountain|forest|locus|desert|lair|town|mine|tower|power-plant|urza)s?\b)[\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
     );
     return compound ? { evidence: compound[0] } : false;
   },

@@ -38,6 +38,11 @@ export const tagDef: TagDef = {
 // Soul Search, Guidelight Pathmaker, Thunderous Velocipede.
 const PATTERNS = [
   /(?<!total\s)\bmana value (?:is\s+)?[1-4]\s*or less\b/,
+  // v0.30 Group 7 — count-comparator: "mana value (is)? less than or equal
+  // to the number/amount" / "≤ the number/amount/x" (Quag Feast).
+  // Dynamic ceiling — still a low-MV gate axis. Per ship list tiebreaker,
+  // bare "mana value N" is NOT admitted (would flip an existing negative).
+  /\bmana value (?:is\s+)?(?:less than or equal to|≤)\s+(?:the\s+(?:number|amount)|x)\b/,
 ];
 
 export const rule: Rule = {

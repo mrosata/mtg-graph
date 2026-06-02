@@ -26,6 +26,11 @@ describe('effect.debuff_minus_n', () => {
     ['double strike this creature enters with two -1/-1 counters on it if you cast it from your hand.'],
     ['enters with two -1/-1 counters on it'],
     ['put a -1/-1 counter on target creature'],
+    // v0.30 — Group 6 — The Last Ride: "__self__ gets -X/-X" — self-only
+    // static that scales the card itself, not a debuff to other creatures.
+    // Span-detect for "__self__ gets -N/-N" suppresses.
+    ['__self__ gets -x/-x, where x is your life total. {2}{b}, pay 2 life: draw a card. crew 2'],
+    ['__self__ gets -2/-2 until end of turn.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

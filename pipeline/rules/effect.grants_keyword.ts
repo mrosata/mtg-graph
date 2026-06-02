@@ -57,12 +57,19 @@ function buildGrantRegex(kw: string): RegExp {
       // FIX 14 (BR-9) — admit a state adjective ("attacking", "blocking",
       // "tapped", "untapped", "enchanted") before the tribe noun. Crossway
       // Troublemakers: "attacking vampires you control have deathtouch".
-      `(?:^|[.,:\\n—] ?|\\bother\\s+|\\b(?:attacking|blocking|tapped|untapped|enchanted)\\s+)[a-z][\\w\\-]+s\\s+you control\\s+(?:has|have)\\s+${kw}\\b`,
+      // v0.30 Group 11b — admit printed-keyword prefix as a boundary marker
+      // (Fearless Swashbuckler: "haste vehicles you control have haste"
+      // where leading "haste" is the printed keyword line collapsed onto
+      // the same string). Printed-keyword list explicit so it stays narrow.
+      `(?:^|[.,:\\n—] ?|\\bother\\s+|\\b(?:attacking|blocking|tapped|untapped|enchanted)\\s+|\\b(?:haste|flying|trample|vigilance|lifelink|deathtouch|first strike|double strike|hexproof|indestructible|reach|prowess|menace|defender|fear|intimidate|skulk|protection|flash|ward|prowl|shadow|wither|persist|undying)\\s+)[a-z][\\w\\-]+s\\s+(?:and\\s+[a-z][\\w\\-]+s\\s+)?you control\\s+(?:has|have)\\s+${kw}\\b`,
       // FIX 14 (BR-9) — "get +N/+N and have <kw>" anthem continuation.
       // Death Baron: "skeletons you control and other zombies you control
       // get +1/+1 and have deathtouch". The verb chain follows a +N/+N
       // pump rather than the bare anthem verb.
-      `\\bget\\s+\\+(?:\\d+|x)\\/\\+(?:\\d+|x)\\s+and\\s+(?:has|have|gains?)\\s+${kw}\\b`,
+      // v0.30 Group 11a — verb slot widened from `get` to `gets?` to admit
+      // singular Aura conjunction "Enchanted permanent gets +N/+N and has
+      // <kw>" (Lightwheel Enhancements, Silken Strength).
+      `\\bgets?\\s+\\+(?:\\d+|x)\\/\\+(?:\\d+|x)\\s+and\\s+(?:has|have|gains?)\\s+${kw}\\b`,
       // Frame (d): bare __SELF__ subject. Limit filler to 50 chars to avoid
       // crossing sentence boundaries via "and/with" chains.
       `\\b__self__[^.]{0,50}?(?:has|have|gains?)\\s+${kw}\\b`,

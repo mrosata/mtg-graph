@@ -17,6 +17,11 @@ describe('effect.copy_spell', () => {
     // spell (you can only `cast` a spell, not a creature in play).
     ['exile target nonland card in a graveyard. copy it. you may cast the copy without paying its mana cost'],
     ['exile target instant or sorcery card from a graveyard. copy it. you may cast that copy'],
+    // v0.30 — Group 27 — Mendicant Core, Guidelight: cast-trigger then
+    // "copy it" across a sentence boundary ("...you may pay {1}. if you
+    // do, copy it."). Sentence-spanning variant of CAST_SPELL_THEN_COPY_IT.
+    ["__self__'s power is equal to the number of artifacts you control. start your engines! max speed — whenever you cast an artifact spell, you may pay {1}. if you do, copy it."],
+    ['whenever you cast a sorcery, you may pay {2}. if you do, copy it.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

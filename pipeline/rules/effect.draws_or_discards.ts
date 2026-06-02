@@ -89,6 +89,14 @@ export const rule: Rule = {
     const revealMultiToHand = t.match(
       /\breveal\s+(?:the\s+)?top\s+\w+\s+cards?\s+of\s+(?:your|target\s+player's)\s+library\b[^.]*?\.\s*put\s+(?:all|the|any number of)\s+(?:[\w\-\/]+(?:\s+and(?:\/or)?\s+[\w\-\/]+)?\s+)?cards?(?:\s+with\s+[^.]{0,40}?)?\s+from\s+among\s+them\s+into\s+your\s+hand\b/,
     );
-    return revealMultiToHand ? { evidence: revealMultiToHand[0] } : false;
+    if (revealMultiToHand) return { evidence: revealMultiToHand[0] };
+    // v0.30 Group 16 — Stock Up: "look at the top N cards of your library.
+    // put <count> of them into your hand". Functionally a draw — anchored
+    // on the look-at-library context to avoid FPs on bare "put N into your
+    // hand" (Surveil / clone / etc.).
+    const lookThenToHand = t.match(
+      /\blook at the top (?:\w+ )?cards? of your library\b[^.]{0,80}\.\s*put\s+(?:\d+|one|two|three|four|five|that many) of (?:them|those)\s+into your hand\b/,
+    );
+    return lookThenToHand ? { evidence: lookThenToHand[0] } : false;
   },
 };

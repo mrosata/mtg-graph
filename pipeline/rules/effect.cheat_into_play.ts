@@ -25,8 +25,15 @@ export const tagDef: TagDef = {
 // Pattern A: search library + put onto battlefield.
 // Negative lookahead excludes basic-land and named-land-type searches
 // (handled by effect.tutors_basic_land / effect.ramp_nonland).
+// v0.30 Group 28 — admit ONE intermediate sentence between the search
+// clause and the "put it onto the battlefield" clause (Guidelight
+// Pathmaker: "search your library for an artifact card and reveal it.
+// Put it onto the battlefield if its mana value is 2 or less."). The
+// trailing arm requires a gate "(if|tapped|,|\.|$)" right after
+// battlefield to keep "put it onto the battlefield" tightly bounded;
+// `[\s\S]{0,200}?` non-greedy stays as small as possible.
 const SEARCH_PUT =
-  /\bsearch your library for (?!(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) basic\b|(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) (?:plains|island|swamp|mountain|forest|cave|desert|gate|town|sphere|locus|lair) cards?\b|(?:a|an|any|up to (?:a|an|one|two|three|\d+)) land cards?\b)[^.]{0,150}\bput (?:it|them|that card|those cards) onto the battlefield\b/;
+  /\bsearch your library for (?!(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) basic\b|(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) (?:plains|island|swamp|mountain|forest|cave|desert|gate|town|sphere|locus|lair) cards?\b|(?:a|an|any|up to (?:a|an|one|two|three|\d+)) land cards?\b)[\s\S]{0,200}?\bput (?:it|them|that card|those cards) onto the battlefield\b/;
 
 // Pattern B: look at top + put onto battlefield. [\s\S]{0,300} allows
 // spanning sentence boundaries (Break Out is 3 sentences). Face-down /

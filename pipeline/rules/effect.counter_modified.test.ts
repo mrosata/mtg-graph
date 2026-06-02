@@ -54,6 +54,12 @@ describe('effect.counter_modified', () => {
     // with a finality counter on it". Dies-trigger reanimate with counter
     // — no explicit "to the battlefield" between verb and "with <counter>".
     ['return that card under your control with a finality counter on it'],
+    // v0.30 — Group 29 — Thunderous Velocipede: ETB-with-counter arm needs
+    // to admit "additional" / "another" between the quantifier and the
+    // counter-type slot (sibling "put" arm already has it).
+    ['trample each other vehicle and creature you control enters with an additional +1/+1 counter on it if its mana value is 4 or less. otherwise, it enters with three additional +1/+1 counters on it. crew 3'],
+    ['this creature enters with an additional +1/+1 counter on it'],
+    ['__self__ enters with another +1/+1 counter on it'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

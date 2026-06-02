@@ -32,6 +32,11 @@ describe('effect.grants_stat_buff', () => {
     // mentioned target creature. The current PATTERN's subject alternation
     // excludes pure pronoun subjects.
     ['target creature gains trample until end of turn. it also gets +1/+0 until end of turn if you control a mouse'],
+    // v0.30 — Group 18 — Reckless Velocitaur: "that Mount or Vehicle gets
+    // +2/+0". The SUBJECT slot needs to admit "that <type> or <type>"
+    // (anaphoric reference established by a prior trigger clause).
+    ['whenever this creature saddles a mount or crews a vehicle during your main phase, that mount or vehicle gets +2/+0 and gains trample until end of turn.'],
+    ['that mount or vehicle gets +1/+0 until end of turn'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -48,6 +48,12 @@ describe('trigger.self_etb', () => {
     // with power 4 or greater enters". The other-half subject now exceeds the
     // legacy 40-char window; widened to 80.
     ['whenever this creature or another creature you control with power 4 or greater enters, you gain 3 life and draw a card'],
+    // v0.30 — Group 10 — The Mimeoplasm: "as __SELF__ enters" with a choice
+    // payload ("you may exile two creature cards from graveyards") is a
+    // self-ETB triggered selection even though a later "it enters as a copy"
+    // describes a replacement-effect side. Treat the legacy "as __self__
+    // enters" anchor as a self-ETB trigger.
+    ['as __self__ enters, you may exile two creature cards from graveyards. if you do, it enters as a copy of one of those cards with a number of additional +1/+1 counters on it equal to the power of the other card.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

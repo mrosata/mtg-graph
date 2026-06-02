@@ -34,6 +34,13 @@ describe('effect.tutors_basic_land', () => {
     // happens (Krenko grants the search to each affected player).
     ['search their library for a basic land card, put it onto the battlefield tapped, then shuffle'],
     ["search that player's library for a basic land card"],
+    // v0.30 — Group 14 — Abzan Monument: comma-separated multi-type list
+    // ("basic Plains, Swamp, or Forest card"). All listed nouns are basic-
+    // land subtypes so the tutor is still a basic-land tutor for graph-
+    // edge purposes.
+    ['when this artifact enters, search your library for a basic plains, swamp, or forest card, reveal it, put it into your hand, then shuffle.'],
+    ['search your library for a basic plains or island card'],
+    ['search your library for a basic mountain, forest, or plains card'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

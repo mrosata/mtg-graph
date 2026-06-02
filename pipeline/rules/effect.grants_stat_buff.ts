@@ -22,8 +22,12 @@ export const tagDef: TagDef = {
 // (period excluded) so "it" only matches within a clause that already names
 // itself "it" — safe because +N/+N grants on pronoun subjects are highly
 // specific to combat-trick / anthem templating.
+// v0.30 Group 18 — extended SUBJECT to admit "that <type>" / "that <type>
+// or <type>" (Reckless Velocitaur: "that Mount or Vehicle gets +2/+0").
+// The anaphor refers back to a subject established earlier in the trigger
+// clause; structurally still a stat-buff grant.
 const PATTERN =
-  /(?:creatures?|permanents?|attackers?|blockers?|target [a-z]+(?: [a-z]+)?|\bit\b)[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
+  /(?:creatures?|permanents?|attackers?|blockers?|target [a-z]+(?: [a-z]+)?|that\s+[a-z]+(?:\s+or\s+[a-z]+)?|\bit\b)[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
 
 // v0.12.9: tribal-anthem frame — "<tribe>s you control get +N/+N" (Goddric,
 // Cloaked Reveler grants "Dragons you control get +1/+0" through a nested

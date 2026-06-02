@@ -62,6 +62,11 @@ describe('effect.ramp_nonland', () => {
     [['Creature'], 'when this creature enters, reveal cards from the top of your library until you reveal a land card. put that card onto the battlefield tapped and the rest on the bottom of your library in a random order.'],
     // Variant: "until you reveal a basic land card" (more restrictive printing).
     [['Sorcery'], 'reveal cards from the top of your library until you reveal a basic land card. put it onto the battlefield tapped.'],
+    // v0.30 — Group 22 — Skyserpent Seeker: reveal-until-N-lands. Same
+    // ramp-from-deck axis as the singular "a land card" variant; the count
+    // slot just needs to accept N>1.
+    [['Creature'], 'flying, deathtouch exhaust — {4}: reveal cards from the top of your library until you reveal two land cards. put those land cards onto the battlefield tapped and the rest on the bottom of your library in a random order. put a +1/+1 counter on this creature.'],
+    [['Sorcery'], 'reveal cards from the top of your library until you reveal three land cards. put them onto the battlefield tapped.'],
   ])('matches non-land cards that tutor a basic land into play: %j', (types, oracle) => {
     expect(rule.matchCard!(card(types, oracle), oracle)).toBeTruthy();
   });

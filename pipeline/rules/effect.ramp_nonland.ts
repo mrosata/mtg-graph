@@ -55,7 +55,12 @@ const PATTERNS = [
   // tutor ramp (a land enters from outside the deck without spending the
   // turn's land drop) but uses the "reveal until" frame rather than "search
   // your library for".
-  /\breveal cards from the top of your library until you reveal a (?:basic )?land card\.\s*put (?:it|that card) onto the battlefield\b/,
+  // v0.30 Group 22 — admit N>1 in the count slot (Skyserpent Seeker:
+  // "reveal cards ... until you reveal two land cards. put those land cards
+  // onto the battlefield tapped"). Determiner accepts "a"/digit/word counts;
+  // anaphor admits singular "it"/"that card" and plural "them"/"those land
+  // cards".
+  /\breveal cards from the top of your library until you reveal (?:a|\d+|one|two|three|four|five) (?:basic )?land cards?\.\s*put (?:it|that card|them|those (?:basic )?lands? cards?) onto the battlefield\b/,
 ];
 
 export const rule: Rule = {

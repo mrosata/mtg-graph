@@ -20,7 +20,12 @@ export const tagDef: TagDef = {
   pairsWith: ['condition.cares_lifegain', 'trigger.life_changed'],
 };
 
-const SUBJECT = "(?:target opponent|target player|each opponent|each player|that player|that opponent|an opponent|opponents?)";
+// v0.30 Group 26 — admit "the chosen player"/"the chosen opponent"
+// (Haunt the Network: "choose target opponent. ... then the chosen player
+// loses X life and you gain X life"). Anaphor after a prior choice
+// clause. Existing paired-clause check ("you gain") keeps single-half
+// false positives bounded.
+const SUBJECT = "(?:target opponent|target player|each opponent|each player|that player|that opponent|an opponent|opponents?|the chosen player|the chosen opponent)";
 const AMOUNT = "(?:\\d+|x|that much|that many)";
 
 const PATTERNS = [

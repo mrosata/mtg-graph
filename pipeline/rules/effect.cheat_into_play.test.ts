@@ -31,6 +31,13 @@ describe('effect.cheat_into_play', () => {
     // "card" ("top six cards", "top five cards"); the singular form ("top
     // card") didn't reach the put-onto-battlefield anchor.
     ['delirium — whenever __self__ attacks, if there are four or more card types among cards in your graveyard, look at the top card of your library. if it\'s a land card, you may put it onto the battlefield. if you don\'t put the card onto the battlefield, put it into your hand.'],
+    // v0.30 — Group 28 — Guidelight Pathmaker: SEARCH_PUT filler crosses
+    // ONE sentence boundary ("...search your library for an artifact card
+    // and reveal it. Put it onto the battlefield if its mana value is 2
+    // or less."). Allow `[\s\S]{0,200}?` with bounded gate that admits one
+    // sentence break followed by "Put it onto the battlefield (if|tapped)".
+    ['vigilance when this vehicle enters, you may search your library for an artifact card and reveal it. put it onto the battlefield if its mana value is 2 or less. otherwise, put it into your hand. if you search your library this way, shuffle. crew 2'],
+    ['search your library for an artifact card and reveal it. put it onto the battlefield tapped'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

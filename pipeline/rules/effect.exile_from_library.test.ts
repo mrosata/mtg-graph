@@ -47,6 +47,13 @@ describe('effect.exile_from_library', () => {
     // TARGET OPPONENT's library (Frame D currently restricts to "your
     // library"). Multi-zone search includes the library.
     ["search target opponent's graveyard, hand, and library for up to four cards with that name and exile them"],
+    // v0.30 — Group 25 — Gonti, Night Minister: anaphoric "looks at the
+    // top card of that opponent's library and exiles it". Frame H — same
+    // axis as Frame E (look-then-exile) but the exile is unconditional
+    // (no "you may", no "from among them") and the antecedent is "the top
+    // card" referenced anaphorically by "it".
+    ["its controller looks at the top card of that opponent's library and exiles it face down."],
+    ["looks at the top three cards of target opponent's library and exiles them"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

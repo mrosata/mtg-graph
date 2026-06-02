@@ -16,6 +16,11 @@ describe('effect.grants_evasion', () => {
     ['create two 2/2 black zombie creature tokens with menace'],
     // Transformation
     ['target creature becomes a 4/4 flying angel'],
+    // v0.30 — Group 11c — Pyrewood Gearhulk: chain-through-conjunction.
+    // "gain vigilance and menace until end of turn" — menace is the second
+    // item in an "and"-list after a non-evasion keyword.
+    ['vigilance, menace when this creature enters, other creatures you control get +2/+2 and gain vigilance and menace until end of turn. damage can\'t be prevented this turn.'],
+    ['target creature gains haste, vigilance, and menace until end of turn'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -93,6 +93,14 @@ describe('trigger.another_creature_etb', () => {
     ['whenever a gate you control enters, you may put this card from your graveyard on top of your library.'],
     ['whenever a cave you control enters, scry 1'],
     ['whenever a desert you control enters, draw a card'],
+    // v0.30 — Group 13 — Pactdoll Terror: "this creature or another artifact"
+    // compound disjunct names a non-creature permanent type for the other
+    // half. The compound arm must gate the second slot to creature / known
+    // creature subtype (mirror the tribal arm's gate at line 52). Other-
+    // permanent-type triggers have their own dedicated tags.
+    ['whenever this creature or another artifact you control enters, each opponent loses 1 life and you gain 1 life.'],
+    ['whenever this creature or another enchantment you control enters, scry 1'],
+    ['whenever this creature or another land you control enters, gain 1 life'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

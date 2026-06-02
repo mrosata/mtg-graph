@@ -68,6 +68,7 @@ export default function WorkspacePage() {
         <BrowserShell
           filter={filter}
           onFilterChange={setFilter}
+          showHoverPreview
           rightRail={({ onCardClick, drawerOpen }) => (
             <DeckPanel onCardClick={onCardClick} drawerOpen={drawerOpen} />
           )}

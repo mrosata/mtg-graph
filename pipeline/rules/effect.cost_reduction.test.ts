@@ -29,6 +29,12 @@ describe('effect.cost_reduction', () => {
     ['this spell costs {b} less to cast for each creature you control.'],
     // Hybrid mana reduction (rare but exists).
     ['this spell costs {w/b} less to cast.'],
+    // v0.30 — Group 12 — Memory Guardian / Voyage Home: Affinity for
+    // <type> is a printed cost-reducer keyword. The reminder text "(This
+    // spell costs {1} less ... for each X)" is reminder-stripped before
+    // rules run, so only the keyword itself remains as evidence.
+    ['affinity for artifacts flying'],
+    ['affinity for artifacts you draw three cards and gain 3 life.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

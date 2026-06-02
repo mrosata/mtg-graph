@@ -22,13 +22,18 @@ export const tagDef: TagDef = {
 // rules, so the bare typed form is still a basic-land tutor for graph-edge
 // purposes.
 const TYPED_NOUN = '(?:plains|islands?|swamps?|mountains?|forests?)';
+// v0.30 Group 14 — admit comma-separated multi-type lists in the typed
+// noun slot ("basic Plains, Swamp, or Forest card" — Abzan Monument). All
+// listed nouns must be basic-land subtypes; the trailing "card(s)" is
+// shared. Optional Oxford comma before the "or" alternative.
+const TYPED_NOUN_LIST = `(?:${TYPED_NOUN}(?:,\\s*${TYPED_NOUN})*(?:,?\\s*or\\s+${TYPED_NOUN})?)`;
 const PATTERN = new RegExp(
   `\\bsearch (?:your|their|target player's|that player's|its controller's) library for ` +
   // v0.14.7 — "up to" is now optional; bare counts ("three swamp cards") are
   // also valid tutor frames.
   `(?:(?:up to )?(?:one|two|three|four|five|six|seven|\\d+) )?` +
   `(?:a |an )?` +
-  `(?:basic lands?|(?:basic )?${TYPED_NOUN}) cards?\\b`,
+  `(?:basic lands?|(?:basic )?${TYPED_NOUN_LIST}) cards?\\b`,
 );
 // Hybrid "<other-type> or basic land card" form (Huntsman's Redemption II) —
 // "or" connector precedes "basic land card", trailing noun shared.

@@ -30,13 +30,21 @@ const PATTERNS = [
   // filters (Molten Duplication's "target artifact or creature you control",
   // Moonlit Meditation's "enchant artifact or creature you control") are one-
   // time type filters at cast time, not artifact-payoff resource frames.
-  /\b(?<!target\s)(?<!enchant\s)artifacts?\s+(?:and\/or|or)\s+\w+\s+you control\b/,
+  // v0.30 Group 3: also exclude "copy of an? artifact" (Waxen Shapethief) and
+  // "choose an? artifact" (Intimidation Tactics) — both selector shapes, not
+  // payoff frames.
+  /\b(?<!target\s)(?<!enchant\s)(?<!copy of an?\s)(?<!copy of\s)(?<!choose an?\s)(?<!choose\s)artifacts?\s+(?:and\/or|or)\s+\w+\s+you control\b/,
   // v0.14.1: disjunctive dig/reveal filter — "an artifact or <X> card"
   // (Staunch Crewmate's ETB digs for "artifact or Pirate card").
   // v0.15: negative lookahead for ` from your hand` — "exile/discard an
   // artifact or <type> card from your hand" (Nexus of Becoming) is a cost
   // type filter, not a dig-from-pile payoff that scales on artifact presence.
-  /\ban? artifact or [\w\-]+ card\b(?! from your hand)/,
+  // v0.30 Group 3: extended exclusions for selector frames — `from your
+  // graveyard` (Earthrumbler cost), `from it` (Intimidation Tactics chooses
+  // from revealed hand), `in (a|your|target) graveyard` (other selector
+  // shapes), `copy of an artifact or ...` (Waxen Shapethief clone), and
+  // `choose an artifact or ...` (Intimidation Tactics chooser).
+  /(?<!copy of\s)(?<!choose\s)\ban? artifact or [\w\-]+ card\b(?! from your hand| from your graveyard| from it| in (?:a|your|target) graveyard)/,
   // v0.14.6: artifact-aristocrats payoff (Anzrag's Rampage). X scales off the
   // count of "artifacts that were put into graveyards from the battlefield
   // this turn" — same as creatures_died but for artifacts.
@@ -66,6 +74,14 @@ const PATTERNS = [
   // reminder text "(This spell costs {1} less ... for each artifact you
   // control)" is stripped before rules run, so only the bare keyword remains.
   /\baffinity for artifacts\b/,
+  // v0.30 — Group 4 — cost-reducer frame (Voyager Quickwelder): "Artifact
+  // spells you cast cost {1} less" — payoff that scales utility per artifact
+  // spell cast.
+  /\bartifact (?:spells?|cards?) you cast\b/,
+  // v0.30 — Group 4 — mana-restriction frame (Guidelight Optimizer): "Spend
+  // this mana only to cast an artifact spell" — payoff routed through
+  // restricted mana, still an artifact-payoff axis.
+  /\bto cast an? artifact spell\b/,
 ];
 
 export const rule: Rule = {

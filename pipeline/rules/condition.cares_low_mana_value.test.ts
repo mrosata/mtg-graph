@@ -20,6 +20,14 @@ describe('condition.cares_low_mana_value', () => {
     // Same semantic — a low-MV gate — so the optional "is " arm admits both.
     ['if that spell\'s mana value is 4 or less'],
     ['if its mana value is 2 or less'],
+    // v0.30 — Group 7 — Quag Feast: count-comparator form "mana value is
+    // less than or equal to the number of cards in your graveyard". The
+    // ceiling is a dynamic count rather than a literal N — still a low-MV
+    // gate axis. Per ship list tiebreaker we do NOT admit bare "mana value
+    // N" (would flip the negative at line 32).
+    ['choose target creature, planeswalker, or vehicle. mill two cards, then destroy the chosen permanent if its mana value is less than or equal to the number of cards in your graveyard.'],
+    ['its mana value is less than or equal to x'],
+    ['if its mana value ≤ the amount of damage'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

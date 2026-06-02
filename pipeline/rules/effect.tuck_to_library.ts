@@ -25,7 +25,11 @@ export const tagDef: TagDef = {
 
 // "(the )?top or bottom" handles the compound form ("their choice of the top
 // or bottom"), and plain "(the )?(top|bottom)" handles single-direction tucks.
+// v0.30 Group 19 — accept "Nth from the top" as a tuck destination
+// (Riptide Gearhulk). Bottom-Nth is 0 occurrences in Standard so we only
+// admit the top side; skip per ship list.
 const TOP_OR_BOTTOM = '(?:(?:the )?top or bottom|(?:the )?(?:top|bottom))';
+const NTH_FROM_TOP = '(?:second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\\w+th)\\s+from\\s+the\\s+top';
 const LIBRARY_OWNER = '(?:its owner\'s|the owner\'s|your|target opponent\'s|their)';
 // Frame D ownership phrases — excludes plain "your library" (would catch self-shuffles).
 const LIBRARY_OWNER_D = "(?:their|its owner[''\\u2019]?s)";
@@ -65,7 +69,12 @@ export const rule: Rule = {
       // and target X into their owners' libraries" (Floodpits Drowner).
       // TIGHTLY anchored on possessive/multi-owner library phrase to avoid
       // self-shuffle FPs ("shuffle the rest into your library").
-      + `|\\bshuffles?\\s+(?:this\\s+(?:creature|permanent)|[^.]{0,80}?target\\s+\\w+[^.]{0,80}?)\\s+(?:and\\s+[^.]{0,40}?\\s+)?into\\s+(?:its owner's|their owners'|target opponent's)\\s+librar(?:y|ies)\\b`,
+      + `|\\bshuffles?\\s+(?:this\\s+(?:creature|permanent)|[^.]{0,80}?target\\s+\\w+[^.]{0,80}?)\\s+(?:and\\s+[^.]{0,40}?\\s+)?into\\s+(?:its owner's|their owners'|target opponent's)\\s+librar(?:y|ies)\\b`
+      // v0.30 Group 19 — Frame E: "put target X into <library> Nth from the
+      // top" (Riptide Gearhulk). Battlefield-to-library tuck where the
+      // destination is positional ("third from the top") rather than the
+      // bare top/bottom slot.
+      + `|\\bput\\s+(?:up to (?:one|two|three|\\d+)\\s+)?target\\s+[^.]{0,80}?\\s+into\\s+${LIBRARY_OWNER}\\s+library\\s+${NTH_FROM_TOP}\\b`,
     );
     const m = cleaned.match(re);
     return m ? { evidence: m[0] } : false;

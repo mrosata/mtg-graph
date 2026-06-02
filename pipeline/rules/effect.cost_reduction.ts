@@ -31,6 +31,11 @@ const PATTERNS = [
   // v0.14.7 — passive-voice "(this|that) cost is reduced by {N}" template
   // (Fugitive Codebreaker, scaling Disguise/Cloak/keyword reducers).
   new RegExp(`\\b(?:this|that)\\s+cost\\s+is\\s+reduced\\s+by\\s+${COST_SLOT}`),
+  // v0.30 Group 12 — Affinity for <X> is a printed keyword cost-reducer
+  // (Memory Guardian, Voyage Home). Reminder text is stripped, leaving the
+  // bare keyword. Subtype slot accepts the canonical Affinity targets
+  // (artifacts/equipment/enchantments/lands) plus a generic word fallback.
+  /\baffinity for (?:artifacts|enchantments|equipment|lands|[a-z]+)\b/,
 ];
 
 export const rule: Rule = {

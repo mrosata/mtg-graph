@@ -53,7 +53,7 @@ export default function CardGrid({ cards, onCardClick, onHoverCard, width, heigh
               onClick={() => onCardClick(card)}
               onMouseEnter={() => scheduleHover(card)}
               onMouseLeave={clearHover}
-              className="foil-edge relative p-1 text-left"
+              className="relative p-1 text-left"
             >
               <div className="relative h-full w-full overflow-hidden rounded-md">
                 <img

@@ -28,11 +28,18 @@ const PATTERN =
 const PATTERN_DAMAGE_SWEEP =
   /\bdeals\s+(?:\d+|x)\s+damage\s+to\s+each\s+(?:nontoken\s+|nonland\s+)?(?:creature|permanent)(?:\s+and\s+(?:planeswalker|player))?\b/;
 
+// v0.30 Group 20 — mass -N/-N debuff frame: "all (other )?creatures get
+// -N/-N until end of turn" (Shefet Archfiend). Functionally a wipe (any
+// creature with toughness ≤ N dies). Anchored on "all" so single-target
+// -N/-N debuffs stay outside this rule (those go to effect.debuff_minus_n).
+const PATTERN_MASS_DEBUFF =
+  /\ball\s+(?:other\s+)?creatures\s+[^.]{0,40}?gets?\s+-\d+\/-\d+\b/;
+
 export const rule: Rule = {
   id: 'effect.board_wipe',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(PATTERN_DAMAGE_SWEEP);
+    const m = t.match(PATTERN) ?? t.match(PATTERN_DAMAGE_SWEEP) ?? t.match(PATTERN_MASS_DEBUFF);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['all', 'each'], proximity: ['destroy', 'exile'], window: 6 },

@@ -16,6 +16,11 @@ describe('effect.tutors_creature', () => {
     // joined by "and/or" with plural `cards`. Filler must admit `/` and the
     // trailing noun must allow `cards?`.
     ['search your library for up to two artifact, creature, and/or enchantment cards with mana value 1 or less'],
+    // v0.30 — Group 15 — Fang-Druid Summoner: "search your library and/or
+    // graveyard for a creature card". The "and/or graveyard" source-zone
+    // extension breaks the existing `library for` anchor.
+    ['reach when this creature enters, you may search your library and/or graveyard for a creature card with no abilities, reveal it, and put it into your hand. if you search your library this way, shuffle.'],
+    ['search your library and/or graveyard for a creature card'],
   ])('matches creature-tutor phrasings: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

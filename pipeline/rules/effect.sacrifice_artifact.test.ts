@@ -38,6 +38,11 @@ describe('effect.sacrifice_artifact', () => {
     ['{2}, sacrifice this equipment: draw a card'],
     ['sacrifice this food: you gain 3 life'],
     ['sacrifice this treasure: add one mana of any color'],
+    // v0.30 — Group 2 — Gas Guzzler / Gastal Blockbuster: "creature or
+    // Vehicle" disjunct. Vehicle is an artifact subtype, so sacrificing
+    // a creature-or-vehicle includes the artifact-sac semantic.
+    ['max speed — {b}, sacrifice another creature or vehicle: draw a card.'],
+    ['when this creature enters, you may sacrifice a creature or vehicle. when you do, destroy target artifact an opponent controls.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

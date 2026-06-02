@@ -28,6 +28,10 @@ const PATTERNS = [
   // `effect.gains_keyword_self_conditional`, not the grants/anthem axis. The
   // self-subject pattern is bounded: "this <single-word-type> " or "__self__ ".
   /(?<!\bthis (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker) )(?<!\b__self__ )\b(?:have|has|gain|gains) (?:flying|menace|intimidate)\b/,
+  // v0.30 Group 11c — chain through conjunction (Pyrewood Gearhulk: "gain
+  // vigilance and menace until end of turn"). Allow up to three intermediate
+  // non-evasion keywords joined by "and"/", and" before the evasion kw.
+  /(?<!\bthis (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker) )(?<!\b__self__ )\b(?:have|has|gain|gains) [a-z]+(?:\s+strike)?(?:\s*,\s*[a-z]+(?:\s+strike)?){0,3}\s*,?\s+and\s+(?:flying|menace|intimidate)\b/,
   // "create a 1/1 white Spirit creature token with flying"
   /\btokens? with (?:flying|menace|intimidate)\b/,
   // "becomes a 4/4 flying creature".

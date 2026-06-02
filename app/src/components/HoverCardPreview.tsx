@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type CursorProps = {
   mode: 'cursor';
@@ -44,7 +45,7 @@ export default function HoverCardPreview(props: Props) {
 
   if (props.mode === 'cursor') {
     const width = props.width ?? 240;
-    return (
+    return createPortal(
       <img
         src={props.url}
         alt=""
@@ -55,17 +56,23 @@ export default function HoverCardPreview(props: Props) {
           left: Math.max(8, props.x - (width + 20)),
           top: Math.max(8, Math.min(window.innerHeight - 340, props.y - 100)),
         }}
-      />
+      />,
+      document.body,
     );
   }
 
-  return (
+  return createPortal(
     <img
       src={props.url}
       alt=""
       data-testid="hover-card-preview"
       className="pointer-events-none fixed top-1/2 z-50 -translate-y-1/2 rounded-lg shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7),0_0_0_1px_rgba(212,164,74,0.25)]"
-      style={{ right: props.anchorRight, width: props.width }}
-    />
+      style={{
+        right: props.anchorRight,
+        width: props.width,
+        height: Math.round((props.width * 88) / 63),
+      }}
+    />,
+    document.body,
   );
 }

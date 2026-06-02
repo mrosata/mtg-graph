@@ -30,8 +30,11 @@ export const rule: Rule = {
     // "Enters [tapped] with [N] [type] counter(s) on it" — static ETB form
     // (Sleep-Cursed Faerie). Same axis as the active "put" verb: counters
     // are being placed on a permanent at ETB.
+    // v0.30 Group 29 — admit "additional"/"another" modifier between the
+    // quantifier and the counter-type slot (Thunderous Velocipede); the
+    // sibling "put" arm at line 27 already has the same slot.
     const ettb = t.match(
-      /\benters(?:\s+tapped)?\s+with\s+(?:a |an |\d+ |x |one |two |three |four |five |six |seven |eight |nine |ten )(?:\+1\/\+1 |-1\/-1 |[a-z][a-z'\-]+ )?counters?\b/,
+      /\benters(?:\s+tapped)?\s+with\s+(?:(?:a |an |\d+ |x |one |two |three |four |five |six |seven |eight |nine |ten )(?:additional |another )?|another )(?:\+1\/\+1 |-1\/-1 |[a-z][a-z'\-]+ )?counters?\b/,
     );
     if (ettb) return { evidence: ettb[0] };
     // v0.14.18 — player-counter placement uses "gets" verb instead of "puts"

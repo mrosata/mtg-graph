@@ -16,6 +16,16 @@ export const rule: Rule = {
   match: (t) => {
     const direct = t.match(/whenever (?:a |one or more )?(?:[\w\-]+ ){0,2}cards? (?:leaves?|is exiled from|are exiled from) (?:a |your )?graveyard/);
     if (direct) return { evidence: direct[0] };
+    // v0.30 — Group 8 — Dredger's Insight: compound type list with "and/or"
+    // bridging the type qualifier ("artifact and/or creature cards leave
+    // your graveyard"). The slash breaks the single-token filler in `direct`.
+    const compoundType = t.match(/whenever (?:a |one or more )?[\w\-]+(?:\s+(?:and|or)(?:\/(?:and|or))?\s+[\w\-]+){1,3}\s+cards?\s+(?:leaves?|leave|is exiled from|are exiled from)\s+(?:a |your )?graveyard/);
+    if (compoundType) return { evidence: compoundType[0] };
+    // v0.30 — Group 8 — Ketramose: "cards are put into exile from
+    // graveyards" (plural zone). Semantically a leaves-graveyard trigger
+    // even when the zone source is plural / disjunctive.
+    const putIntoExileFromGy = t.match(/whenever (?:a |one or more )?(?:[\w\-]+ ){0,2}cards?\s+(?:is|are)\s+put\s+into\s+exile\s+from\s+(?:a |your |an opponent's |any )?graveyards?/);
+    if (putIntoExileFromGy) return { evidence: putIntoExileFromGy[0] };
     // v0.14.9 — Kaya, Spirits' Justice word order: "cards in <player>'s
     // graveyard are put into exile". Semantically a graveyard-leaves-via-
     // exile trigger; the verb is "are put into exile" rather than the

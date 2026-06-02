@@ -20,6 +20,12 @@ describe('effect.drain', () => {
     // Inside conditional / triggered ability.
     ['when this creature enters, target opponent loses 3 life and you gain 3 life'],
     ['{t}, sacrifice another creature: each opponent loses 1 life and you gain 1 life'],
+    // v0.30 — Group 26 — Haunt the Network: "the chosen player loses X
+    // life and you gain X life". SUBJECT slot needs to admit "the chosen
+    // player" / "the chosen opponent" — common anaphor after a prior
+    // "choose target opponent/player" clause.
+    ['choose target opponent. create two 1/1 colorless thopter artifact creature tokens with flying. then the chosen player loses x life and you gain x life, where x is the number of artifacts you control.'],
+    ['the chosen player loses 3 life and you gain 3 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

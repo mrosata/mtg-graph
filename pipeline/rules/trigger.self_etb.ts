@@ -51,8 +51,14 @@ export const rule: Rule = {
       // "as ... enters, ... it enters [tapped|with|...]" is a replacement-effect
       // frame describing how the card enters — exclude it. The "it enters"
       // clause may live in a separate sentence from the "as" clause.
-      const matchEnd = (m.index ?? 0) + m[0].length;
-      if (AS_REPLACEMENT_FOLLOWUP.test(t.slice(matchEnd))) return false;
+      // v0.30 Group 10 — exception: the legacy `as __SELF__ enters` form
+      // (with explicit __SELF__ rather than "this <type>") is a self-ETB
+      // triggered choice (The Mimeoplasm). Don't apply the followup
+      // exclusion to that variant.
+      if (!/^as __self__ enters\b/.test(m[0])) {
+        const matchEnd = (m.index ?? 0) + m[0].length;
+        if (AS_REPLACEMENT_FOLLOWUP.test(t.slice(matchEnd))) return false;
+      }
     }
     return { evidence: m[0] };
   },

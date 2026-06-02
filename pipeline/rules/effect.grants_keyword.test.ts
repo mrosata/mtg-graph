@@ -526,4 +526,46 @@ describe('effect.grants_keyword parametric', () => {
       ).toBeTruthy();
     });
   });
+
+  // v0.30 — Group 11a: Aura conjunction "Enchanted permanent gets +N/+N and
+  // has <kw>" (Lightwheel Enhancements, Silken Strength). The existing
+  // get-anthem frame uses bare "get" (plural creatures); the Aura form uses
+  // "gets" (singular enchanted permanent). Verb slot widened to `gets?`.
+  describe('grants_<kw> — Aura "enchanted permanent gets +N/+N and has <kw>" (v0.30 Group 11a)', () => {
+    it('grants_vigilance matches "enchanted permanent gets +1/+1 and has vigilance" (Lightwheel)', () => {
+      const r = ruleFor('effect.grants_vigilance');
+      expect(
+        r.match('enchant creature or vehicle start your engines! enchanted permanent gets +1/+1 and has vigilance. max speed — you may cast this card from your graveyard.'),
+      ).toBeTruthy();
+    });
+
+    it('grants_reach matches "enchanted permanent gets +1/+2 and has reach" (Silken Strength)', () => {
+      const r = ruleFor('effect.grants_reach');
+      expect(
+        r.match('flash enchant creature or vehicle when this aura enters, untap enchanted permanent. enchanted permanent gets +1/+2 and has reach.'),
+      ).toBeTruthy();
+    });
+
+    it('grants_haste matches singular "enchanted creature gets +1/+0 and has haste"', () => {
+      const r = ruleFor('effect.grants_haste');
+      expect(r.match('enchanted creature gets +1/+0 and has haste')).toBeTruthy();
+    });
+  });
+
+  // v0.30 — Group 11b: anthem-by-type — "Vehicles you control have haste"
+  // (Fearless Swashbuckler), "Mounts and vehicles you control have haste"
+  // (Kolodin). The tribal anthem frame must reach these — Fearless has the
+  // text right after the printed-keyword line (no punctuation separator),
+  // and Kolodin uses a compound subject "Mounts and vehicles".
+  describe('grants_haste — anthem-by-type (v0.30 Group 11b)', () => {
+    const r = ruleFor('effect.grants_haste');
+
+    it('matches "vehicles you control have haste" after a bare printed keyword (Fearless Swashbuckler)', () => {
+      expect(r.match('haste vehicles you control have haste. whenever you attack, if a pirate and a vehicle attacked this combat, draw three cards, then discard two cards.')).toBeTruthy();
+    });
+
+    it('matches "mounts and vehicles you control have haste" (Kolodin)', () => {
+      expect(r.match('mounts and vehicles you control have haste. whenever a mount you control enters, it becomes saddled until end of turn.')).toBeTruthy();
+    });
+  });
 });

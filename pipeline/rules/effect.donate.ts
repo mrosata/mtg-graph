@@ -40,12 +40,16 @@ const HAVE_FORM = new RegExp(
 // trigger clauses before matching so the payoff-side doesn't FP as a producer.
 const TRIGGER_SCRUB = /\b(?:when|whenever) (?:an? |target |each |that )?opponents? gains? control of [^.]+\./g;
 
+// v0.30 Group 23 — Exchange control is bidirectional but includes the donate
+// half (your permanent goes to an opponent). Trade the Helm.
+const EXCHANGE_CONTROL = /\bexchange control of\b/;
+
 export const rule: Rule = {
   id: 'effect.donate',
   axis: 'effect',
   match: (t) => {
     const scrubbed = t.replace(TRIGGER_SCRUB, '');
-    const m = scrubbed.match(DIRECT) ?? scrubbed.match(HAVE_FORM);
+    const m = scrubbed.match(DIRECT) ?? scrubbed.match(HAVE_FORM) ?? scrubbed.match(EXCHANGE_CONTROL);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['opponent', 'control'], proximity: ['gain', 'permanent', 'creature'], window: 6 },

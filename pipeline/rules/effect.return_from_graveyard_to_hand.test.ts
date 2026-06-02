@@ -21,6 +21,11 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // them frame. The mill puts cards into the graveyard then immediately
     // returns some to hand — semantically a graveyard-to-hand recursion.
     ['mill four cards, then return up to two permanent cards from among them to your hand'],
+    // v0.30 — Group 30 — Dredger's Insight: "from among the milled cards"
+    // anaphor for the milled subset. 11 cards in Standard use this frame.
+    ['whenever one or more artifact and/or creature cards leave your graveyard, you gain 1 life. when this enchantment enters, mill four cards. you may put an artifact, creature, or land card from among the milled cards into your hand.'],
+    ['put a card from among the milled cards into your hand'],
+    ['put up to two cards from among the cards milled this way into your hand'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -34,6 +39,9 @@ describe('effect.return_from_graveyard_to_hand', () => {
     ['discard a card, then draw a card'],
     // return from exile, not graveyard
     ['return target card from exile to your hand'],
+    // v0.30 — Group 30 — "from among the milled cards onto the battlefield"
+    // is reanimation, not return-to-hand. Distinguish from the new arm.
+    ['mill four cards. put a creature card from among the milled cards onto the battlefield'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

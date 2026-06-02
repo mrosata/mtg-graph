@@ -35,6 +35,10 @@ const PATTERNS = [
   // Same replacement-effect semantic as "twice that much"; different lexical
   // phrasing ("double" instead of "twice that much").
   /\b(?:deals?|loses?)\s+double\s+that\s+(?:damage|life)\b[^.]*?\binstead\b/,
+  // v0.30 Group 24 — additive "plus N instead" amplifier (Far Fortune, End
+  // Boss). Same axis as multiplicative doublers — modifies a damage event
+  // to scale it. The +N tail before "instead" is the structural anchor.
+  /\bdeals?\s+that much damage plus\s+\d+\s+instead\b/,
 ];
 
 export const rule: Rule = {

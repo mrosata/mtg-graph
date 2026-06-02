@@ -19,6 +19,13 @@ describe('effect.board_wipe', () => {
     ['__self__ deals 2 damage to each creature'],
     ['this spell deals 4 damage to each nontoken creature'],
     ['__self__ deals 3 damage to each creature and planeswalker'],
+    // v0.30 — Group 20 — Shefet Archfiend: mass -N/-N debuff "all other
+    // creatures get -2/-2 until end of turn". Functionally a wipe (any
+    // creature with toughness 2 or less dies). Distinct from single-target
+    // -N/-N. Anchored on "all" so single-target debuffs stay excluded.
+    ['flying when this creature enters, all other creatures get -2/-2 until end of turn. cycling {2}'],
+    ['all creatures get -3/-3 until end of turn'],
+    ['all other creatures get -1/-1 until end of turn'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

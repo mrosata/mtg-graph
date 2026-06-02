@@ -236,7 +236,7 @@ export default function BrowserShell({
         <HoverCardPreview
           mode="anchored"
           url={hoveredCard.imageUrl}
-          width={440}
+          width={320}
           anchorRight={focused ? 440 : 16}
           hideBelowPx={focused ? 1140 : undefined}
         />

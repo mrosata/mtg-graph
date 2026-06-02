@@ -51,6 +51,12 @@ describe('condition.cares_artifacts', () => {
     // a printed keyword that scales the cast cost by the number of artifacts
     // controlled. Reminder text is stripped, leaving the bare keyword.
     ['affinity for artifacts when this vehicle enters, for each player, destroy up to one target creature that player controls'],
+    // v0.30 — Group 4 — cost-reducer (Voyager Quickwelder): "Artifact spells
+    // you cast cost {1} less to cast" is an artifact-payoff frame.
+    ['artifact spells you cast cost {1} less to cast.'],
+    // v0.30 — Group 4 — mana-restriction (Guidelight Optimizer): "Spend this
+    // mana only to cast an artifact spell" is an artifact-payoff frame.
+    ['{t}: add {u}. spend this mana only to cast an artifact spell or activate an ability.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -83,6 +89,14 @@ describe('condition.cares_artifacts', () => {
     // (Moonlit Meditation). Same structural FP as "target" — one-time type
     // filter at cast time, not artifact-payoff.
     ['enchant artifact or creature you control'],
+    // v0.30 — Group 3 — selector frames. Earthrumbler ("an artifact or
+    // creature card from your graveyard" as cost), Intimidation Tactics
+    // ("you choose an artifact or creature card from it"), Waxen Shapethief
+    // ("as a copy of an artifact or creature you control"). These are not
+    // artifact-payoff resource frames; they're single-instance selectors.
+    ['vigilance, trample exile an artifact or creature card from your graveyard: this vehicle becomes an artifact creature until end of turn. crew 3'],
+    ['target opponent reveals their hand. you choose an artifact or creature card from it. exile that card. cycling {3}'],
+    ['flash you may have this creature enter as a copy of an artifact or creature you control. cycling {2}'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

@@ -14,6 +14,12 @@ describe('effect.donate', () => {
     ['lifelink {2}, {t}: target opponent gains control of another target permanent you control. if they do, you draw a card.'],
     // Iroh — alternate templating ("have target opponent gain control").
     ['at the beginning of combat on your turn, you may have target opponent gain control of target permanent you control. when you do, create a 1/1 white ally creature token.'],
+    // v0.30 — Group 23 — Trade the Helm: "Exchange control of <X> you
+    // control and <Y> an opponent controls". Exchange is bidirectional but
+    // structurally includes the donate half (your permanent goes to an
+    // opponent).
+    ['exchange control of target artifact or creature you control and target artifact or creature an opponent controls. cycling {2}'],
+    ['exchange control of two target creatures'],
   ])('matches donate phrasings: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -25,6 +25,12 @@ const PATTERN_BROAD =
 const PATTERN_SUBTYPE =
   /\bsacrifice(?:s)?\s+(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+|this\s+|X\s+|\d+\s+|two\s+|three\s+|four\s+)?(?:food|treasure|clue|map|blood|powerstone|equipment|vehicle|junk|shard|gold|incubator|attraction|contraption)s?\b/g;
 
+// v0.30 — Group 2 — disjunctive "creature or Vehicle" / "Vehicle or
+// creature" sac frames (Gas Guzzler, Gastal Blockbuster). Vehicle is an
+// artifact subtype so the disjunct includes the artifact-sac semantic.
+const PATTERN_CREATURE_OR_VEHICLE =
+  /\bsacrifice(?:s)?\s+(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+|this\s+|X\s+|\d+\s+|two\s+|three\s+|four\s+)?(?:creature\s+or\s+vehicle|vehicle\s+or\s+creature)s?\b/g;
+
 // Self-sac as activation cost ("Sacrifice __SELF__:") on an artifact card.
 // Text-only matching misses these because the post-normalization "__self__"
 // doesn't carry the type info. The matchCard branch fills the gap by ANDing
@@ -99,7 +105,8 @@ export const rule: Rule = {
     const m =
       findOutsideNegative(t, PATTERN_OWN) ??
       findOutsideNegative(t, PATTERN_BROAD) ??
-      findOutsideNegative(t, PATTERN_SUBTYPE);
+      findOutsideNegative(t, PATTERN_SUBTYPE) ??
+      findOutsideNegative(t, PATTERN_CREATURE_OR_VEHICLE);
     return m ? { evidence: m } : false;
   },
   matchCard: (card, text) => {

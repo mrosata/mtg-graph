@@ -48,6 +48,13 @@ describe('effect.draws_or_discards', () => {
     // subject is the opponent but the controller is doing the causing.
     ['you may have target opponent draw a card'],
     ['have target player draw a card'],
+    // v0.30 — Group 16 — Stock Up: "look at the top N cards of your
+    // library. put two of them into your hand". Functionally a draw —
+    // anchored on the look-at-library context to avoid FPs on bare
+    // "put N into your hand" (Surveil / clone / etc.).
+    ['look at the top five cards of your library. put two of them into your hand and the rest on the bottom of your library in any order.'],
+    ['look at the top three cards of your library. put one of them into your hand.'],
+    ['look at the top six cards of your library. put that many of those into your hand.'],
     // Darkstar Augur (Dark Confidant frame) — "reveal the top card of your
     // library and put that card into your hand" is functionally a draw. No
     // literal `draw` token appears in the oracle text.

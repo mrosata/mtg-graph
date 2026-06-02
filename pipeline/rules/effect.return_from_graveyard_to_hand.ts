@@ -27,7 +27,16 @@ export const rule: Rule = {
     const millFromAmong = t.match(
       /\bmills?\s+(?:\w+\s+)?cards?[^.]{0,80}?,?\s*(?:then\s+)?return\s+(?:up to\s+)?(?:\d+|one|two|three|four|five|x|any number of)\s+(?:[\w\-]+\s+)?cards?\s+from among them\s+to your hand\b/,
     );
-    return millFromAmong ? { evidence: millFromAmong[0] } : false;
+    if (millFromAmong) return { evidence: millFromAmong[0] };
+    // v0.30 Group 30 — Dredger's Insight family: "put <Q> [type] card from
+    // among the milled cards into your hand" — anaphoric reference to a
+    // milled subset. 11 cards in Standard use this frame. Distinct from the
+    // sibling "from among the milled cards onto the battlefield" shape,
+    // which is reanimation (effect.reanimate territory).
+    const putFromAmongMilled = t.match(
+      /\bput\s+(?:a |an |up to [\w\-]+ |any number of )?[^.]{0,40}?cards?\s+from among the (?:milled cards|cards milled this way)\s+into your hand\b/,
+    );
+    return putFromAmongMilled ? { evidence: putFromAmongMilled[0] } : false;
   },
   nearMiss: { anchors: ['graveyard', 'graveyards'], proximity: ['return', 'hand'], window: 8 },
 };

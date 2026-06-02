@@ -59,7 +59,13 @@ export const rule: Rule = {
       // v0.20.0 — Frame G: "exile all but the (top|bottom) N cards of
       // their/your library" (Doomsday Excruciator). The complement is
       // exiled; the small remainder stays in the library.
-      + `|\\b(?:each player|you|target opponent|target player)\\s+exiles? all but the (?:bottom|top) (?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|x) cards? of (?:their|your|each opponent's) library\\b`,
+      + `|\\b(?:each player|you|target opponent|target player)\\s+exiles? all but the (?:bottom|top) (?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|x) cards? of (?:their|your|each opponent's) library\\b`
+      // v0.30 Group 25 — Frame H: anaphoric look-then-exile (Gonti, Night
+      // Minister). "looks at the top [N] card(s) of [<player>'s] library
+      // ... exiles it/them". The exile is unconditional and the antecedent
+      // is the "top N cards" referenced by "it"/"them"; distinct from
+      // Frame E which requires "from among them".
+      + `|\\blooks? at the top (?:${NUM} )?cards? of (?:target |that |each )?(?:opponent|player)'?s? library\\b[^.]{0,60}?\\bexiles? (?:it|them)\\b`,
     );
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;

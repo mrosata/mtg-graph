@@ -23,6 +23,12 @@ const PATTERN = /\bcopy (?:target |that |the )?(?:[\w\-]+ )?(?:spell|instant|sor
 // proximity to "copy it" so we don't capture "copy it" after a creature/permanent
 // antecedent (those belong to effect.copy_permanent_token / clone_in_place).
 const CAST_SPELL_THEN_COPY_IT = /\bcast(?:s|ing)?\b[^.]{0,60}?\b(?:instant|sorcery|spell|lesson)s?\b[^.]{0,160}?\bcopy it\b/;
+// v0.30 Group 27 — sentence-spanning variant (Mendicant Core, Guidelight):
+// "whenever you cast an X spell, you may pay {N}. If you do, copy it."
+// The "copy it" sits across a sentence boundary from the cast trigger.
+// Uses `[\s\S]` to admit one short intermediate sentence; bounded at 200
+// chars from cast→copy to keep scope tight.
+const CAST_SPELL_THEN_COPY_IT_SPANNING = /\bwhenever\s+you\s+cast\b[^.]{0,80}?\b(?:instant|sorcery|spell|lesson)s?\b[\s\S]{0,200}?\bcopy it\b/;
 const COPY_IT_FOR_EACH_SPELL = /\bcopy it (?:for each|once for each|twice|.{0,40}?\b(?:instant|sorcery|spell)s?\b)/;
 // v0.14.22 — "Copy it. You may cast the copy" frame (Reenact the Crime).
 // The "Copy it" anaphor refers to a card exiled or referenced earlier; the
@@ -35,7 +41,7 @@ export const rule: Rule = {
   id: 'effect.copy_spell',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(CAST_SPELL_THEN_COPY_IT) ?? t.match(COPY_IT_FOR_EACH_SPELL) ?? t.match(COPY_IT_CAST_THE_COPY);
+    const m = t.match(PATTERN) ?? t.match(CAST_SPELL_THEN_COPY_IT) ?? t.match(CAST_SPELL_THEN_COPY_IT_SPANNING) ?? t.match(COPY_IT_FOR_EACH_SPELL) ?? t.match(COPY_IT_CAST_THE_COPY);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['copy'], proximity: ['spell', 'instant', 'sorcery'], window: 6 },

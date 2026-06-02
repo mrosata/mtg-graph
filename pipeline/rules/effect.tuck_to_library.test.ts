@@ -37,6 +37,13 @@ describe('effect.tuck_to_library', () => {
     // owners' libraries ("their owners' libraries"). Frame D3 — anchored on
     // possessive/multi-owner phrasing to avoid self-shuffle FPs.
     ["shuffle this creature and target creature with a stun counter on it into their owners' libraries"],
+    // v0.30 — Group 19 — Riptide Gearhulk: "put ... into its owner's
+    // library third from the top". Nth-from-the-top is a soft-tuck variant
+    // distinct from the bare top/bottom; structurally a battlefield-to-
+    // library tuck removal.
+    ["double strike prowess when this creature enters, for each opponent, put up to one target nonland permanent that player controls into its owner's library third from the top."],
+    ["put target creature into its owner's library second from the top"],
+    ["put target permanent into its owner's library fourth from the top"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

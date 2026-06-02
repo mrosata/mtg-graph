@@ -22,6 +22,13 @@ describe('trigger.creature_leaves_graveyard', () => {
     // graveyard-side branch fires when graveyard cards are exiled.
     ['whenever one or more creatures you control and/or creature cards in your graveyard are put into exile, you may choose a creature card from among them'],
     ['whenever a creature card in your graveyard is put into exile, draw a card'],
+    // v0.30 — Group 8 — Dredger's Insight: compound type list with "and/or"
+    // before "cards leave your graveyard". The slash in "and/or" breaks the
+    // single-token word filler.
+    ['whenever one or more artifact and/or creature cards leave your graveyard, you gain 1 life.'],
+    // v0.30 — Group 8 — Ketramose: "put into exile from graveyards" (plural,
+    // disjunctive zone source). Strong cares-graveyard-leaves trigger.
+    ['whenever one or more cards are put into exile from graveyards and/or the battlefield during your turn, you draw a card and lose 1 life.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
