@@ -35,6 +35,12 @@ describe('effect.create_creature_token', () => {
     // v0.14.9 — Regression (Hunted Bonebrute): opponent-side token-creation.
     ['when this creature enters, target opponent creates two 1/1 white dog creature tokens'],
     ['each opponent creates a 2/2 black zombie creature token'],
+    // 2026-06-01 audit Group 18 — Chandra, Spark Hunter: "create a 3/2
+    // colorless Vehicle artifact token with crew 1" — a NON-creature token
+    // (Vehicle artifact, no `creature` type) caught by the P/T arm. The
+    // creature-token rule must not fire.
+    ['create a 3/2 colorless vehicle artifact token with crew 1'],
+    ['create a 2/2 colorless vehicle artifact token with crew 2'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

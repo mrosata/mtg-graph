@@ -33,6 +33,12 @@ const PATTERNS = [
   /\breturns? [^.]{0,120}? with (?:a |an |\d+ |x |one |two |three |four |five )?(?:additional )?\+1\/\+1 counter/,
   // doubling: "double the number of +1/+1 counters on"
   /double the number of \+1\/\+1 counters? on/,
+  // 2026-06-01 audit Group 17 — Hardened-Scales / Branching Evolution
+  // replacement frame (Caradora, Heart of Alacria): "If one or more +1/+1
+  // counters would be put on <subject>, that many plus N +1/+1 counters are
+  // put on <subject> instead" — or "twice/three times that many". Both halves
+  // describe putting counters; semantically a counter-adder.
+  /\bif one or more \+1\/\+1 counters would be put on [^.]{0,120}? \+1\/\+1 counters? are put on [^.]{0,60}? instead\b/,
 ];
 
 export const rule: Rule = {

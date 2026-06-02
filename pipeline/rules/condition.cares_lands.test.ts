@@ -67,6 +67,12 @@ describe('condition.cares_lands', () => {
     ['{2}{r}: this land becomes a 4/4 creature with haste until end of turn'],
     ['draw a card'],
     ['flying'],
+    // 2026-06-01 audit Group 14 — Bleachbone Verge (Verge cycle): "Activate
+    // only if you control a Plains or a Swamp" is a mana-ability activation
+    // gate on a LAND. Not a land-count payoff for a deck — just an intrinsic
+    // restriction on this land's tap-for-color ability.
+    ['{t}: add {b}. {t}: add {w}. activate only if you control a plains or a swamp.'],
+    ['{t}: add {u}. activate only if you control an island'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

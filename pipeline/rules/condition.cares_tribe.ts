@@ -21,9 +21,13 @@ const BECOMES_CREATURE = /\bbecomes?\s+(?:[\w\/]+\s+){1,12}?creature\b/g;
 // span. Coexists with BECOMES_CREATURE — the existing strip handles manland
 // self-animation (with "creature"); this one handles tribe transformation
 // without "creature".
+// 2026-06-01 audit Group 5 — Skyknight Squire: "it ... is a knight in addition
+// to its other types" uses the verb `is` instead of `becomes`. Admit `is`
+// alongside `becomes?` in the verb slot; the trailing "in addition to its
+// other types" anchor still constrains this to genuine self-typing.
 function becomesTribePattern(tribe: string): RegExp {
   return new RegExp(
-    `\\bbecomes?\\s+(?:a\\s+|an\\s+)?(?:[\\w\\-]+\\s+){0,5}?${tribePattern(tribe)}\\b(?:\\s+in addition to (?:its other|all other)\\s+(?:colors|types|colors and types))`,
+    `\\b(?:becomes?|is)\\s+(?:a\\s+|an\\s+)?(?:[\\w\\-]+\\s+){0,5}?${tribePattern(tribe)}\\b(?:\\s+in addition to (?:its other|all other)\\s+(?:colors|types|colors and types))`,
     'g',
   );
 }

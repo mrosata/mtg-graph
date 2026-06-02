@@ -49,6 +49,13 @@ describe('effect.reanimate', () => {
     // the battlefield" (Starfall Invocation). The card was milled/wiped to
     // graveyard earlier in the same effect; "this way" binds back to that.
     ['destroy all creatures. if the gift was promised, return a creature card put into your graveyard this way to the battlefield under your control'],
+    // 2026-06-01 audit Group 11 — Daretti, Rocketeer Engineer: "choose target
+    // <type> card in <X>'s graveyard. ... return the chosen card to the
+    // battlefield". The "the chosen card" anaphor binds back to the prior
+    // "choose target ... card in ... graveyard" antecedent — new dedicated
+    // arm since the existing patterns require "from graveyard" or "those
+    // cards" anaphors.
+    ['whenever __self__ enters or attacks, choose target artifact card in your graveyard. you may sacrifice an artifact. if you do, return the chosen card to the battlefield.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -79,6 +86,11 @@ describe('effect.reanimate', () => {
     // "dies," and "return it" needs a broader filler than the v0.20 cycle's
     // "if it was a creature".
     ["deathtouch whenever this creature deals combat damage to a player, they lose half their life, rounded up. when this creature dies, if it had no counters on it, return it to the battlefield tapped under its owner's control with two stun counters on it."],
+    // 2026-06-01 audit Group 11 — Valkyrie's Call: "dies, return that card to
+    // the battlefield..." The dies-arm currently misses `that card` (only
+    // `it` / `that creature` / `them` are admitted). Adding `that card` to
+    // the pronoun alternation.
+    ["whenever a nontoken, non-angel creature you control dies, return that card to the battlefield under its owner's control with a +1/+1 counter on it"],
   ])('matches granted dies-then-reanimate triggers: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

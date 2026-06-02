@@ -11,8 +11,12 @@ export const tagDef: TagDef = {
 };
 
 // Pattern A: own type (and common multi-type "artifact or enchantment" phrasing).
+// 2026-06-01 audit Group 20 — Crash and Burn: "destroy target Vehicle".
+// Vehicles are always artifacts (CR 205.3g), so admit `vehicles?` alongside
+// `artifacts?` in the noun alternation. Mirrors the PATTERN_VEHICLE arm in
+// effect.exile_artifact.
 const PATTERN_OWN =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?artifacts?\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?(?:artifacts?|vehicles?)\b/;
 
 // Pattern B: type-inclusive broad.
 // v0.14.1 — filler relaxed to `[\w\-]+[,\s]+` so comma-separated multi-type

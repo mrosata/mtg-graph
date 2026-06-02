@@ -44,6 +44,13 @@ describe('effect.plus_one_counter', () => {
     ['put two +1/+1 counters and a flying counter on target creature you control'],
     // Plural-second-counter form
     ['put a +1/+1 counter and two hexproof counters on target creature'],
+    // 2026-06-01 audit Group 17 — Caradora, Heart of Alacria: Hardened-Scales
+    // replacement effect. "If one or more +1/+1 counters would be put on
+    // <subject>, that many plus one +1/+1 counters are put on it instead".
+    // Semantically a counter-adder.
+    ['if one or more +1/+1 counters would be put on a creature or vehicle you control, that many plus one +1/+1 counters are put on it instead'],
+    // Branching Evolution-style frame
+    ['if one or more +1/+1 counters would be put on a creature you control, twice that many +1/+1 counters are put on it instead'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

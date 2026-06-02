@@ -66,6 +66,14 @@ const OWN_NUMBER_QUANTIFIED = /\bexile (?:\d+|two|three|four|five|six|seven|eigh
 // flicker tails; `that card` requires an explicit antecedent in a prior clause.
 const OWN_ANAPHORIC = /\bexile (?:that card|that creature|those cards) from your graveyard(?!s*\s*[:—])/;
 
+// 2026-06-01 audit Group 13 — Ancient Vendetta: multi-zone search-and-exile
+// "search <X>'s graveyard, ... and library for ... cards ... and exile
+// them". The search lists the graveyard as a source zone; the matched cards
+// are exiled. Distinct from tutor-and-exile (library-only) which is owned
+// by effect.exile_from_library — both rules SHOULD fire on multi-zone
+// searches that include graveyard.
+const SEARCH_GRAVEYARD_EXILE = /\bsearch [^.]*?\bgraveyard\b[^.]*?\bexile\s+(?:them|it|that card|those cards)\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_from_graveyard',
   axis: 'effect',
@@ -77,7 +85,8 @@ export const rule: Rule = {
       t.match(MASS_WIPE) ??
       t.match(IN_GRAVEYARD) ??
       t.match(OWN_NUMBER_QUANTIFIED) ??
-      t.match(OWN_ANAPHORIC);
+      t.match(OWN_ANAPHORIC) ??
+      t.match(SEARCH_GRAVEYARD_EXILE);
     return m ? { evidence: m[0] } : false;
   },
 };

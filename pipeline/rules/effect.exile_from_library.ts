@@ -41,7 +41,10 @@ export const rule: Rule = {
       // [...filter...], exile them" / "search your library for a card [...]
       // and exile it" (Omenpath Journey). The library is searched, matched
       // cards are exiled to enable a later play-from-exile payoff.
-      + `|\\bsearch your library for [^.]{0,120}?(?:,\\s+exile (?:them|it|that card|those cards)|\\s+and exile (?:them|it|that card|those cards))\\b`
+      // 2026-06-01 audit Group 13 — Ancient Vendetta: broaden the search
+      // subject from "your library" to "(your|target <player>) library" so
+      // a multi-zone search of TARGET OPPONENT's library still matches.
+      + `|\\bsearch (?:your|target [^.]+?)\\s+library for [^.]{0,120}?(?:,\\s+exile (?:them|it|that card|those cards)|\\s+and exile (?:them|it|that card|those cards))\\b`
       // v0.18 — Frame E: look-then-exile "look at the top [N] cards of
       // <library>. you may exile (a|an|one|...) <type>? card from among
       // them" (Make Your Own Luck, The Key to the Vault). Two-clause shape

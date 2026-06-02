@@ -47,7 +47,7 @@ const PATTERN_RETURN_OWN =
 // v0.20 — admit commas in the qualifier filler so "nonland, nontoken
 // permanent" (Season of Weaving) is reached.
 const PATTERN_BROAD =
-  /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}noncreature\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}noncreature\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owner'?s|their\s+owners'?)\s+hands?\b/;
 
 // v0.14.6 — delayed-trigger blink-back template (Anzrag's Rampage). Spells
 // that cheat a creature onto the battlefield and create a delayed end-step

@@ -12,6 +12,10 @@ describe('effect.tutors_creature', () => {
     // Regression (The Huntsman's Redemption): hybrid "A or B card" sharing
     // the trailing noun across both type alternatives.
     ['search your library for a creature or basic land card, reveal it, put it into your hand'],
+    // 2026-06-01 audit Group 16 — Brightglass Gearhulk: three-way tutor list
+    // joined by "and/or" with plural `cards`. Filler must admit `/` and the
+    // trailing noun must allow `cards?`.
+    ['search your library for up to two artifact, creature, and/or enchantment cards with mana value 1 or less'],
   ])('matches creature-tutor phrasings: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

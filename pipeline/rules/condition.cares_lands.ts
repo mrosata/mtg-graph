@@ -72,6 +72,12 @@ const SUBTYPE_PATTERN = new RegExp(
 // cost span before running PATTERNS.
 const ADDITIONAL_COST_LANDS = /\bas an additional cost[^.]*?\btap\s+(?:two|three|\d+)\s+(?:untapped\s+)?creatures?\s+(?:and\/or\s+)?lands?\s+you\s+control\b/g;
 
+// 2026-06-01 audit Group 14 — Verge land cycle: "activate only if you control
+// a Plains or a Swamp" is an intrinsic activation gate on a dual-mana land,
+// not a deck-side land-count payoff. Strip these gates before SUBTYPE_PATTERN
+// runs so Verges don't false-fire cares_lands.
+const VERGE_ACTIVATION_GATE = /\bactivate only if you control (?:a|an)\s+(?:plains|island|swamp|mountain|forest)\b(?:\s+or\s+(?:a|an)\s+(?:plains|island|swamp|mountain|forest)\b)?/g;
+
 // FIX 9 (BR-4) — Wickerfolk Thresher: library-top reveal gated on land card
 // classification ("look at the top card of your library. if it's a land card,
 // you may put it onto the battlefield"). The card cares about lands because
@@ -85,7 +91,9 @@ export const rule: Rule = {
   id: 'condition.cares_lands',
   axis: 'condition',
   match: (t) => {
-    const stripped = t.replace(ADDITIONAL_COST_LANDS, '');
+    const stripped = t
+      .replace(ADDITIONAL_COST_LANDS, '')
+      .replace(VERGE_ACTIVATION_GATE, '');
     const m =
       stripped.match(PATTERN) ??
       stripped.match(SUBTYPE_PATTERN) ??

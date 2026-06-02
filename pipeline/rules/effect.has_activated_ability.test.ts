@@ -176,6 +176,33 @@ describe('effect.has_activated_ability', () => {
     expect(rule.matchCard!(card({ types: types as string[], typeLine, keywords: keywords as string[], oracleText }))).toBeTruthy();
   });
 
+  // 2026-06-01 audit Group 8 — Suspicious Shambler: graveyard-cost-only
+  // activation. "{4}{B}{B}, Exile this card from your graveyard: Create two
+  // 2/2 black Zombie creature tokens." The activation cost lives in the
+  // graveyard zone — this card has no battlefield activated ability, so it
+  // should NOT tag has_activated_ability (which is the "this permanent has
+  // an activation while on the battlefield" axis).
+  it('does not match a card whose only activation cost is "exile this card from your graveyard"', () => {
+    const c = card({
+      types: ['Creature'],
+      typeLine: 'Creature — Zombie',
+      oracleText: '{4}{B}{B}, Exile this card from your graveyard: Create two 2/2 black Zombie creature tokens. Activate only as a sorcery.',
+    });
+    expect(rule.matchCard!(c)).toBe(false);
+  });
+
+  // Companion regression — Tinybones-style: BOTH a battlefield activation
+  // AND a graveyard activation. The pre-strip must remove only the grave
+  // line and leave the battlefield activation intact.
+  it('still matches when a card has both a graveyard activation AND a battlefield activation', () => {
+    const c = card({
+      types: ['Creature'],
+      typeLine: 'Legendary Creature — Skeleton Rogue',
+      oracleText: '{3}{B}, {T}: Each opponent discards a card. {2}{B}{B}, Exile this card from your graveyard: Create three 1/1 black Bat creature tokens with flying.',
+    });
+    expect(rule.matchCard!(c)).toBeTruthy();
+  });
+
   it('does not match an Aura whose only activated-ability keyword is Enchant', () => {
     // "Enchant creature" is a static ability, not an activation. Make sure we
     // didn't accidentally pick up arbitrary keywords.

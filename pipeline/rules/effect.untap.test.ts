@@ -27,6 +27,14 @@ describe('effect.untap', () => {
     // v0.20.0 — tribal-list antecedent (Valley Floodcaller): plural tribal
     // nouns + "you control" + buff clause + "untap them".
     ['flash you may cast noncreature spells as though they had flash. whenever you cast a noncreature spell, birds, frogs, otters, and rats you control get +1/+1 until end of turn. untap them.'],
+    // 2026-06-01 audit Group 15 — self-trigger pronoun antecedent: "whenever
+    // this creature <attack/block/damage/tap>... , untap it". Brightfield
+    // Mustang (attack), Quintessential Katana (deals combat damage), Interface
+    // Ace (becomes tapped). The self-trigger antecedent restricts bare
+    // "untap it" cleanly — bare "untap it" without antecedent stays negative.
+    ['whenever this creature attacks while saddled, untap it and put a +1/+1 counter on it'],
+    ['whenever this creature deals combat damage, untap it and you gain 2 life'],
+    ['whenever this creature becomes tapped during your turn, untap it'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -50,6 +58,10 @@ describe('effect.untap', () => {
     // (supports tap-to-animate-land combo) — not an active untap effect.
     ['you may choose not to untap this creature during your untap step'],
     ['may choose not to untap this creature during each other player\'s untap step'],
+    // 2026-06-01 audit Group 15 — bare "untap it" without a self-trigger or
+    // creature antecedent must NOT fire (over-fire risk: bare untap it has
+    // ~38 hits in Standard).
+    ['flying. {3}: untap it'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

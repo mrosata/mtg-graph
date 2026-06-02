@@ -85,6 +85,11 @@ describe('effect.life_changed', () => {
     ['whenever you gain life'],
     ['if you would gain life'],
     ['each time a player gains life'],
+    // 2026-06-01 audit Group 4 — Sire of Seven Deaths: "Ward—Pay 7 life" is a
+    // protection cost on a creature, not a self-applied life loss. The PAY
+    // arm must exclude this template.
+    ['first strike, vigilance menace, trample reach, lifelink ward—pay 7 life.'],
+    ['ward—pay 2 life'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

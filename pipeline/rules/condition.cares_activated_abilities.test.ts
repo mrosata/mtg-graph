@@ -15,6 +15,11 @@ describe('condition.cares_activated_abilities', () => {
     // Ability-grant payoff (Marvin, Soul Cauldron) — scope match without
     // cost-reduction frame, so the broad tag still applies.
     ['__self__ has all activated abilities of creatures you control'],
+    // 2026-06-01 audit Group 12 — Adrenaline Jockey / Afterburner Expert:
+    // "whenever you activate an exhaust ability". Qualifier slot (`exhaust`,
+    // `loyalty`, etc.) before "ability" must be admitted.
+    ['whenever you activate an exhaust ability, put a +1/+1 counter on this creature'],
+    ['whenever you activate a loyalty ability, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

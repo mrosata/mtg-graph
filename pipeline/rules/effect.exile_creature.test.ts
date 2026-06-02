@@ -48,6 +48,12 @@ describe('effect.exile_creature', () => {
     // permanent removal — fires exile_creature.
     ['whenever a creature you control attacks, you may exile it.'],
     ['whenever a creature you control deals damage to a player, you may exile it.'],
+    // 2026-06-01 audit Group 19 — Coalstoke Gearhulk: ETB reanimates a
+    // creature, then at end step exiles it. The "exile that creature" sits
+    // 2 sentences after the "target creature card" antecedent (a pump-clause
+    // intermediate sentence). PATTERN_ANAPHORIC needs to allow ONE
+    // intermediate sentence between antecedent and "exile that creature".
+    ['put target creature card with mana value 4 or less from a graveyard onto the battlefield under your control with a finality counter on it. that creature gains menace, deathtouch, and haste. at the beginning of your next end step, exile that creature.'],
   ])('anaphoric exile-it: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

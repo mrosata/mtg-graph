@@ -3,7 +3,8 @@ import { rules, tagDefs } from './condition.cares_tribe';
 
 describe('condition.cares_tribe parametric', () => {
   it('exports a rule per tribe', () => {
-    expect(rules.length).toBe(37);
+    // 2026-06-01 audit Group 10 — added `insect` tribe (Aatchik, Emerald Radian).
+    expect(rules.length).toBe(38);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -23,7 +24,7 @@ describe('condition.cares_tribe parametric', () => {
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(37);
+    expect(tagDefs.length).toBe(38);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');
@@ -139,6 +140,15 @@ describe('condition.cares_tribe parametric', () => {
   it('demon does NOT match "becomes a <Demon> in addition to its other colors and types" self-typing', () => {
     const dm = rules.find((r) => r.id === 'condition.cares_tribe.demon')!;
     expect(dm.match('{3}, discard a card: put three +1/+1 counters on this creature and it becomes a black demon in addition to its other colors and types. activate only once.')).toBe(false);
+  });
+
+  // 2026-06-01 audit Group 5 — Skyknight Squire: "it has flying and is a
+  // knight in addition to its other types" — self-typing with the verb `is`
+  // (rather than `becomes`). Same anchor on "in addition to its other types"
+  // tail; just add `is` to the verb slot. Mirrors the Possessed Goat strip.
+  it('knight does NOT match "is a <Knight> in addition to its other types" self-typing', () => {
+    const k = rules.find((r) => r.id === 'condition.cares_tribe.knight')!;
+    expect(k.match('whenever another creature you control enters, put a +1/+1 counter on this creature. as long as this creature has three or more +1/+1 counters on it, it has flying and is a knight in addition to its other types.')).toBe(false);
   });
 
   it('manland self-animation still strips correctly (Vampire becomes manland)', () => {

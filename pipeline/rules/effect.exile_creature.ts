@@ -35,8 +35,12 @@ const PATTERN_DIES_EXILE =
 // v0.23 — admit `that creature` and `them` in addition to `it`, mirroring the
 // pronoun group already used by PATTERN_DIES_EXILE (Turncoat Kunoichi:
 // "choose target creature an opponent controls. exile that creature until …").
+// 2026-06-01 audit Group 19 — Coalstoke Gearhulk: ETB reanimates a creature,
+// then at end step exiles it. The "exile that creature" sits 2 sentences
+// after the antecedent (an intermediate pump-clause sentence). Allow ONE
+// intermediate sentence between antecedent and exile.
 const PATTERN_ANAPHORIC =
-  /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\.[^.]{0,200}\bexile (?:it|that creature|them)(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
+  /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\.(?:[^.]*?\.){0,1}[^.]{0,200}\bexile (?:it|that creature|them)(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;
 // Also handle single-sentence anaphoric: "whenever target creature attacks, exile it"
 const PATTERN_ANAPHORIC_SAME_SENTENCE =
   /\btarget (?:[\w\-]+\s+){0,6}creature\b[^.]*?\bexile (?:it|that creature|them)(?!\s+from\s+(?:your\s+)?(?:graveyard|hand|library|exile))\b/;

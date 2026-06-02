@@ -44,6 +44,12 @@ describe('effect.exile_from_graveyard', () => {
     // v0.23 — Containment Construct: anaphoric "exile that card from your
     // graveyard" after a "whenever you discard a card" antecedent.
     ['whenever you discard a card, you may exile that card from your graveyard. if you do, you may play that card this turn.'],
+    // 2026-06-01 audit Group 13 — Ancient Vendetta: multi-zone "search target
+    // opponent's graveyard, hand, and library for up to four cards with that
+    // name and exile them". The search includes the graveyard, then exiles
+    // the matched cards — semantically a graveyard exile (and library exile,
+    // both rules should fire).
+    ["search target opponent's graveyard, hand, and library for up to four cards with that name and exile them"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

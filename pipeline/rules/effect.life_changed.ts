@@ -39,7 +39,11 @@ export const rule: Rule = {
     // v0.15 — "pay N life" cost frame (Bonecache Overseer: "Pay 1 life" as
     // activation cost). Paying life is functionally life loss for the
     // controller. Allows X / digit / comma-amount.
-    const PAY = /\bpay (?:[\d,]+|x) life\b/;
+    // 2026-06-01 audit Group 4 — Sire of Seven Deaths: the negative lookbehind
+    // `(?<!ward—)` (em-dash U+2014) excludes the "Ward—Pay N life" protection
+    // cost template, where the cost is paid by the OPPONENT casting a spell
+    // that targets this creature, not by the controller of the printed text.
+    const PAY = /(?<!ward—)\bpay (?:[\d,]+|x) life\b/;
     // v0.20.0 — anaphoric "that much life" (Enduring Tenacity: "whenever you
     // gain life, target opponent loses that much life"). The amount is bound
     // to the prior trigger condition rather than a digit/x quantifier.

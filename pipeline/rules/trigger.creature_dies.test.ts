@@ -48,6 +48,13 @@ describe('trigger.creature_dies', () => {
     // subtype rather than the generic "creature". Restricted to THEME_TRIBES
     // alternation to avoid false-firing on non-tribe nouns.
     ['attacking vampires you control have deathtouch and lifelink.\nwhenever a vampire you control dies, you may pay 2 life. if you do, draw a card.'],
+    // 2026-06-01 audit Group 10 — Valkyrie's Call: comma-list adjective
+    // filler "nontoken, non-angel creature you control dies". Filler must
+    // admit commas so the qualifier chain is reached.
+    ["whenever a nontoken, non-angel creature you control dies, return that card to the battlefield under its owner's control with a +1/+1 counter on it"],
+    // Aatchik: Insect tribal — added to THEME_TRIBES so the tribal-dies arm
+    // can match.
+    ['whenever another insect you control dies, put a +1/+1 counter on __self__'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

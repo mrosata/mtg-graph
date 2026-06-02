@@ -12,8 +12,14 @@ export const tagDef: TagDef = {
 
 // "destroy|exile all|each [adjectives ...] (creatures|permanents|artifacts|enchantments|...)"
 // Allow commas and "and"/"or" between adjective tokens so "artifacts and enchantments" matches.
+// 2026-06-01 audit Group 7 — Steel Hellkite: "destroy each nonland permanent
+// ... whose controller was dealt combat damage by this creature this turn" is
+// combat-damage-gated targeted removal of a narrow subset, NOT a wipe. The
+// negative lookahead on the specific "whose controller/owner was dealt|lost|
+// taken (damage)" tail suppresses this template without affecting genuine
+// wipes (Wrath of God, Cyclonic Rift, etc.).
 const PATTERN =
-  /\b(?:destroy|exile)\s+(?:all|each)\s+(?:[\w\-]+[,\s]+){0,6}?(?:creatures?|permanents?|artifacts?|enchantments?|planeswalkers?|nonland\s+permanents?|nontoken\s+permanents?|nontoken\s+creatures?)\b/;
+  /\b(?:destroy|exile)\s+(?:all|each)\s+(?:[\w\-]+[,\s]+){0,6}?(?:creatures?|permanents?|artifacts?|enchantments?|planeswalkers?|nonland\s+permanents?|nontoken\s+permanents?|nontoken\s+creatures?)\b(?![^.]{0,150}\bwhose\s+(?:controller|owner)\s+(?:was|has)\s+(?:dealt|lost|taken)\b)/;
 
 // v0.14.9 — red-sweeper frame: "deals N damage to each (nontoken )?creature
 // [and planeswalker]". Same axis as destroy/exile-all-creatures (sweeps the

@@ -50,6 +50,14 @@ const KEYWORD_COST_PREFIX_STRIP = /\b(?:offspring|bargain|buyback|multikicker|ki
 const PROSE_ACTIVATED_PATTERN =
   /(?:^|\.\s|\n|—\s)(?:sacrifice|discard|exile|pay|tap|untap|reveal|remove|return) [^.\n]{0,80}?:\s/i;
 
+// 2026-06-01 audit Group 8 — Suspicious Shambler: graveyard-cost-only
+// activation. Mirror of the strip in effect.has_activated_ability — pre-strip
+// activation segments whose cost includes "exile (this card|__self__|~) from
+// (your|a) graveyard" so the battlefield-activation regex doesn't fire on
+// graveyard-zone activations.
+const GRAVEYARD_COST_ACTIVATION_STRIP =
+  /[^.]*?\bexile (?:this card|__self__|~) from (?:your|a) graveyard\b[^.]*?:\s[^.]*?(?:\.|$)/gi;
+
 // A cost segment qualifies as mana-bearing only if it contains a W/U/B/R/G/C
 // or X symbol, or a generic-mana digit symbol. Tap ({T}), untap ({Q}), and
 // snow ({S}) symbols do NOT count — Training Grounds and other activated-
@@ -85,7 +93,8 @@ export const rule: Rule = {
     // collapsed-newline normalization places them adjacent to the next
     // ability's `{T}:` cost. Stripping them removes the FP source.
     const normalized = normalizeOracleText(card.oracleText, card.name)
-      .replace(KEYWORD_COST_PREFIX_STRIP, ' ');
+      .replace(KEYWORD_COST_PREFIX_STRIP, ' ')
+      .replace(GRAVEYARD_COST_ACTIVATION_STRIP, ' ');
     // Walk every match of the activation patterns (not just the first) — a
     // card can have a tap-only mana ability followed later by a mana-bearing
     // ability, and we need to fire on the latter even if the former precedes.

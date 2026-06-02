@@ -25,17 +25,22 @@ export const tagDef: TagDef = {
 // Allow up to ~60 chars between "library for" and "creature card" to handle
 // "a basic plains card or a creature card" style chained tutors and
 // "a legendary creature card" qualifiers.
-const PATTERN = /search [\w\s']+? library for [\w\s,'-]{0,60}?\bcreature card\b/;
+const PATTERN = /search [\w\s']+? library for [\w\s,'-]{0,60}?\bcreature cards?\b/;
 // Hybrid "A or B card" form sharing a trailing noun — "a creature or basic
 // land card" (Huntsman's Redemption II). Allow a short alternative clause
 // between "creature" and "card".
 const PATTERN_HYBRID = /search [\w\s']+? library for [\w\s,'-]{0,40}?\bcreature or [\w\s\-]{1,30}? cards?\b/;
+// 2026-06-01 audit Group 16 — Brightglass Gearhulk: multi-type tutor chains
+// joined by commas and "and/or" — "artifact, creature, and/or enchantment
+// cards". Admit `/` and longer filler so the `creature` noun in the middle
+// of the list is reached and `cards?` plural is honored.
+const PATTERN_MULTI = /search [\w\s']+? library for [\w\s,'\-\/]{0,80}?\bcreature[\w\s,'\-\/]{0,60}?cards?\b/;
 
 export const rule: Rule = {
   id: 'effect.tutors_creature',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(PATTERN_HYBRID);
+    const m = t.match(PATTERN) ?? t.match(PATTERN_HYBRID) ?? t.match(PATTERN_MULTI);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['search', 'creature'], proximity: ['library', 'card'], window: 8 },

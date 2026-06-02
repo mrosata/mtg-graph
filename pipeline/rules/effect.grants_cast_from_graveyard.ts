@@ -50,6 +50,13 @@ const POSITIVE_PATTERNS = [
   // from your graveyard". The "you may" governs the whole clause but the
   // "cast" verb sits in a coordinated clause; anchor on the verb directly.
   /\bcast a (?:permanent|creature|artifact|enchantment|instant|sorcery|planeswalker|noncreature)(?: spell)?(?: of each permanent type)? from (?:your|a) graveyards?\b/,
+  // 2026-06-01 audit Group 6 — Sphinx of Forgotten Lore (flashback grant),
+  // Cursecloth Wrappings (embalm grant), Snapcaster Mage-style frames.
+  // Granting a graveyard-cast keyword IS the license axis — semantically
+  // equivalent to "you may cast that card from your graveyard". The
+  // condition.cast_from_graveyard axis is for PRINTED keywords; this is
+  // the GRANT side.
+  /\bcards?\s+in\s+(?:your|a|an opponent's|target opponent's)\s+graveyards?\s+gains?\s+(?:flashback|jump-start|disturb|escape|unearth|embalm|eternalize|aftermath|mayhem)\b/,
 ];
 
 export const rule: Rule = {

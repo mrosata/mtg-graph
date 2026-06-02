@@ -21,6 +21,11 @@ const PATTERNS = [
   // form (Anim Pakal, Thousandth Moon). Also "equal to the number of +1/+1
   // counters on ..." which is the same axis with a different sentence frame.
   /\b(?:x is|equal to) the number of \+1\/\+1 counters? on\b/,
+  // 2026-06-01 audit Group 17 — Hardened-Scales / Branching Evolution
+  // replacement frame (Caradora, Heart of Alacria). The "if one or more
+  // +1/+1 counters would be put on <subject>" antecedent cares whether a
+  // counter is being placed.
+  /\bif one or more \+1\/\+1 counters would be put on\b/,
 ];
 
 // Looser phrasings that say "counter" without specifying "+1/+1". Only fire

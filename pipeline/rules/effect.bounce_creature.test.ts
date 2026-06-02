@@ -40,6 +40,11 @@ describe('effect.bounce_creature', () => {
     // → one owner). Also (Arcanis the Omnipotent) self-name bounce.
     ["return all attacking creatures to their owner's hand."],
     ['{t}: draw three cards.\n{2}{u}{u}: return __self__ to its owner\'s hand.'],
+    // 2026-06-01 audit Group 2 — River's Rebuke: "return all nonland permanents
+    // target player controls to their owner's hand". PATTERN_BROAD tail must
+    // admit singular "their owner's" (plural was already admitted via
+    // "their owners'").
+    ["return all nonland permanents target player controls to their owner's hand."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

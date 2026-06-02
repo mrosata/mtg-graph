@@ -18,6 +18,14 @@ describe('effect.grants_cast_from_graveyard', () => {
     ['you may play lands from your graveyard.'],
     // Edgar, Master Machinist — once-per-turn artifact cast-from-grave.
     ['once during each of your turns, you may cast an artifact spell from your graveyard.'],
+    // 2026-06-01 audit Group 6 — Sphinx of Forgotten Lore: grants Flashback
+    // to a target graveyard card. Granting a graveyard-cast keyword IS the
+    // license axis — same semantic as Snapcaster Mage's classic frame.
+    ['target instant or sorcery card in your graveyard gains flashback until end of turn'],
+    // Cursecloth Wrappings — grants Embalm.
+    ['target creature card in your graveyard gains embalm until end of turn'],
+    // Snapcaster-style frame.
+    ['target instant or sorcery card in your graveyard gains flashback. the flashback cost is equal to its mana cost.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

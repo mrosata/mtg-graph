@@ -13,6 +13,10 @@ describe('effect.tutors_artifact', () => {
     ['search your library for an artifact or enchantment card and put it into your hand'],
     // Hybrid: "X or artifact card"
     ['search your library for a creature or artifact card and reveal it'],
+    // 2026-06-01 audit Group 16 — Brightglass Gearhulk: three-way tutor list
+    // joined by "and/or" with plural `cards`. Filler must admit `/` and the
+    // trailing noun must allow `cards?`.
+    ['search your library for up to two artifact, creature, and/or enchantment cards with mana value 1 or less'],
   ])('matches artifact-tutor phrasings: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

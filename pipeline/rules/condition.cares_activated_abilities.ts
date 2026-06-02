@@ -24,7 +24,9 @@ const SCOPE_PATTERN = /\bactivated abilities? of\b/;
 // Activate triggers: "whenever you activate an ability" / "whenever a
 // creature activates an ability". Allow up to ~30 chars of subject between
 // "whenever" and the verb so phrases like "whenever an opponent" work.
-const TRIGGER_PATTERN = /\bwhenever (?:you|[a-z' ]{0,30}?)\s+activates?\s+an?\s+ability\b/;
+// 2026-06-01 audit Group 12 — Adrenaline Jockey / Afterburner Expert admit a
+// qualifier slot before "ability" ("exhaust ability", "loyalty ability", etc.).
+const TRIGGER_PATTERN = /\bwhenever (?:you|[a-z' ]{0,30}?)\s+activates?\s+an?\s+(?:[a-z\-]+\s+)*ability\b/;
 // Resolve/trigger references to an activated ability.
 const RESOLVE_PATTERN = /\bactivated abilit(?:y|ies)\s+(?:resolves?|triggers?)/;
 

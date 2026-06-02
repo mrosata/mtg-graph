@@ -30,6 +30,12 @@ describe('effect.board_wipe', () => {
     ['return all creatures to their owners hands'],
     ['draw a card'],
     ['counter target spell'],
+    // 2026-06-01 audit Group 7 — Steel Hellkite: "destroy each nonland
+    // permanent with mana value x whose controller was dealt combat damage by
+    // this creature this turn" is COMBAT-DAMAGE-GATED targeted removal of a
+    // narrow subset, not a wipe. Specific "whose controller was dealt combat
+    // damage" tail must suppress the wipe interpretation.
+    ['{x}: destroy each nonland permanent with mana value x whose controller was dealt combat damage by this creature this turn'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

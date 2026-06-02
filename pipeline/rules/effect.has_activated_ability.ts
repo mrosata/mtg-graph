@@ -65,6 +65,20 @@ const PERMANENT_TYPES = ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planesw
 // Those zones aren't "this permanent has an activated ability" semantics.
 const BATTLEFIELD_ACTIVATED_KEYWORDS = new Set(['Equip', 'Crew']);
 
+// 2026-06-01 audit Group 8 — Suspicious Shambler: graveyard-cost-only
+// activation ("{N}, Exile this card from your graveyard: <effect>") must
+// NOT fire has_activated_ability — the cost lives in the graveyard zone,
+// not on the battlefield. Pre-strip whole activation segments whose cost
+// includes "exile (this card|__self__|~) from (your|a) graveyard". This
+// preserves Tinybones-style cards that have BOTH a battlefield activation
+// and a graveyard activation — only the graveyard line is stripped.
+//
+// The strip matches "<cost>: " through the next sentence terminator so the
+// effect clause leaves with the cost. Sentence terminator includes period
+// and end-of-text.
+const GRAVEYARD_COST_ACTIVATION_STRIP =
+  /[^.]*?\bexile (?:this card|__self__|~) from (?:your|a) graveyard\b[^.]*?:\s[^.]*?(?:\.|$)/gi;
+
 // v0.24 — strip leading keyword tokens from the normalized text.
 // Normalization collapses `\n` to space, erasing the boundary between a
 // keyword block ("Reach", "Flying, vigilance", "Start your engines!") and
@@ -116,7 +130,8 @@ export const rule: Rule = {
     const kw = card.keywords.find((k) => BATTLEFIELD_ACTIVATED_KEYWORDS.has(k));
     if (kw) return { evidence: kw.toLowerCase() };
     const normalized = normalizeOracleText(card.oracleText, card.name);
-    const stripped = stripLeadingKeywords(normalized, card.keywords);
+    const graveStripped = normalized.replace(GRAVEYARD_COST_ACTIVATION_STRIP, ' ');
+    const stripped = stripLeadingKeywords(graveStripped, card.keywords);
     const m = stripped.match(SYMBOL_ACTIVATED_PATTERN) ?? stripped.match(PROSE_ACTIVATED_PATTERN);
     return m ? { evidence: m[0].trim() } : false;
   },

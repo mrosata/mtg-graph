@@ -48,6 +48,13 @@ const TRIBAL_LIST_PRONOUN_PATTERN = /\b[\w\-]+s(?:,\s+[\w\-]+s){0,4}(?:,?\s+and\
 // to "gain control + untap" template only.
 const CHAINED_GAIN_CONTROL = /\bgain control of [^.]{0,60}?,\s*untap (?:it|that creature|them)\b/;
 
+// 2026-06-01 audit Group 15 — self-trigger antecedent for "untap it"
+// (Brightfield Mustang, Quintessential Katana, Interface Ace). "Whenever this
+// creature <verb>, ..., untap it" restricts the bare "untap it" cleanly —
+// the self-trigger preamble guarantees "it" refers to the host creature.
+// Bare "untap it" without antecedent stays unmatched.
+const SELF_TRIGGER_PRONOUN = /\bwhenever this creature (?:attacks|blocks|attacks or blocks|becomes tapped|becomes blocked|deals (?:combat )?damage)[^.]{0,80}?,\s*untap it\b/;
+
 // v0.14.1 — Vigilance-style static rider: "Untap this creature during (each
 // other player's )?untap step." Per AGREED PLAN, this static modifier on
 // combat untap is out of scope for effect.untap (Thousand Moons Infantry).
@@ -73,14 +80,16 @@ export const rule: Rule = {
         after.match(PATTERN) ??
         after.match(PRONOUN_PATTERN) ??
         after.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
-        after.match(CHAINED_GAIN_CONTROL);
+        after.match(CHAINED_GAIN_CONTROL) ??
+        after.match(SELF_TRIGGER_PRONOUN);
       return m ? { evidence: m[0] } : false;
     }
     const m =
       t.match(PATTERN) ??
       t.match(PRONOUN_PATTERN) ??
       t.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
-      t.match(CHAINED_GAIN_CONTROL);
+      t.match(CHAINED_GAIN_CONTROL) ??
+      t.match(SELF_TRIGGER_PRONOUN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['untap'], proximity: ['creature', 'permanent', 'target', 'all'], window: 6 },

@@ -41,7 +41,11 @@ const PATTERNS = [
   // v0.22.0 — Unstoppable Slasher: "if it had no counters on it" interpolation.
   // The optional conditional slot was previously hard-coded to "if it was a
   // creature"; broaden to any short conditional clause.
-  /\bdies,(?:\s+if [^,.]{1,40},)?\s+return (?:it|that creature|them) to the battlefield/,
+  // 2026-06-01 audit Group 11 — Valkyrie's Call: "dies, return that card to
+  // the battlefield...". Admit `that card` alongside `it`/`that creature`/
+  // `them` in the pronoun alternation — same dies-trigger semantic with a
+  // different anaphor noun.
+  /\bdies,(?:\s+if [^,.]{1,40},)?\s+return (?:it|that creature|that card|them) to the battlefield/,
   // v0.20.0 — Come Back Wrong: anaphoric "if a creature card is put into
   // a graveyard this way, return it to the battlefield". The "this way"
   // (or "from the battlefield") anaphor binds back to a prior graveyard
@@ -84,6 +88,14 @@ const PATTERNS = [
   // onto the battlefield". The library→graveyard transition is mill;
   // the "put them onto the battlefield" right after is reanimation.
   /\bone or more (?:land |creature |artifact |enchantment |planeswalker )?cards?\s+(?:are\s+)?put into [\w']+? graveyard from [\w']+? library,[^.]{0,40}?put them onto the battlefield\b/,
+  // 2026-06-01 audit Group 11 — Daretti, Rocketeer Engineer: "choose target
+  // <type> card in <X>'s graveyard ... return the chosen card to the
+  // battlefield". The "the chosen card" anaphor binds back to a "choose
+  // target ... card in ... graveyard" antecedent across one or more
+  // intermediate sentences. Bounded by 200 chars so the two halves stay in
+  // tight scope. Filler admits periods so 1-2 intermediate sentences (cost
+  // clauses like "you may sacrifice an artifact") can sit between.
+  /\bchoose target [^.]+? card in (?:your|a|an opponent's|target opponent's) graveyard\.[\s\S]{0,200}?return the chosen card to the battlefield/,
 ];
 
 export const rule: Rule = {

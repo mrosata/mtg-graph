@@ -60,6 +60,12 @@ const PATTERNS = [
   // "you sacrifice" subject specifically excludes the edict frame ("each
   // opponent sacrifices an artifact"), keeping the rule controller-sided.
   /\bwhenever you sacrifice (?:an?|one or more) artifacts?\b/,
+  // 2026-06-01 audit Group 21 — "affinity for artifacts" (Demonic Junker).
+  // Affinity is a printed keyword that scales the spell's cast cost by the
+  // count of artifacts controlled — by definition cares about artifacts. The
+  // reminder text "(This spell costs {1} less ... for each artifact you
+  // control)" is stripped before rules run, so only the bare keyword remains.
+  /\baffinity for artifacts\b/,
 ];
 
 export const rule: Rule = {

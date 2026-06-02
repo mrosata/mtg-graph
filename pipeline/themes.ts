@@ -78,6 +78,9 @@ export const THEME_TRIBES = [
   // FIX 20 (PA-1) — v0.26.0 audit batch: Ballyrush Banneret and the many
   // other Soldier-tribal Standard cards.
   'soldier',
+  // 2026-06-01 audit Group 10 — Aatchik, Emerald Radian and the broader
+  // Insect tribal payoff family (commander reprints + LCI/MKM appearances).
+  'insect',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];

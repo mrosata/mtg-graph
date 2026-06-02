@@ -17,6 +17,12 @@ describe('effect.destroy_artifact', () => {
     // Collapse's two-comma chain in the type filter. The "nonartifact" guard
     // does NOT apply (no "nonartifact" present), so artifact should fire.
     ['destroy target noncreature, nonland permanent with mana value 1 or less'],
+    // 2026-06-01 audit Group 20 — Crash and Burn: "destroy target Vehicle".
+    // Vehicles are always artifacts (CR 205.3g), so destroying one is
+    // semantically destroying an artifact. Same precedent as
+    // effect.exile_artifact's PATTERN_VEHICLE arm.
+    ['destroy target vehicle'],
+    ['destroy each vehicle'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

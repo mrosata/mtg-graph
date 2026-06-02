@@ -181,4 +181,26 @@ describe('effect.has_mana_activated_ability', () => {
     });
     expect(rule.matchCard!(c)).toBeTruthy();
   });
+
+  // 2026-06-01 audit Group 8 — Suspicious Shambler: graveyard-cost-only
+  // activation must not fire the battlefield-activated-ability tag.
+  it('does not match a card whose only activation cost is "exile this card from your graveyard"', () => {
+    const c = card({
+      types: ['Creature'],
+      typeLine: 'Creature — Zombie',
+      oracleText: '{4}{B}{B}, Exile this card from your graveyard: Create two 2/2 black Zombie creature tokens. Activate only as a sorcery.',
+    });
+    expect(rule.matchCard!(c)).toBe(false);
+  });
+
+  // Companion regression — Tinybones-style: BOTH battlefield AND graveyard
+  // activations. The pre-strip removes only the graveyard cost line.
+  it('still matches when a card has both a graveyard activation AND a battlefield activation', () => {
+    const c = card({
+      types: ['Creature'],
+      typeLine: 'Legendary Creature — Skeleton Rogue',
+      oracleText: '{3}{B}, {T}: Each opponent discards a card. {2}{B}{B}, Exile this card from your graveyard: Create three 1/1 black Bat creature tokens with flying.',
+    });
+    expect(rule.matchCard!(c)).toBeTruthy();
+  });
 });

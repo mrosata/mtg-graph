@@ -43,6 +43,10 @@ describe('effect.exile_from_library', () => {
     ['flying when this creature enters, if it was cast, each player exiles all but the bottom six cards of their library face down. at the beginning of your upkeep, draw a card.'],
     ['each player exiles all but the bottom six cards of their library face down'],
     ['you exile all but the top three cards of your library'],
+    // 2026-06-01 audit Group 13 — Ancient Vendetta: tutor-then-exile on a
+    // TARGET OPPONENT's library (Frame D currently restricts to "your
+    // library"). Multi-zone search includes the library.
+    ["search target opponent's graveyard, hand, and library for up to four cards with that name and exile them"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

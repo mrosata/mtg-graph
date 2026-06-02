@@ -29,6 +29,11 @@ const PATTERNS = [
   // Compound gate: "if you've cast both a creature spell and a noncreature spell this turn"
   // Admits optional "both " between "cast" and the article (Eshki Dragonclaw).
   /\bif you'?ve cast (?:both )?(?:a|an) [\w\s,'-]{0,40}?spell and (?:a|an) [\w\s,'-]{0,40}?spell this turn\b/,
+  // 2026-06-01 audit Group 9 — Thousand-Year Storm storm-scale form:
+  // "for each [other] [<typed>] spell[s] you've cast [before it] this turn",
+  // also "earlier this turn". This is the count-based scaling axis even
+  // without an explicit "number of" framing.
+  /\bfor each (?:other )?[\w\s,'-]{0,40}?spells? you'?ve cast (?:before it )?(?:this turn|earlier this turn)\b/,
 ];
 
 export const rule: Rule = {

@@ -38,8 +38,11 @@ export const rule: Rule = {
     // v0.14.1: noun bumped to `creatures?` plural and verb to `(?:dies|die)`
     // so "one or more creatures you control die" (The Skullspore Nexus,
     // mass-death triggers) matches.
+    // 2026-06-01 audit Group 10 — Valkyrie's Call: comma-separated adjectives
+    // ("nontoken, non-angel creature you control"). Filler now admits commas
+    // alongside word/hyphen/space tokens.
     const m = t.match(
-      /(?:when|whenever) (?:a |another |this |one or more )?(?:[\w\- ]{0,30}?\s+)?(?:creatures?|__self__)(?:\s+[\w'+\/\-]+){0,10}\s+(?:dies|die)\b/,
+      /(?:when|whenever) (?:a |another |this |one or more )?(?:[\w\-, ]{0,30}?\s+)?(?:creatures?|__self__)(?:\s+[\w'+\/\-]+){0,10}\s+(?:dies|die)\b/,
     );
     if (m) return { evidence: m[0] };
     // v0.20.0 — Come Back Wrong: "if a creature card is put into a graveyard

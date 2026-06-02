@@ -47,6 +47,10 @@ describe('condition.cares_artifacts', () => {
     // (Magnetic Snuffler). Controller-side sacrifice observation.
     ['whenever you sacrifice an artifact, put a +1/+1 counter on this creature'],
     ['whenever you sacrifice one or more artifacts, draw a card'],
+    // 2026-06-01 audit Group 21 — Demonic Junker: "Affinity for artifacts" is
+    // a printed keyword that scales the cast cost by the number of artifacts
+    // controlled. Reminder text is stripped, leaving the bare keyword.
+    ['affinity for artifacts when this vehicle enters, for each player, destroy up to one target creature that player controls'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

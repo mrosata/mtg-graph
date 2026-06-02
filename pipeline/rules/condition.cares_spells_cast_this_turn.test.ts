@@ -20,6 +20,13 @@ describe('condition.cares_spells_cast_this_turn', () => {
     ["if you've cast a creature spell and a noncreature spell this turn, you may pay {0} instead"],
     // Compound gate with explicit "both" (Eshki Dragonclaw verbatim)
     ["if you've cast both a creature spell and a noncreature spell this turn, draw a card"],
+    // 2026-06-01 audit Group 9 — Thousand-Year Storm: storm-like scaling
+    // "for each other instant and sorcery spell you've cast before it this
+    // turn". The "before it" / "earlier this turn" tail is the storm anchor.
+    ["whenever you cast an instant or sorcery spell, copy it for each other instant and sorcery spell you've cast before it this turn. you may choose new targets for the copies."],
+    // Generic storm-scale form.
+    ["copy that spell for each spell you've cast this turn"],
+    ["draw a card for each spell you've cast earlier this turn"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

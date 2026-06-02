@@ -19,6 +19,12 @@ describe('condition.cares_plus_one_counter', () => {
     ['create x 1/1 colorless gnome artifact creature tokens that are tapped and attacking, where x is the number of +1/+1 counters on __self__'],
     ['draw cards equal to the number of +1/+1 counters on __self__'],
     ['x is the number of +1/+1 counters on that creature'],
+    // 2026-06-01 audit Group 17 — Caradora, Heart of Alacria: Hardened-Scales
+    // replacement effect. The "if one or more +1/+1 counters would be put on
+    // ..., that many plus one +1/+1 counters are put on it instead" frame
+    // both PUTS counters (covered by effect.plus_one_counter) AND cares about
+    // whether counters are being added (the replacement payoff).
+    ['if one or more +1/+1 counters would be put on a creature or vehicle you control, that many plus one +1/+1 counters are put on it instead'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

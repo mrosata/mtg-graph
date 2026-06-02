@@ -25,7 +25,11 @@ const PATTERNS = [
   new RegExp(`${OC}creates? [^.]{0,80}?creature tokens?`),
   // P/T stats inside a token clause imply a creature even when the word is omitted
   // (e.g. "create a 1/1 token copy of it" from the Offspring keyword).
-  new RegExp(`${OC}creates? [^.]{0,60}?\\b\\d+\\/\\d+\\b[^.]{0,40}?tokens?`),
+  // 2026-06-01 audit Group 18 — Chandra, Spark Hunter: P/T-bearing tokens
+  // CAN be non-creature (Vehicle artifact tokens have P/T but aren't
+  // creatures until crewed). Exclude tokens whose type line says "vehicle"
+  // immediately before the word "token" without "creature" interleaving.
+  new RegExp(`${OC}creates? [^.]{0,60}?\\b\\d+\\/\\d+\\b(?![^.]{0,40}?\\bvehicle\\s+artifact\\s+tokens?)[^.]{0,40}?tokens?`),
   // v0.12.9: copy-token frame where the copy source is implicitly a creature
   // (Gruff Triplets — "create two tokens that are copies of it" where "it"
   // is a creature; The Apprentice's Folly — "create a token that's a copy of
