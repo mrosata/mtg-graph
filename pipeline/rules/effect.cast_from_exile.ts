@@ -61,7 +61,11 @@ const PATTERNS = [
   // (3) Explicit cast from the exile pile. Filler accepts up to 12 tokens
   // between "cast" and "from among" (handles "any number of instant and/or
   // sorcery spells" — 7 tokens of qualifier plus headroom).
-  /\bcast (?:[\w\-'/]+\s+){0,12}?from among (?:the )?(?:cards exiled|exiled cards)\b/,
+  //
+  // v0.33+ — extend the trailing alternation to admit Goliath Daydreamer
+  // shapes: "from among cards you own in exile with dream counters on them"
+  // (counter-keyed) and "from among cards you own in exile" (bare).
+  /\bcast (?:[\w\-'/]+\s+){0,12}?from among (?:the )?(?:cards exiled|exiled cards|cards (?:you own )?(?:in )?exiled? with [\w\s']+? on them|cards (?:you own )?in exile)\b/,
   // (4) v0.14.41 — anaphoric "from among those cards" where "those cards"
   // binds to a preceding `exile the top X cards of …` clause in the same
   // effect (Laughing Jasper Flint, Dack Fayden, Knowledge Pool, Etali
@@ -75,6 +79,14 @@ const PATTERNS = [
   // covers both creature and land plays; "from exile" anchors to the source
   // zone — distinct phrasing from the existing anaphoric forms.
   /\bplay that card from exile(?:\s+this turn)?\b/,
+  // (6) v0.33+ — Dream Harvest / Sanar: "cast the exiled cards" / "cast (any
+  // number of )?cards exiled this way". Both are explicit cast verbs binding
+  // to a prior exile-cards clause; the phrase is distinctive on its own.
+  /\bcast (?:the exiled cards|(?:any number of )?cards exiled this way)\b/,
+  // (7) v0.33+ — Taster of Wares: anchored "exile ... you may cast it/that
+  // card for as long as you control this creature". Tight anchor required
+  // because the bare "you may cast it" template appears in many contexts.
+  /\bexile(?:d)?\b[^.]{0,120}?\byou may cast (?:it|that card|the exiled cards?) for as long as you control (?:__self__|this creature)\b/,
 ];
 
 export const rule: Rule = {

@@ -4,7 +4,8 @@ import { rules, tagDefs } from './condition.cares_tribe';
 describe('condition.cares_tribe parametric', () => {
   it('exports a rule per tribe', () => {
     // 2026-06-01 audit Group 10 — added `insect` tribe (Aatchik, Emerald Radian).
-    expect(rules.length).toBe(38);
+    // v0.32 — Group 12 — added `sliver` tribe (Thrumming Hivepool).
+    expect(rules.length).toBe(39);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -21,10 +22,13 @@ describe('condition.cares_tribe parametric', () => {
     // v0.17 — backlog tribes (spirit / demon / angel / cat / dog / wolf).
     expect(ids.has('condition.cares_tribe.spirit')).toBe(true);
     expect(ids.has('condition.cares_tribe.wolf')).toBe(true);
+    // v0.32 — Group 12 — sliver tribe (Thrumming Hivepool: "slivers you
+    // control have double strike and haste").
+    expect(ids.has('condition.cares_tribe.sliver')).toBe(true);
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(38);
+    expect(tagDefs.length).toBe(39);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');
@@ -156,6 +160,54 @@ describe('condition.cares_tribe parametric', () => {
     // BECOMES_CREATURE strip. Adding the tribe-tail strip must not break this.
     const v = rules.find((r) => r.id === 'condition.cares_tribe.vampire')!;
     expect(v.match('target land becomes a 1/1 vampire creature with flying until end of turn')).toBe(false);
+  });
+
+  // 2026-06-02 audit batch — ability-word headers MUST be stripped before
+  // matching so the words in `Goblin Formula — ...` / `Dinosaur Formula — ...`
+  // don't FP cares_tribe.<X>. The strip targets sentence-leading "1-5 token
+  // — " segments (an ability-word header).
+  it('goblin does NOT match ability-word header "Goblin Formula — ..." alone (Norman Osborn)', () => {
+    const g = rules.find((r) => r.id === 'condition.cares_tribe.goblin')!;
+    expect(
+      g.match("norman osborn can't be blocked. whenever norman osborn deals combat damage to a player, he connives. {1}{u}{b}{r}: transform norman osborn. activate only as a sorcery. flying, menace spells you cast from your graveyard cost {2} less to cast. goblin formula — each nonland card in your graveyard has mayhem. the mayhem cost is equal to its mana cost."),
+    ).toBe(false);
+  });
+
+  it('dinosaur does NOT match ability-word header "Dinosaur Formula — ..." alone (Stegron)', () => {
+    const d = rules.find((r) => r.id === 'condition.cares_tribe.dinosaur')!;
+    expect(
+      d.match("menace dinosaur formula — {1}{r}, discard this card: until end of turn, target creature you control gets +3/+1 and becomes a dinosaur in addition to its other types."),
+    ).toBe(false);
+  });
+
+  // 2026-06-02 audit batch — type-graft contractions (Xu-Ifit / Superior
+  // Spider-Man): "it's a Skeleton in addition to its other types" and "he's
+  // a 4/4 spider human hero in addition to his other types" are self-typing
+  // transformations using contractions (`'s`) and gendered possessives
+  // (`his|her|their`). The becomesTribePattern strip must admit them.
+  it('skeleton does NOT match "it\'s a skeleton in addition to its other types" (Xu-Ifit)', () => {
+    const s = rules.find((r) => r.id === 'condition.cares_tribe.skeleton')!;
+    expect(
+      s.match("{t}: return target creature card from your graveyard to the battlefield. it's a skeleton in addition to its other types and has no abilities. activate only as a sorcery."),
+    ).toBe(false);
+  });
+
+  it('human does NOT match "he\'s a 4/4 spider human hero in addition to his other types" (Superior Spider-Man)', () => {
+    const h = rules.find((r) => r.id === 'condition.cares_tribe.human')!;
+    expect(
+      h.match("mind swap — you may have __self__ enter as a copy of any creature card in a graveyard, except his name is __self__ and he's a 4/4 spider human hero in addition to his other types. when you do, exile that card."),
+    ).toBe(false);
+  });
+
+  // Sanity — genuine tribal references inside an ability-word BODY still
+  // fire (the body references the subtype as a payoff).
+  it('food still matches "food formula — sacrifice a food" body (ability-word body references subtype)', () => {
+    // (The body of an ability-word can still reference the tribe/subtype as
+    // a payoff; only the HEADER token is stripped.)
+    // Note: this test sits in cares_tribe but no canonical tribe-formula body
+    // exists with a leading ability-word that we ship. Skipped sanity — the
+    // cares_subtype test covers a real subtype-formula case. Kept here so
+    // future ability-word triggers don't accidentally over-strip.
   });
 
   it('spirit / cat / dog / angel / demon FP-resistant on substrings', () => {

@@ -17,6 +17,9 @@ describe('effect.prevent_lifegain', () => {
     ["target opponent can't gain life this turn"],
     // Each-opponent variant.
     ["each opponent can't gain life"],
+    // HIGH-14 (Mornsong Aria): disjunctive "can't draw cards or gain life".
+    ["players can't draw cards or gain life"],
+    ["your opponents can't sacrifice creatures or gain life"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

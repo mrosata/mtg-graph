@@ -14754,3 +14754,136 @@ When this artifact enters, search your library for a basic Plains, Swamp, or For
   - **Evidence vs reality:** evidence would be `"search your library for a basic plains, swamp, or forest card"`. Current PATTERN `(?:basic )?${TYPED_NOUN}) cards?` only admits one TYPED_NOUN token, so it bails on the comma.
   - **Suggested fix:** Add a PATTERN admitting `basic ${TYPED_NOUN}(?:,\\s+${TYPED_NOUN})*(?:,?\\s+or\\s+${TYPED_NOUN})?\\s+cards?` — the comma-separated multi-basic search idiom from monument-cycle / Khans-style mana fixers.
 
+# Card tag-audit issues
+
+Logged by `mtg-graph-card-tag-audit`. Each entry = one card with at least one tag accuracy issue. Consume entries via `mtg-graph-narrow-tag-rule` (precision fixes) or by authoring a new rule (coverage gaps).
+
+## Known rejects (don't re-flag in future audits)
+
+- **Rise of the Dark Realms** — `condition.cares_graveyard` "from … graveyards" broadening rejected (v0.29.0). Reanimate effects belong on `effect.reanimate`. See `condition.cares_graveyard.test.ts:70`.
+- **Shivan Dragon** — `effect.grants_stat_buff` self-pump narrowing rejected (v0.29.0). Self-buff intentionally admitted per user memory `project_v021_non_evasion_grants.md`.
+- **Caelorna, Coral Tyrant** — DEFERRED (data-ingest gap, not a rule fix). Card has empty `oracleText` in artifact; investigate `pipeline/stripScryfallCard` separately.
+- **Pride of the Road, Rover Blades** — `effect.grants_first_strike` exclude double strike rejected (v0.30.0). Double-firing is intentional metadata-tagged design at `effect.grants_keyword.ts:206-220`. Deduplication belongs at UI/graph layer.
+- **The Last Ride (Pay 2 life cost)** — `effect.life_changed` exclusion rejected (v0.30.0). v0.15 intentional — Bonecache test row at `effect.life_changed.test.ts:51`.
+- **Earthrumbler, Mimeoplasm, Molt Tender, Winter Cursed Rider (graveyard exile cost)** — `effect.exile_from_graveyard` cost-form admission rejected (v0.30.0). Test negatives at `effect.exile_from_graveyard.test.ts:67-68` encode the cost/effect axis separation.
+- **Push the Limit, Anzrag's Rampage** — `trigger.beginning_of_end_step` "next end step" exclusion rejected (v0.30.0). Anzrag is encoded positive at `trigger.beginning_of_end_step.test.ts:20-21`.
+
+## Deferred (not rule fixes)
+
+- **Voyage Home** — `effect.draws_or_discards` misses because reminder-strip collapses keyword/newline boundary. Real fix is in `normalize.ts` (preserve boundary token when stripping a parenthesized reminder block).
+- **Winter, Cursed Rider** — `effect.grants_ward` impossible until `ward` is added to `GRANTABLE_KEYWORDS` at `effect.grants_keyword.ts:12-23` (requires new tag authoring, not a regex broadening).
+- **Roadside Assistance** — `condition.cares_subtype.mount` vs vehicle asymmetry; investigate rule's actual logic (may be a token-text exclusion vehicle escapes).
+- **Rover Blades** — `condition.cares_subtype.equipment` and `.vehicle` not firing from type line. Cards-from-type-line tagging is a separate axis.
+- **Sab-Sunen, Luxa Embodied** — `condition.cares_plus_one_counter` card-scoped inference (only +1/+1 counter type mentioned).
+- **Lifecraft Engine** — typed-anthem on `As ~ enters, choose a creature type` metadata requires data plumbing beyond regex scope.
+- **Group 21 (Explosive Getaway)** — `effect.bounce_artifact` PATTERN_BLINK_OWN deletion blocked: would require explicit flip of existing positive test row at `effect.bounce_artifact.test.ts:8`. Future PR.
+# Card tag-audit issues
+
+Logged by `mtg-graph-card-tag-audit`. Each entry = one card with at least one tag accuracy issue. Consume entries via `mtg-graph-narrow-tag-rule` (precision fixes) or by authoring a new rule (coverage gaps).
+
+## Known rejects (don't re-flag in future audits)
+
+- **Delivery Moogle** — `condition.cares_artifacts` rejected (v0.31.0). Producer-tag anti-pattern: the card already has `effect.tutors_artifact` as a producer; consumer tag adds no semantic edge the graph doesn't already have via `pairsWith`.
+- **Great Arashin City** — `effect.exile_from_graveyard` activation-cost frame rejected (v0.31.0). Typed-card activation costs (`{1}{B}, {T}, Exile a creature card from your graveyard:`) paying out of own graveyard are costs, not graveyard-targeted effects. Test negatives at `effect.exile_from_graveyard.test.ts:67-68` encode this cost/effect axis separation.
+- **Hundred-Battle Veteran** — `condition.cares_graveyard` narrow on "may cast this card from your graveyard" rejected (v0.31.0). v0.14.7 design intentional: graveyard as a casting source IS a graveyard-cares reference. Positive test at `condition.cares_graveyard.test.ts:42` encodes this.
+- **Sarkhan, Dragon Ascendant** — initial `effect.grants_evasion` FP was eventually addressed in the v0.31.0 follow-up via a `becomes a <type> and gains <evasion>` strip in `stripSelfAnaphor` (`effect.grants_evasion.ts`), per the v0.21 memory's explicit "surgical fixes that ARE safe within v0.21.0" guidance. Not a reject — listed here so the workflow record is complete.
+
+## Deferred (future batches / out of regex-narrowing scope)
+
+- **Batch 7 — granted-text scanner asymmetry for `condition.cares_noncreature_spell`** on Wizard-token cards (Black Mage's Rod, Lindblum / Mage Siege, Cornered by Black Mages, Circle of Power, Kuja Genome Sorcerer). Single-agent finding; high-leverage but requires extending the granted-text scanner to (a) feed `condition.cares_noncreature_spell` like it already does `trigger.spell_cast` and (b) pull inner-quoted ability text from `create a … token with "..."` clauses. Multi-file structural change, not a one-line broadening.
+- **Batch 12 — `effect.tutors_artifact` combined-zone "library and/or graveyard"** (Delivery Moogle). Companion: extend `effect.return_from_graveyard_to_hand` to fire on the graveyard branch of split-zone tutors.
+- **Batch 16 — `effect.drain` broaden for damage-paired-lifegain** (Cori Mountain Stalwart borderline; Inevitable Defeat `its controller loses N life and you gain N life` cleaner). Borderline policy on whether drain scopes to literal "loses life" only or includes damage-paired-with-lifegain.
+- **Batch 17 — `effect.cast_for_free` / `effect.cast_from_exile`** for "play the exiled card without paying its mana cost" (Clive's Hideaway, Tersa Lightshatter rider). Verb shift `play` vs `cast` requires care; single-agent finding.
+- **Coverage gaps (Batch 18) — new rules needed:**
+  - `effect.land_enters_tapped_unconditional` — Frontier Bivouac + 12 other tri-lands. **HIGH blast radius** if implemented.
+  - `effect.extra_combat` / `effect.extra_main_phase` — All-Out Assault (Aggravated Assault family).
+  - `effect.doubles_tokens` — Elspeth, Storm Slayer (Doubling Season family).
+  - `condition.cares_creature_count` — Zurgo's Vanguard, Craterhoof Behemoth, Marshal of the Lost.
+  - `effect.amplifies_triggers` — Gogo Master of Mimicry (Strionic Resonator family).
+  - `effect.has_hideaway` — Clive's Hideaway (low priority).
+
+---
+
+## v0.32.0 — 400-card audit batch (2026-06-02, parallel mode, 3 agents)
+
+Audited 400 cards from `UNPROCESSED_CARDS.md`. 3 parallel audit agents → synthesis → 2 parallel reviewers (pragmatic + skeptical) → implementer → full-diff verifier. 16 fix groups proposed; 13 shipped, 3 rejected. Verifier APPROVED. 3970/3970 pipeline tests passing (+15 new regression rows).
+
+### Shipped (13 fix groups)
+
+- **Group 1 — `trigger.self_etb` add `spacecraft`/`planet`** — admit EoE Spacecraft and Planet supertypes in the "When this <type> enters" type alternation. Driving cards: Atmospheric Greenhouse + 6 other Spacecraft cards.
+- **Group 2 — `effect.sacrifice_permanent` `NEGATIVE_UNLESS_TAP` span** — narrow to suppress shockland-style "sacrifice it unless you tap/pay/exile/discard ... permanent" cost-clause leakage. Driving card: Command Bridge. **Note:** consensus called for narrowing 5 typed sacrifice rules; both reviewers verified the typed rules never matched in the first place (only `sacrifice_permanent` had the permissive `\w+\s+` determiner). Single-file fix.
+- **Group 4 — `effect.surveil` admit `Surveil X`** — broaden `\bsurveil \d+\b` → `\bsurveil (?:\d+|x)\b`. Driving card: Cerebral Download.
+- **Group 5 — `effect.destroy_creature` admit `other`** — added `other` to the determiner alternation. Driving card: Faller's Faithful ("destroy up to one other target creature").
+- **Group 7 — `condition.cares_artifacts` static gate** — admit `(?:if|as long as|while) you control (?:an?|another|one or more) artifacts?`. Driving cards: Cloudsculpt Technician, Gravblade Heavy, Magitek Infantry.
+- **Group 8 — `condition.cares_spells_cast_this_turn` static `as long as`** — broaden pattern 26's leading anchor to `(?:if|as long as|while) you'?ve`. Driving card: Brightspear Zealot. (Gigastorm Titan already covered by pattern 41 per reviewer verification; scope trimmed.)
+- **Group 9 — `trigger.spell_cast` + `trigger.landfall` compound trigger** — admit `Whenever you play a land or cast a spell`. Both halves produce both triggers. Driving card: The Endstone.
+- **Group 10 — `effect.life_changed` `your life total becomes X`** — set-to-value form (not delta). Driving card: The Endstone.
+- **Group 11 — `trigger.tapped_or_untapped` single-shot `when`** — broaden `whenever` → `when(?:ever)?` in both passive and active arms. Driving card: Cryoshatter.
+- **Group 12 — `pipeline/themes.ts` add `sliver`** — Sliver tribe added to `THEME_TRIBES` (parametric `condition.cares_tribe.sliver` auto-generated). Driving card: Thrumming Hivepool.
+- **Group 13 — `effect.grants_keyword.ts` Frame (f3) — kw on LEFT side of "and"** — mirrors Frame (f2) for `have <kw> and <other>` two-item lists. Driving card: Thrumming Hivepool's `grants_double_strike` on "have double strike and haste". (Consensus's "non-first-position" diagnosis was wrong — double strike IS first; root cause was the boundary anchor in Frame d-tribal couldn't see past "Affinity for Slivers".)
+- **Group 15 — `trigger.spell_cast` delayed `When you next cast`** — added arm `\bwhen (?:you|an opponent|a player) next cast(?:s)? ... spell\b` for Saga delayed-trigger templating. Driving cards: Summon: Brynhildr, Summon: G.F. Cerberus. Merged into Group 9's edit.
+- **Group 16 — `effect.debuff_minus_n` admit `-0/-N`** — 3-alternative pattern that admits `-0/-[1-9]\d*` while preserving the `-0/-0` exclusion. Driving card: Overkill ("-0/-9999"). PATTERN and SELF_DEBUFF_SPAN updated for parity.
+
+### Rejected (3 fix groups — don't re-flag in future audits)
+
+- **Group 3 — `effect.life_changed` narrow on `(?:you may )?pay N life`** — rejected (v0.32.0). The proposed exclusion would regress the existing positive test rows at `effect.life_changed.test.ts:51-52` (Bonecache Overseer `{T}, Pay 1 life: Draw a card` and `{2}, Pay 3 life, {T}: Scry 2`), which were added explicitly in v0.15 to fire on activated-cost life payments. The shockland frame (Breeding Pool, Sacred Foundry, etc.) needs a more discriminating context anchor (literal `as this land enters, you may pay N life. If you don't, it enters tapped`), not a blanket `pay N life` exclusion. Deferred to a shockland-specific design batch.
+- **Group 6 — `effect.mill` broaden for Singularity Rupture** — rejected as no-op (v0.32.0). The existing FRACTIONAL arm at `effect.mill.ts:42` (`\bmills?\s+(?:half|all|x)\s+(?:of\s+)?(?:their|its owner's|each player's)\s+library\b`) already matches "mill half their library, rounded down" — Node-verified by both reviewers. The audit's "missing tag" claim was a stale-artifact artifact (artifact was at v0.30.0 when audit ran).
+- **Group 14 — `effect.grants_ward` broaden for `has ward {N}` frames** — rejected (v0.32.0). The rule `effect.grants_ward.ts` doesn't exist; `ward` is NOT in `GRANTABLE_KEYWORDS` at `effect.grants_keyword.ts:12-23`. Implementing this requires adding `ward` to `GRANTABLE_KEYWORDS` AND handling the `{N}` cost-token syntax — the existing grant frames anchor on bare keyword spelling, so `ward {2}` would need special suffix-allowance pattern with explicit cost-token handling. Reclassified as a new-tag design batch, not a regex broadening.
+
+### Deferred to follow-up design call
+
+- **V4 (Famished Worldsire) — `effect.cheat_into_play` FP on land cheats.** Real FP. The `LOOK_PUT` regex's alternation includes a literal `card` fallback that admits "put any number of land cards from among them onto the battlefield" (Cultivate-variant frame). Affects ~11 cards in Standard (Cavalier of Thorns, Elvish Rejuvenator, Animist's Awakening, etc.). Narrowing to exclude `land cards? from among them` mirrors `SEARCH_PUT`'s existing land-search carve-out, but would drop these cards off the ramp axis entirely — `effect.ramp_nonland` doesn't currently admit the look-at-top → put-land-from-among-them Cultivate-variant frame. **Action:** ship as a paired edit (narrow `LOOK_PUT` + add 7th `ramp_nonland` pattern), pending user design confirmation. Surfaced by Batch V investigator (V1-V3 already shipped in v0.31.0).
+
+### Process notes
+
+- **Stale-artifact diagnostic class.** Three of four Batch V "verify before fix" cases (Xande, Zell Dincht, Interceptor Mechan) were stale-artifact illusions — the v0.31.0 batch had already shipped the fixes (PATTERN_SELF_FOR_EACH, bounce_artifact graveyard guard) but the artifact in `app/public/data/cards-standard.json` was still at `ruleVersion: v0.30.0` when this audit kicked off. **Workflow improvement:** rebuild `cards-standard.json` at the start of each audit batch so the audit reads HEAD's rule state, not the previous batch's.
+- **Audit-vs-pipeline diagnostic mismatches.** Multiple consensus fix sketches misdiagnosed the root cause (Group 2 named 5 rules but only 1 fires directly; Group 6 claimed a missing pattern that exists; Group 13 named position-in-list when the issue was boundary anchor). The two-reviewer + verifier pipeline caught all of them. **Operational lesson:** consensus fix sketches are hypotheses, not specifications. The reviewer-pair adversarial pass is load-bearing.
+
+
+---
+
+## v0.34.0 — 400-card audit batch (2026-06-02, parallel mode, 3 agents)
+
+Audited 400 cards from `UNPROCESSED_CARDS.md` (Redirect Lightning → Foot Mystic). 3 parallel audit agents (43+47+33 = 123 raw entries) → 1 synthesis agent → 2 parallel reviewers (pragmatic + skeptical) → 1 tiebreaker (8 disagreements resolved) → 1 implementer + coordinator follow-up (org-limit on implementer mid-run) → full-diff verifier. **20 HIGH-confidence batches proposed; 16 shipped by implementer + 2 by coordinator (HIGH-19, HIGH-20) = 18 total. 6 batches deferred / rejected.** Verifier APPROVED. 4064/4064 pipeline tests pass (+~30 new regression rows including 2 added during coordinator follow-up). Full gate green.
+
+### Shipped (18 fix groups)
+
+- **HIGH-3 — `pipeline/index.ts` grant-extraction reminder leak** (NORMALIZATION) — wrap `c.oracleText` with `stripReminderText(...)` at the `extractGrantedInnerTexts` call site. Highest-leverage fix in batch — cascades across `effect.draws_or_discards`, `effect.life_changed`, `effect.add_mana`, `effect.ramp_nonland`, `trigger.beginning_of_end_step`. Driving cards: Sold Out, The Mechanist Aerial Artisan, Unlucky Cabbage Merchant, Zhao the Moon Slayer, Mutable Explorer, Grub Storied Matriarch.
+- **HIGH-4 — `effect.tap` + `effect.untap` anaphoric / subtype broadening** — added `PATTERN_ANAPHORIC` ("Tap it"), post-colon cost-gate retry (Wanderbrine Trapper), subtype noun-slot broadening (Meanders Guide / Deepchannel Duelist / Deepway Navigator), `PRONOUN_PATTERN` extension for "creatures target player controls", and `GAIN_CONTROL_PRONOUN` arm (Trystan's Command, Broadcast Takeover).
+- **HIGH-5a — `effect.cast_from_exile` coordinated broadening** — admit `cards (?:you own )?(?:in )?exiled? with [\w\s']+? on them` and `cards (?:you own )?in exile` (Goliath Daydreamer), new arm for "cast (the exiled cards|cards exiled this way)" (Dream Harvest, Sanar), anchored Taster of Wares arm `\bexile(?:d)?\b[^.]{0,120}?\byou may cast ... for as long as you control __SELF__\b`.
+- **HIGH-5b — `effect.exile_from_library`** — NUM constant extended with `a number of`; new Frame B' admits "each opponent exiles cards from the top of <library>" (Dream Harvest, End-Blaze Epiphany).
+- **HIGH-5c — `effect.impulse_draw`** — filler `{0,2}` → `{0,4}` for End-Blaze Epiphany. Sanar reveal-arm DEFERRED (single-card pattern).
+- **HIGH-6 — `effect.reanimate`** — new arm `\bfrom (graveyard)...\.[^.]*?(?:instead )?put that card (onto|to) the battlefield` (Zuko's Conviction), Pattern 12 anaphor extended to `(?:it|the chosen card)` (Brilliance Unleashed).
+- **HIGH-7 — `effect.tutors_basic_land` count slot** — add `x` to alternation (Prismatic Undercurrents). `x`-count "up to X basic land cards" now matches. HIGH-7-NARROW and Mountain-or-Cave correctly NOT applied.
+- **HIGH-8 — `effect.exile_creature`** — PATTERN_OWN count slot admits `|any number of\s+` (Morningtide's Light); new `PATTERN_CHOOSE_ANAPHORIC` for "choose ... permanents ... exile those permanents" (Yangchen).
+- **HIGH-9 — `effect.flicker`** — PATTERN_TIGHT and PATTERN_BRIDGED count slots admit `|any number of target\s+` (Morningtide's Light); new `PATTERN_REVERSED` for delayed-trigger-heads-second-sentence form. Don & Leo (blink semantics) correctly NOT shipped.
+- **HIGH-10 — `effect.grants_stat_buff`** — `kithkin` added to TRIBAL_PATTERN's irregular-plural alternation. Champion of the Clachan.
+- **HIGH-11 — `effect.counter_modified` observer-frame narrow** — added `OBSERVER_PREFIX = /\bif\s+(?:you|target player|each opponent|a player)\s+$/` reject. Lasting Tarfire.
+- **HIGH-12 — `effect.counterspell` plural** — `\bspell\b` → `\bspells?\b` in PATTERN and PATTERN_COMPOSITE_LIST; count slot extended with `|all\s+`. Glen Elendra's Answer.
+- **HIGH-13 — `effect.amplifies_damage_or_lifeloss`** — new arm `\bdouble all damage that (?:sources?|creatures?|permanents?)[^.]{0,80}? would deal\b`. Collective Inferno.
+- **HIGH-14 — `effect.prevent_lifegain`** — CANT_GAIN extended with optional `(?:[\w\s,]{0,40}?\s+or\s+)?` interpolation for "can't draw cards or gain life". Mornsong Aria.
+- **HIGH-15 — Tutor-rule sweep `\bsearch ` → `\bsearch(?:es)?\s+`** — applied across ALL 7 sibling tutor rules: `effect.tutor_any.ts`, `effect.tutors_artifact.ts`, `effect.tutors_basic_land.ts`, `effect.tutors_creature.ts`, `effect.tutors_instant_sorcery.ts`, `effect.tutors_land.ts`, `effect.tutors_subtype.ts` (16 individual regex sites). Each-player tutoring frames ("each player searches their library...") now match across all tutor types. Driving card: Mornsong Aria.
+- **HIGH-16 — `effect.tuck_to_library`** — Frame A3 added: `\b(?:the )?owner of target [^.]+? puts? (?:it|them) into ... library ${NTH_FROM_TOP}(?:\s+or on the bottom)?\b`. Temporal Cleansing.
+- **HIGH-17 — `effect.cheat_into_play`** — new `REVEAL_UNTIL_PUT` arm for "reveal cards from the top of your library until you reveal X permanent cards ... put any number of those permanent cards onto the battlefield". Face-down filter still applies. Aurora Awakener.
+- **HIGH-18 — `effect.causes_damage`** — Pattern 6 tail relaxed from `to target creature` to `to (?:up to (?:one|two|three) )?target creature` (Assert Perfection); new tribal-ETB anaphoric arm `\bwhenever (?:another|a)\s+[\w\-]+\s+you control enters,\s+it deals damage equal to its (?:power|toughness)\b` with single-word tribe slot and comma anchor (Champion of the Path).
+- **HIGH-19 — `effect.debuff_minus_n`** (coordinator follow-up) — PATTERN extended from `(?:0\/-[1-9]\d*|[1-9]\d*\/-\d+|x\/-x)` to `(?:0\/-(?:[1-9]\d*|x)|[1-9]\d*\/-(?:\d+|x)|x\/-(?:\d+|x|0))` admitting `-0/-X`, `-X/-X`, `-X/-0`, `-X/-N` variable forms. Gloom Ripper.
+- **HIGH-20 — `effect.return_from_graveyard_to_hand`** (coordinator follow-up) — millFromAmong regex admits optional `(?:you may\s+)?` and `a |an ` indefinite-count alternation. Midnight Tilling.
+
+### Rejected (6 fix groups — don't re-flag in future audits)
+
+- **HIGH-1 — `effect.has_<bending>` cost-frame narrowings** — REJECTED. The bending rules use `card.keywords.includes(...)` (Scryfall's intrinsic-keyword array), not text-pattern match. Pattern A "FP" treats Ward—Waterbend cards as not waterbending, but mechanically every Ward—Waterbend trigger IS a waterbend instance. `condition.cares_bending` triggers on "Whenever you waterbend/earthbend/..." — whether Ward—Waterbend counts as waterbending is a design call requiring tagDef revision (controller-vs-opponent split), not a regex tweak. Reviewer A proposed `isIntrinsicKeyword(card.oracleText, kw)` swap, but that helper requires standalone keyword-block lines (no colon, no em-dash, no period) which canonical bending cards never satisfy — the swap would collapse the tags. Deferred to bending-tagDef design batch.
+- **HIGH-2 — `effect.has_blight` / `effect.has_behold` cost-frame narrowings** — REJECTED. Empirically: ALL 18+ Behold cards and ALL 8 Blight cards use the additional-cost frame; ZERO have a bare keyword line. `effect.has_behold.ts:11` tagDef literally says "as an additional cost or trigger" — the design intent IS to capture the cost frame. Narrowing would delete the tag entirely. **Note for future audits:** cards with additional-cost Behold/Blight should NOT be re-flagged as FP for these tags.
+- **HIGH-7-NARROW — `effect.tutors_basic_land` require hand destination** — REJECTED. Rule comment at line 15 explicitly says "Doesn't distinguish to-hand vs to-play"; existing positive test row at line 11 (`'search your library for a basic land card and put it onto the battlefield tapped'`) would flip to negative. Tagging cards like Tend the Sprigs with both `tutors_basic_land` and `ramp_nonland` is the intentional design — pairing edges to `condition.cares_lands` remain valid regardless of destination. Out of scope for a HIGH ship batch; needs schema decision.
+- **HIGH-7-BROADEN Mountain-or-Cave** — REJECTED. Cave is NOT a basic land subtype. The Cave of Two Lovers' "Mountain or Cave card" search is correctly captured by `effect.tutors_subtype.cave` (already tagged). Adding a `<basic> or <nonbasic>` hybrid arm to `effect.tutors_basic_land` would mis-route graph edges to `condition.cares_lands`/ramp payoffs.
+- **HIGH-9 Don & Leo Problem Solvers `effect.flicker`** — DEFERRED (needs new `effect.blink` tag). `effect.flicker.ts:14-18` tagDef explicitly distinguishes flicker (delayed end-step / next-turn return) from blink (immediate same-resolution return). Don & Leo's "At the beginning of your end step, exile ... Then return them" has no delayed anchor — semantically blink. Adding it as flicker would break the tagDef invariant and contradict test negatives at lines 33-34. Seed card for future `effect.blink` rule.
+- **HIGH-5c Sanar reveal-arm** — DEFERRED (single-card pattern). Only Sanar uses the exact "reveal cards from the top of your library until you reveal X nonland cards" + delayed-cast license frame in Standard. A new impulse_draw arm for N=1 isn't justified; clean handling waits for a reveal-axis rework or sibling printings.
+
+### Tiebreaker disagreements summary
+
+Two reviewers (pragmatic A / skeptical B) produced 8 disagreements; 1 tiebreaker resolved them: 2 SHIP (HIGH-4 Meanders Guide, HIGH-18 Champion of the Path), 1 MODIFY (HIGH-5a Taster of Wares — tightened with exile-context anchor), 3 REJECT (HIGH-1, HIGH-2, HIGH-7-BROADEN Mountain-or-Cave), 2 DEFER (HIGH-5c Sanar, HIGH-9 Don & Leo). The reviewer-pair adversarial framing surfaced 3 design-conflict cases (HIGH-1, HIGH-2, HIGH-7-NARROW) that would have passed a single-agent review.
+
+### Process notes
+
+- **Implementer hit org usage limit mid-run.** Got through HIGH-3 through HIGH-18 + the HIGH-15 cross-cutting tutor sweep + HIGH-12 plural sweep. Coordinator picked up HIGH-19 (debuff_minus_n -0/-X) and HIGH-20 (return_from_graveyard_to_hand "you may"/"a") with TDD discipline. 4062 → 4064 tests after coordinator additions. Tree state remained consistent; verifier APPROVED without flagging the split.
+- **Full-diff verifier as a 50-file ship-list contract.** With ≥15 fix groups, spot-checking can't catch silent over-ship or under-ship. The verifier's per-item walk caught: (a) no DEFERRED items over-shipped (bending, blight/behold, Don & Leo flicker, Sanar reveal, HIGH-7 narrow + Mountain-or-Cave all correctly absent), (b) cross-cutting HIGH-15 / HIGH-12 sweeps fully applied across siblings, (c) no test rows silently flipped (test-file diffs purely additive). For ≥15 batch sizes, this verifier step is load-bearing.
+- **Coverage gaps deferred to new-rule sessions (12 items):** `effect.extra_turn`, `effect.proliferate`, `effect.has_foretell`, `effect.grants_<bending>` parametric, `condition.cast_from_exile`, `effect.grants_ward`, `effect.uncounterable`, `effect.prevent_card_draw`, `effect.return_from_exile_to_hand`, `trigger.beginning_of_main_phase`, `condition.cares_counters` (non +1/+1), `effect.grants_convoke` / `effect.grants_persist`. Plus `effect.blink` (Don & Leo seed) and `effect.fight` (one-sided fight axis, Rocky Rebuke / Assert Perfection / Champion of the Path). Each requires authoring a new rule file per CLAUDE.md TDD workflow.

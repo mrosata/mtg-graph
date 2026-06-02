@@ -31,6 +31,11 @@ const PATTERNS = [
   /\blandfall\s*—/,
   /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+lands?(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
   /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+(?:plains|islands?|swamps?|mountains?|forests?|gates?|caves?|spheres?|deserts?|towns?|locus|locuses|lairs?)(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
+  // v0.32 — Group 9 — The Endstone: "Whenever you play a land or cast a
+  // spell". The "play a land" anchor is the landfall axis even when phrased
+  // with "play" rather than "enters". Also matches the bare "when you play a
+  // land" template.
+  /\bwhen(?:ever)?\s+you\s+play\s+a\s+land\b/,
 ];
 
 export const rule: Rule = {

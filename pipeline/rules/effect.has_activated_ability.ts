@@ -26,9 +26,13 @@ export const tagDef: TagDef = {
 
 // Activation costs in oracle text always contain at least one mana symbol or
 // the {T}/{Q} symbol, possibly followed by additional components ("{1}, {T},
-// sacrifice this creature: ..."). Match a mana/tap symbol, allow up to ~60
+// sacrifice this creature: ..."). Match a mana/tap symbol, allow up to ~100
 // characters of additional cost tokens, then require a colon-space.
-const SYMBOL_ACTIVATED_PATTERN = /\{[wubrgcxstq0-9](?:\/[wubrgcps])?\}[^.\n]{0,60}?:\s/;
+// 2026-06-01 audit batch — Sidisi, Regent of the Mire: "{T}, Sacrifice a
+// creature you control with mana value X other than Sidisi:" — 74 chars
+// between `{t}` and `:`. The prior 60-char window cut off the colon. Bumped
+// to 100 to admit long restrictive subjects on the sacrifice cost.
+const SYMBOL_ACTIVATED_PATTERN = /\{[wubrgcxstq0-9](?:\/[wubrgcps])?\}[^.\n]{0,100}?:\s/;
 
 // Spelled-out non-symbol activation costs (v0.12.9). Some abilities use a cost
 // that contains no {mana}/{T} token at all — "Sacrifice another creature: ...",

@@ -51,3 +51,13 @@ Open `http://localhost:5173`.
 - **v0.3** — Multi-card synergy ranking.
 - **v0.4** — More sets (Standard → Modern → Pioneer).
 - **v0.5+** — Backend with shared decks and community tags.
+
+## Auditing card tags with Claude
+
+The repo ships with a pair of Claude Code skills (`mtg-graph-card-tag-audit` and `mtg-graph-narrow-tag-rule`) for stress-testing tag accuracy against real card text and shipping the resulting rule fixes. A typical batch-audit prompt looks like:
+
+```
+Audit the next 400 cards in parallel mode with 3 agents. Synthesize consensus, ship the high-confidence fix batches via mtg-graph-narrow-tag-rule, and run a full-diff verifier before commit.
+```
+
+Run that from a Claude Code session at the repo root. The audit skill reads cards off `UNPROCESSED_CARDS.txt`, logs findings to `CARD_ISSUES.md`, and the narrow-rule skill turns those findings into regex tightenings.

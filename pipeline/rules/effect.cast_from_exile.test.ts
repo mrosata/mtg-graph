@@ -35,6 +35,14 @@ describe('effect.cast_from_exile', () => {
     ['when you unlock this door, exile the top two cards of your library. you may play them until the end of your next turn.'],
     ['exile the top three cards of your library. you may play them until the end of your next turn.'],
     ['exile the top card of your library. you may play it this turn.'],
+    // HIGH-5a (Goliath Daydreamer): "from among cards you own in exile with dream counters on them" — counter-keyed.
+    ['whenever this creature attacks, you may cast a spell from among cards you own in exile with dream counters on them without paying its mana cost.'],
+    // HIGH-5a (Goliath Daydreamer bare form): "from among cards you own in exile" without counter qualifier.
+    ['you may cast a spell from among cards you own in exile'],
+    // HIGH-5a (Dream Harvest): "cast cards exiled this way".
+    ['until end of turn, you may cast cards exiled this way without paying their mana costs.'],
+    // HIGH-5a (anchored Taster of Wares): "exile ... you may cast (it|that card) for as long as you control this creature".
+    ['that player exiles it. if an instant or sorcery card is exiled this way, you may cast it for as long as you control this creature, and mana of any type can be spent to cast that spell.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

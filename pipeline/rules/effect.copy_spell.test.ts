@@ -22,6 +22,11 @@ describe('effect.copy_spell', () => {
     // do, copy it."). Sentence-spanning variant of CAST_SPELL_THEN_COPY_IT.
     ["__self__'s power is equal to the number of artifacts you control. start your engines! max speed — whenever you cast an artifact spell, you may pay {1}. if you do, copy it."],
     ['whenever you cast a sorcery, you may pay {2}. if you do, copy it.'],
+    // 2026-06-01 audit batch — Shiko, Paragon of the Way: comma-then
+    // continuation "copy it, then you may cast the copy" (no period
+    // between "copy it" and "cast the copy"). Same anaphoric copy frame
+    // as Reenact the Crime, just templated as one sentence.
+    ['when __self__ enters, exile target nonland card with mana value 3 or less from your graveyard. copy it, then you may cast the copy without paying its mana cost.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

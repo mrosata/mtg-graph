@@ -78,6 +78,35 @@ describe('effect.life_changed', () => {
     // to the triggering loss; semantically lifegain. The previous
     // REPLACEMENT_GAIN required " plus N instead"; this admits the bare form.
     ['flying, deathtouch\nwhenever an opponent loses life, you gain that much life.'],
+    // 2026-06-01 audit batch — Cecil, Dark Knight: "whenever __self__ deals
+    // damage, you lose that much life". Self-target life loss anaphoric to
+    // a prior damage amount.
+    ['whenever __self__ deals damage, you lose that much life.'],
+    // v0.32 — Group 10 — The Endstone: "your life total becomes half your
+    // starting life total, rounded up". Direct life-total assignment is a
+    // life-change effect even though it isn't a literal gain/lose verb.
+    ['whenever you play a land or cast a spell, draw a card. at the beginning of your end step, your life total becomes half your starting life total, rounded up.'],
+    ["target player's life total becomes 10"],
+    ["each opponent's life total becomes 1"],
+    // 2026-06-02 audit batch — Parker Luck: "they each lose life equal to..."
+    // The "each" intensifier between the subject "they" and the verb
+    // "lose" needs to be admitted alongside the bare subject-verb form.
+    ['at the beginning of your end step, two target players each reveal the top card of their library. they each lose life equal to the mana value of the card revealed by the other player.'],
+    ['they each lose life equal to the mana value of the card'],
+    ['they each lose 2 life'],
+    // 2026-06-02 audit batch — Earth Kingdom General: "you may gain that
+    // much life" anaphoric to a prior counter-trigger amount. Admit
+    // self-target ("you") in the THAT_MUCH alternation alongside the
+    // existing opponent-targeted forms.
+    ['whenever you put one or more +1/+1 counters on a creature, you may gain that much life'],
+    ['you gain that much life'],
+    // 2026-06-02 audit batch — The Death of Gwen Stacy: "each player who
+    // doesn't loses 3 life". The "who doesn't" sub-clause sits between the
+    // subject "each player" and the verb "loses". The QUANT pattern's
+    // subject-verb adjacency rejects this; the QUANT regex needs to
+    // tolerate a brief intervening clause between subject and verb.
+    ["each player may discard a card. each player who doesn't loses 3 life."],
+    ["each player who doesn't loses 3 life"],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

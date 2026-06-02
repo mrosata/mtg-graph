@@ -25,6 +25,9 @@ describe('effect.amplifies_damage_or_lifeloss', () => {
     // event to increase it). The +N tail is the structural anchor.
     ['start your engines! whenever you attack, __self__ deals 1 damage to each opponent. max speed — if a source you control would deal damage to an opponent or a permanent an opponent controls, it deals that much damage plus 1 instead.'],
     ['it deals that much damage plus 2 instead'],
+    // HIGH-13 (Collective Inferno): "double all damage that sources you control of the chosen type would deal".
+    ['double all damage that sources you control of the chosen type would deal'],
+    ['double all damage that creatures you control would deal'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -26,6 +26,10 @@ describe('effect.grants_cast_from_graveyard', () => {
     ['target creature card in your graveyard gains embalm until end of turn'],
     // Snapcaster-style frame.
     ['target instant or sorcery card in your graveyard gains flashback. the flashback cost is equal to its mana cost.'],
+    // 2026-06-01 audit batch — Songcrafter Mage: "gains harmonize" license
+    // grant. Harmonize is the FIN/TDM graveyard-cast keyword; same license
+    // axis as Flashback / Disturb / Embalm.
+    ['target instant or sorcery card in your graveyard gains harmonize until end of turn. its harmonize cost is equal to its mana cost.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

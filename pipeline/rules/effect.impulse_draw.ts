@@ -35,7 +35,16 @@ export const tagDef: TagDef = {
 // "exile the top X cards of your library, where X is …"). The intermediate
 // clause length raised from 60 to 140 chars to admit the longer "where X
 // is …" definition before the play-from-exile permission.
-const PATTERN = /\b(?:exile the top (?:\S+ )?cards? of (?:your|their) library|exile (?:\S+ ){0,2}cards? from the top of (?:your|their) library)[.,](?:[^.]{0,140}\.)?[^.]{0,40}?(?:you may |they may |that player may )?(?:play|cast) (?:it|that card|those cards|them)(?:[^.]{0,40}?(?:this turn|until (?:your |their |the )?(?:next end step|end of (?:their|your) next turn)|until end of turn))?/;
+// v0.33+ — filler before "cards from the top of" widened from {0,2} to
+// {0,4} to admit "exile a number of cards from the top of your library"
+// (End-Blaze Epiphany — 3 tokens: "a number of"). Post-intermediate filler
+// widened from {0,40} to {0,80} to admit "until the end of your next turn,
+// you may play that card" appearing inside the filler slot when the
+// intermediate clause already consumed the "exile this way" sentence.
+// The boundary after "library" widened from `[.,]` to `[^.]{0,80}?[.,]`
+// so a trailing qualifier ("equal to its power," / "where X is …,") can
+// flow before the sentence terminator.
+const PATTERN = /\b(?:exile the top (?:\S+ )?cards? of (?:your|their) library|exile (?:\S+ ){0,4}cards? from the top of (?:your|their) library)[^.]{0,80}?[.,](?:[^.]{0,140}\.)?[^.]{0,80}?(?:you may |they may |that player may )?(?:play|cast) (?:it|that card|those cards|them)(?:[^.]{0,40}?(?:this turn|until (?:your |their |the )?(?:next end step|end of (?:their|your) next turn)|until end of turn))?/;
 
 export const rule: Rule = {
   id: 'effect.impulse_draw',

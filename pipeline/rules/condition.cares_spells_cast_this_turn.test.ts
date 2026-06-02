@@ -27,6 +27,16 @@ describe('condition.cares_spells_cast_this_turn', () => {
     // Generic storm-scale form.
     ["copy that spell for each spell you've cast this turn"],
     ["draw a card for each spell you've cast earlier this turn"],
+    // 2026-06-01 audit batch — Sage of the Skies / Focus the Mind:
+    // "(if|when) you've cast another spell this turn".
+    ["when you cast this spell, if you've cast another spell this turn, copy this spell"],
+    ["this spell costs {2} less to cast if you've cast another spell this turn"],
+    // Highspire Bell-Ringer — ordinal cost-reduction "the Nth spell you cast each turn".
+    ['the second spell you cast each turn costs {1} less to cast'],
+    // v0.32 — Group 8 — Brightspear Zealot: "as long as you've cast two or
+    // more spells this turn" — same threshold gate but with "as long as"
+    // anchor instead of "if".
+    ["vigilance this creature gets +2/+0 as long as you've cast two or more spells this turn."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

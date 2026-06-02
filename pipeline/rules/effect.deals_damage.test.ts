@@ -115,6 +115,23 @@ describe('effect.deals_damage', () => {
     expect(rule.match!(text)).toBeTruthy();
   });
 
+  // 2026-06-02 audit batch — gendered/plural anaphoric pronoun subjects.
+  // Electro, Assaulting Battery — "he deals X damage" after "when __self__
+  // leaves the battlefield" antecedent.
+  // Morlun, Devourer of Spiders — "he deals X damage" after self-ETB.
+  // Shocker, Unshakable — "he deals 2 damage" after self-ETB.
+  // The IT lookbehind admits `he|she|they` in addition to `it`.
+  it.each([
+    ["lifelink __self__ enters with x +1/+1 counters on him. when __self__ enters, he deals x damage to target opponent."],
+    ["flying you don't lose unspent red mana as steps and phases end. whenever you cast an instant or sorcery spell, add {r}. when __self__ leaves the battlefield, you may pay {x}. when you do, he deals x damage to target player."],
+    ["during your turn, __self__ has first strike. vibro-shock gauntlets — when __self__ enters, he deals 2 damage to target creature and 2 damage to that creature's controller."],
+    // Avatar Aang // Aang, Master of Elements: list-chained "and he deals N
+    // damage to each opponent" in a multi-clause upkeep trigger.
+    ['at the beginning of each upkeep, you may transform aang, master of elements. if you do, you gain 4 life, draw four cards, put four +1/+1 counters on him, and he deals 4 damage to each opponent.'],
+  ])('matches gendered/plural anaphoric subject: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
   // v0.14.6 — Regression (Zoyowa Lava-Tongue): multi-word legendary card
   // name with no comma/of/the separators doesn't get __SELF__-substituted
   // for its short-name self-reference. The matchCard branch recognizes the

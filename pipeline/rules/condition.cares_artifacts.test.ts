@@ -57,6 +57,11 @@ describe('condition.cares_artifacts', () => {
     // v0.30 — Group 4 — mana-restriction (Guidelight Optimizer): "Spend this
     // mana only to cast an artifact spell" is an artifact-payoff frame.
     ['{t}: add {u}. spend this mana only to cast an artifact spell or activate an ability.'],
+    // v0.32 — Group 7 — static-gate "as long as / while / if you control an
+    // artifact" (Cloudsculpt Technician, Gravblade Heavy, Magitek Infantry).
+    ['flying as long as you control an artifact, this creature gets +1/+0.'],
+    ['as long as you control an artifact, this creature gets +1/+0 and has deathtouch.'],
+    ['this creature gets +1/+0 as long as you control another artifact. {2}{w}: search your library for a card named __self__, put it onto the battlefield tapped, then shuffle.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

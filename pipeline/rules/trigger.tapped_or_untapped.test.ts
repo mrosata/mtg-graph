@@ -13,6 +13,10 @@ describe('trigger.tapped_or_untapped', () => {
     // Regression (The Millennium Calendar): active "untap" voice of the same
     // axis — controller untaps permanents during their untap step.
     ['whenever you untap one or more permanents during your untap step, put that many time counters on __self__'],
+    // v0.32 — Group 11 — Cryoshatter: "When enchanted creature becomes
+    // tapped or is dealt damage, destroy it." Single-shot "when" anchor is
+    // still the tapped/untapped trigger axis; broaden whenever → when(?:ever)?.
+    ['enchant creature enchanted creature gets -5/-0. when enchanted creature becomes tapped or is dealt damage, destroy it.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

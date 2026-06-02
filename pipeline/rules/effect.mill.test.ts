@@ -53,6 +53,12 @@ describe('effect.mill', () => {
     // arm but worded as "revealed this way that weren't put onto the
     // battlefield".
     ['reveal the top x cards of your library. you may put any number of permanent cards with mana value x or less from among them onto the battlefield. then put all cards revealed this way that weren\'t put onto the battlefield into your graveyard.'],
+    // 2026-06-01 audit batch — Lotuslight Dancers: multi-card tutor-to-
+    // graveyard with sentence-break between search and put-into-graveyard.
+    ['when this creature enters, search your library for a black card, a green card, and a blue card. put those cards into your graveyard, then shuffle.'],
+    // 2026-06-01 audit batch — Jidoor, Aristocratic Capital: "target
+    // opponent mills half their library, rounded down".
+    ['target opponent mills half their library, rounded down.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -37,6 +37,17 @@ describe('effect.grants_stat_buff', () => {
     // (anaphoric reference established by a prior trigger clause).
     ['whenever this creature saddles a mount or crews a vehicle during your main phase, that mount or vehicle gets +2/+0 and gains trample until end of turn.'],
     ['that mount or vehicle gets +1/+0 until end of turn'],
+    // 2026-06-01 audit batch — Adelbert Steiner: self-buff "for each X"
+    // scaling. The self-anaphor "__self__" wasn't in the SUBJECT slot.
+    ['__self__ gets +1/+1 for each equipment you control'],
+    // 2026-06-02 audit batch — Fancy Footwork: "they each get +2/+2" after
+    // a "two target creatures" antecedent. The SUBJECT slot needs to admit
+    // the "they each" anaphor.
+    ['untap one or two target creatures. they each get +2/+2 until end of turn.'],
+    ['they each get +2/+2 until end of turn'],
+    ['they each get +1/+0'],
+    // HIGH-10 (Champion of the Clachan): "other Kithkin you control get +1/+1". "Kithkin" is an irregular plural (no -s/-en suffix).
+    ['other kithkin you control get +1/+1'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

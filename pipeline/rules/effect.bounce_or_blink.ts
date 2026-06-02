@@ -23,11 +23,16 @@ export const tagDef: TagDef = {
 // permanent" (Season of Weaving) is reached. The bounce_or_blink umbrella
 // rule needs the comma admission so it pairs with the typed children's
 // matches.
+// 2026-06-01 audit batch — Eject parent miss. The parent rule used to
+// exclude "nonland" alongside the typed nonX restrictors; that excluded
+// broad nonland-permanent bounces (Eject) which DO fire all typed children
+// except _land. Drop `nonland` from the exclusion list and add the count
+// slot to match the typed-child broadenings.
 const PATTERN_RETURN =
-  /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|nonland)\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owner'?s|their\s+owners'?)\s+hands?\b/;
 
 const PATTERN_BLINK =
-  /\bexile(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|nonland)\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)[^.]*?(?:,\s+then\s+return|\.\s+return)/;
+  /\bexile(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)[^.]*?(?:,\s+then\s+return|\.\s+return)/;
 
 export const rule: Rule = {
   id: 'effect.bounce_or_blink',

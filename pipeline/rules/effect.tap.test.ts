@@ -12,6 +12,12 @@ describe('effect.tap', () => {
     // Regression (Succumb to the Cold): "one or two" quantifier without
     // "up to" — the adjective slot needs to fit "one or two target ".
     ['tap one or two target creatures an opponent controls'],
+    // HIGH-4a (Vengeful Villagers): anaphoric "Tap it" after a target picker.
+    ['whenever this creature attacks, choose target creature an opponent controls. tap it, then you may sacrifice an artifact or creature.'],
+    // HIGH-4b (Wanderbrine Trapper): cost-gate retries against post-colon segment.
+    ['{1}, {t}, tap another untapped creature you control: tap target creature an opponent controls.'],
+    // HIGH-4c (Meanders Guide): tribal subtype noun slot, triggered-ability effect.
+    ['whenever this creature attacks, you may tap another untapped merfolk you control.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

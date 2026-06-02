@@ -20,6 +20,13 @@ describe('trigger.landfall', () => {
     ['whenever a cave you control enters, draw a card'],
     ['whenever a desert you control enters, scry 1'],
     ['whenever a plains you control enters, gain 1 life'],
+    // v0.32 — Group 9 — The Endstone: "whenever you play a land or cast a
+    // spell". The landfall half "you play a land" is the landfall trigger
+    // axis even though the verb is "play" rather than "enters" (landfall RC
+    // language treats them equivalently for trigger purposes).
+    ['whenever you play a land or cast a spell, draw a card. at the beginning of your end step, your life total becomes half your starting life total, rounded up.'],
+    // "When you play a land" — generic form.
+    ['when you play a land, gain 1 life'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

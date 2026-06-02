@@ -21,14 +21,25 @@ export const tagDef: TagDef = {
 // scopes to "target spell on the stack". A dedicated effect.stifle tag may be
 // added later if a second ability-counter card surfaces (AGREED PLAN item 14
 // defers it).
+// v0.33+ — plural "spells" admitted (Glen Elendra's Answer: "counter all
+// spells your opponents control"). The noun-form leak ("+1/+1 counter on")
+// is still guarded by the trailing `spell` requirement.
 const PATTERN =
-  /\bcounters?\s+(?:up to (?:one|two|three|\w+)\s+)?(?:target\s+)?(?:[\w\-]+\s+){0,3}?\bspell\b/;
+  /\bcounters?\s+(?:up to (?:one|two|three|\w+)\s+)?(?:target\s+|all\s+)?(?:[\w\-]+\s+){0,3}?\bspells?\b/;
+
+// 2026-06-01 audit batch — Louisoix's Sacrifice: "counter target activated
+// ability, triggered ability, or noncreature spell". Composite-target
+// list with comma-separated targets ending in "or <type> spell". The
+// "spell" component is in the alternation, so this IS a counterspell. The
+// PATTERN can't reach "spell" through 4+ tokens including commas.
+const PATTERN_COMPOSITE_LIST =
+  /\bcounters?\s+target\s+[\w\-]+\s+ability\s*,\s+[^.]{0,80}?or\s+(?:[\w\-]+\s+){0,3}?spells?\b/;
 
 export const rule: Rule = {
   id: 'effect.counterspell',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN);
+    const m = t.match(PATTERN) ?? t.match(PATTERN_COMPOSITE_LIST);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['counter'], proximity: ['spell', 'ability'], window: 6 },

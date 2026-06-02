@@ -73,6 +73,14 @@ describe('effect.counter_modified', () => {
     ['target opponent gets a treasure token'],
     ['each opponent gets an emblem'],
     ['target opponent gets a clue'],
+    // HIGH-11 (Lasting Tarfire): observer-frame "if you put a counter on a
+    // creature this turn" is a conditional OBSERVATION of a counter event,
+    // not an imperative effect that places a counter. The trigger.counter_changed
+    // axis covers it; effect.counter_modified should not fire here.
+    ['at the beginning of each end step, if you put a counter on a creature this turn, this enchantment deals 2 damage to each opponent.'],
+    ['if you put a counter on a creature this turn, draw a card'],
+    ['if target player placed a counter on a creature this turn, you gain 2 life'],
+    ['if a player removed a counter from a permanent this turn, draw a card'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

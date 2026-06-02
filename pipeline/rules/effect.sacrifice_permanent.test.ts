@@ -40,6 +40,11 @@ describe('effect.sacrifice_permanent (parent, universal-only)', () => {
     // Plain `target player` / `each player` edicts.
     ['target player sacrifices a permanent.'],
     ['each player sacrifices a permanent.'],
+    // v0.32 — Group 2 — Command Bridge: "sacrifice it unless you tap an
+    // untapped permanent" is a "fail-to-pay" alternate-cost clause, not a
+    // generic sacrifice-a-permanent effect. The permanent in the "unless"
+    // clause is the cost the controller pays to AVOID sacrificing.
+    ['this land enters tapped. when this land enters, sacrifice it unless you tap an untapped permanent you control. {t}: add one mana of any color.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

@@ -227,4 +227,39 @@ describe('condition.cares_subtype', () => {
     expect(r.match('draw a card')).toBe(false);
     expect(r.match('this creature has flying')).toBe(false);
   });
+
+  // 2026-06-01 audit batch — Dragonstorm Forecaster: "search your library
+  // for a card named Dragonstorm Globe or Boulderborn Dragon". The word
+  // "Dragon" inside a `named` clause is a card-name lookup, NOT a Dragon-
+  // subtype reference. Strip "named <X>" clauses before matching.
+  it('dragon does NOT match named-card lookup ("a card named Boulderborn Dragon")', () => {
+    const r = ruleFor('condition.cares_subtype.dragon');
+    expect(
+      r.match('search your library for a card named dragonstorm globe or boulderborn dragon, reveal it, put it into your hand, then shuffle'),
+    ).toBe(false);
+  });
+
+  // Sanity — real Dragon references still fire.
+  it('dragon still matches "dragons you control" anthem', () => {
+    const r = ruleFor('condition.cares_subtype.dragon');
+    expect(r.match('dragons you control have flying')).toBeTruthy();
+  });
+
+  // 2026-06-02 audit batch — ability-word headers must be stripped before
+  // matching so the words in `Top of the Food Chain — ...` / `Goblin Formula — ...`
+  // don't FP cares_subtype.<X>. The strip targets sentence-leading "1-5
+  // token — " segments (an ability-word header).
+  it('food does NOT match ability-word header "Top of the Food Chain — ..." alone (Kraven, Proud Predator)', () => {
+    const r = ruleFor('condition.cares_subtype.food');
+    expect(
+      r.match("vigilance top of the food chain — __self__'s power is equal to the greatest mana value among permanents you control."),
+    ).toBe(false);
+  });
+
+  // Sanity — ability-word BODY referencing the subtype as a payoff still
+  // fires. Only the HEADER token is stripped.
+  it('food still matches body referencing the subtype after ability-word header strip', () => {
+    const r = ruleFor('condition.cares_subtype.food');
+    expect(r.match('food formula — sacrifice a food: you gain 3 life')).toBeTruthy();
+  });
 });

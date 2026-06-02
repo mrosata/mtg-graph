@@ -97,8 +97,35 @@ describe('effect.grants_evasion', () => {
     // grants/anthem. The strip needed to accept the `gets` verb in the post-
     // comma subject slot (currently only handles `has/have/gains`).
     ['lifelink, hexproof from instants\nas long as your life total is greater than your starting life total, __self__ gets +1/+1 and has menace. __self__ gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.'],
+    // 2026-06-01 follow-up — Sarkhan, Dragon Ascendant. "Until end of turn,
+    // __self__ becomes a Dragon in addition to its other types and gains
+    // flying." Self-conditional flying — the flying belongs to SELF (the
+    // newly-typed Dragon), not to other creatures. Belongs in
+    // effect.gains_keyword_self_conditional, NOT grants_evasion. Per v0.21
+    // policy: stripping the "becomes-X-and-gains-evasion" self-conditional
+    // is safe because the companion tag exists for evasion only.
+    ['when __self__ enters, you may behold a dragon. if you do, create a treasure token. whenever a dragon you control enters, put a +1/+1 counter on __self__. until end of turn, __self__ becomes a dragon in addition to its other types and gains flying.'],
+    // Variant subjects within the same becomes-and-gains-evasion frame.
+    ['until end of turn, this creature becomes a dragon and gains flying.'],
+    ['until end of turn, __self__ becomes a 4/4 dragon in addition to its other types and gains menace.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
+  });
+
+  // 2026-06-01 follow-up — Pattern D: Kheru Goldkeeper. "Put two +1/+1
+  // counters and a flying counter on target creature" — no comma between
+  // counters, just "and". The v0.30 multi-counter arm required ≥1 comma.
+  it('matches Kheru Goldkeeper "+1/+1 counters and a flying counter"', () => {
+    const kheru =
+      'flying whenever one or more cards leave your graveyard during your turn, create a treasure token. renew — {2}{b}{g}{u}, exile this card from your graveyard: put two +1/+1 counters and a flying counter on target creature. activate only as a sorcery.';
+    expect(rule.match!(kheru)).toBeTruthy();
+  });
+
+  // 2026-06-01 follow-up — sanity: the negative guards on the new "with X
+  // counter" / "and a <kw> counter" arms must not leak onto unrelated
+  // "with a creature in your graveyard" / "with a charge counter" frames.
+  it('does NOT fire on bare "target creature with a flying counter" (cares clause, not a grant)', () => {
+    expect(rule.match!('target creature with a flying counter on it')).toBe(false);
   });
 
   // v0.14.2 — keyword-counter broadening: "put a flying counter on it" grants

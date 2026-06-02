@@ -11,8 +11,17 @@ export const tagDef: TagDef = {
   pairsWith: ['trigger.creature_dies', 'trigger.creature_leaves_battlefield'],
 };
 
+// 2026-06-02 audit batch — Superior Foes of Spider-Man: "exile another card
+// with __self__" is impulse-recast bookkeeping ("you may play that card
+// until you exile another card with this creature"). The exile is
+// removing an impulse from the side area, not a battlefield creature. The
+// 6-token filler in PATTERN_OWN otherwise consumes "card with this "
+// before reaching "creature". Negative lookahead after the determiner
+// blocks the bookkeeping phrase without disturbing legitimate "exile
+// another creature" patterns.
+// v0.33+ — Morningtide's Light: admit "any number of " count slot.
 const PATTERN_OWN =
-  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+(?:other\s+|another\s+)?)?(?:another\s+|target\s+|each\s+|all\s+|enchanted\s+|equipped\s+)(?:[\w\-]+[,\s]+){0,6}?creatures?(?! cards?)\b/;
+  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+(?:other\s+|another\s+)?|any number of\s+)?(?:(?:another\s+|target\s+|each\s+|all\s+|enchanted\s+|equipped\s+)(?!card\s+with\s+))(?:[\w\-]+[,\s]+){0,6}?creatures?(?! cards?)\b/;
 
 const PATTERN_BROAD =
   /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}noncreature\s+)(?:[\w\-]+\s+){0,5}?(?:nonland\s+|nontoken\s+)?permanents?(?! cards?)\b/;
@@ -69,6 +78,30 @@ const PATTERN_TOKEN_SWEEP = new RegExp(
 const PATTERN_COMBAT_ANAPHORIC =
   /\b(?:another\s+creature|a\s+creature|creatures?\s+you\s+control)[^.]{0,40}?(?:becomes blocked|attacks|enters|deals damage)[^.]{0,40}?,\s*you may exile it\b/;
 
+// 2026-06-01 audit batch — Strategic Betrayal: forced-edict-via-exile. The
+// opponent must exile one of THEIR creatures (paralleling effect.edict's
+// "target opponent sacrifices a creature" frame). The OWN_BROAD patterns
+// anchor on `(?:target|each|all|another) ... creature` after the verb
+// `exile`, which doesn't match the indirect subject "target opponent
+// exiles a creature they control".
+const PATTERN_FORCED_EDICT =
+  /\btarget opponent exiles\s+(?:[\w\-]+\s+){0,4}?creatures?\s+they control\b/;
+
+// 2026-06-02 audit batch — Mysterio, Master of Illusion: token-creator with a
+// delayed "exile those tokens" clean-up trigger. Antecedent is `create … creature
+// token(s)` in a prior sentence; anaphor is `exile those (tokens|creatures)`.
+// Distinct from PATTERN_TOKEN_SWEEP (which requires a creature subtype + "you
+// control"); this one binds to the token created earlier in the same ability.
+const PATTERN_TOKEN_ANAPHORIC =
+  /\bcreate(?:s)?\s+(?:[\w\-\/]+[,\s]+){0,8}?creature tokens?\b[^.]*?\.(?:[^.]*?\.){0,1}[^.]{0,200}\bexile those (?:tokens?|creatures?)\b/;
+
+// v0.33+ — Yangchen Saga II: "choose up to N permanent(s) ... exile those
+// permanents". The chooser-then-anaphor template binds "those permanents"
+// back to the chosen-permanent antecedent. Single-sentence and one-period
+// bridge variants supported.
+const PATTERN_CHOOSE_ANAPHORIC =
+  /\bchoose(?:s)?\s+(?:up to (?:one|two|three|\d+)\s+)?permanents?\b[^.]*?\.\s*exile those permanents?\b/;
+
 // Flicker frame: "exile … Return [it|them|that creature|target creature] to the
 // battlefield". This is bounce/blink (covered by `effect.bounce_creature`), not
 // removal. If the local tail contains a "return … to the battlefield" clause we
@@ -99,7 +132,10 @@ export const rule: Rule = {
       t.match(PATTERN_ANAPHORIC) ??
       t.match(PATTERN_ANAPHORIC_SAME_SENTENCE) ??
       t.match(PATTERN_COMBAT_ANAPHORIC) ??
-      t.match(PATTERN_TOKEN_SWEEP);
+      t.match(PATTERN_TOKEN_SWEEP) ??
+      t.match(PATTERN_FORCED_EDICT) ??
+      t.match(PATTERN_TOKEN_ANAPHORIC) ??
+      t.match(PATTERN_CHOOSE_ANAPHORIC);
     if (!m || m.index === undefined) return false;
     // Check the next ~200 chars after the match for a flicker tail.
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);

@@ -31,7 +31,7 @@ export const tagDef: TagDef = {
 // stops at the earliest "enters".
 const SELF_ETB = new RegExp(
   '\\b(?:when|whenever|as) ' +
-  '(?:__self__|this (?:__self__|creature|artifact|enchantment|land|permanent|planeswalker|vehicle|saga|aura|room|equipment|battle|case|class))' +
+  '(?:__self__|this (?:__self__|creature|artifact|enchantment|land|permanent|planeswalker|vehicle|saga|aura|room|equipment|battle|case|class|spacecraft|planet))' +
   '(?: or (?:a|another|one or more) [\\w\\-\\s]{1,80}?)?' +
   ' (?:enters(?:\\s+or (?:attacks|is turned face up))?(?!\\s+(?:with|tapped|untapped))|attacks or enters)' +
   '\\b[^.]*?,',

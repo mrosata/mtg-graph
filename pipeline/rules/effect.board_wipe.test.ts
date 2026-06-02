@@ -26,6 +26,18 @@ describe('effect.board_wipe', () => {
     ['flying when this creature enters, all other creatures get -2/-2 until end of turn. cycling {2}'],
     ['all creatures get -3/-3 until end of turn'],
     ['all other creatures get -1/-1 until end of turn'],
+    // 2026-06-02 audit batch — Day of Black Sun: "each creature ... loses
+    // all abilities. destroy those creatures." The "destroy those
+    // creatures" arm anchors on a preceding "each creature" antecedent
+    // within the same compound sentence — semantically a board wipe.
+    ['each creature with mana value x or less loses all abilities until end of turn. destroy those creatures.'],
+    // 2026-06-02 audit batch — Destined Confrontation: "each player ...
+    // sacrifices all other creatures they control". The verb alternation
+    // needs to admit `sacrifice` alongside `destroy|exile`.
+    ['each player chooses any number of creatures they control with total power 4 or less, then sacrifices all other creatures they control.'],
+    ['sacrifices all other creatures they control'],
+    ['sacrifice all other creatures'],
+    ['sacrifice all creatures'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

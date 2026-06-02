@@ -31,6 +31,15 @@ describe('effect.destroy_creature', () => {
     // v0.23 — bare numeric determiner (Curtains' Call, Hex).
     ['destroy two target creatures.'],
     ['destroy three target creatures.'],
+    // v0.32 — Group 5 — Faller's Faithful: "destroy up to one OTHER target
+    // creature" inserts "other" between the count and the "target" determiner.
+    ['when this creature enters, destroy up to one other target creature. if that creature wasn\'t dealt damage this turn, its controller draws two cards.'],
+    // 2026-06-02 audit batch — Day of Black Sun: "destroy those creatures"
+    // with an "each creature" antecedent. The PATTERN_OWN determiner
+    // alternation needs to admit "those" so the anaphoric back-reference
+    // fires.
+    ['each creature with mana value x or less loses all abilities until end of turn. destroy those creatures.'],
+    ['destroy those creatures'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

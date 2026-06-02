@@ -23,6 +23,14 @@ describe('effect.destroy_artifact', () => {
     // effect.exile_artifact's PATTERN_VEHICLE arm.
     ['destroy target vehicle'],
     ['destroy each vehicle'],
+    // 2026-06-01 audit batch — Light of Judgment: "destroy up to one
+    // Equipment attached to that creature". Equipment is an artifact
+    // subtype. Same precedent for Treasure / Food / Clue / Map / Powerstone /
+    // Blood / Junk — destroying any of these IS destroying an artifact.
+    ['destroy up to one equipment attached to that creature'],
+    ['destroy target equipment'],
+    ['destroy target treasure'],
+    ['destroy target food'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

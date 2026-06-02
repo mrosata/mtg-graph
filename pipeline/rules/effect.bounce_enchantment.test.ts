@@ -16,13 +16,14 @@ describe('effect.bounce_enchantment', () => {
   it.each([
     ['return target enchantment to its owner\'s hand'],
     ['return target artifact or enchantment to its owner\'s hand'],
-    ['exile target enchantment, then return that enchantment to the battlefield'],
     ['return target permanent to its owner\'s hand'],
     ['return target nonland permanent to its owner\'s hand'],
     ['return target noncreature permanent to its owner\'s hand'],
     // v0.21.0 — Get Out: "one or two target creatures and/or enchantments you
     // own to your hand". Count slot admits "one or two" and "up to two".
     ['return one or two target creatures and/or enchantments you own to your hand'],
+    // 2026-06-01 audit batch — broad-permanent bounce with count slot.
+    ["return up to two other target nonland permanents to their owners' hands"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -35,6 +36,13 @@ describe('effect.bounce_enchantment', () => {
     // Regression (Coati Scavenger): "permanent card from your graveyard to
     // your hand" is graveyard recursion, not a bounce.
     ['descend 4 — when this creature enters, if there are four or more permanent cards in your graveyard, return target permanent card from your graveyard to your hand.'],
+    // 2026-06-01 audit batch — Ishgard, the Holy See: graveyard recursion of
+    // artifact and/or enchantment cards is NOT bounce_enchantment.
+    ['return up to two target artifact and/or enchantment cards from your graveyard to your hand'],
+    // 2026-06-02 audit Wave 2 — exile + return-to-battlefield is FLICKER
+    // (delayed) or BLINK (immediate), not bounce. Mirrors the narrowing
+    // already applied to effect.bounce_creature / effect.bounce_artifact.
+    ['exile target enchantment, then return that enchantment to the battlefield'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

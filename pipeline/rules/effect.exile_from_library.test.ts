@@ -54,6 +54,10 @@ describe('effect.exile_from_library', () => {
     // card" referenced anaphorically by "it".
     ["its controller looks at the top card of that opponent's library and exiles it face down."],
     ["looks at the top three cards of target opponent's library and exiles them"],
+    // HIGH-5b (Dream Harvest): "each opponent exiles cards from the top of their library".
+    ['each opponent exiles cards from the top of their library until they have exiled cards with total mana value 5 or greater this way.'],
+    // HIGH-5b (End-Blaze Epiphany): "exile a number of cards from the top of your library" — NUM expanded to admit "a number of".
+    ['exile a number of cards from the top of your library equal to its power'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

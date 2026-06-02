@@ -28,6 +28,11 @@ describe('effect.has_activated_ability', () => {
     ['{X}, {T}: __SELF__ deals X damage to any target.'],
     // Tap-only with split mana payload
     ['{T}: Add {W} or {B}.'],
+    // 2026-06-01 audit batch — Sidisi, Regent of the Mire: long restrictive
+    // sacrifice cost ("{T}, Sacrifice a creature you control with mana
+    // value X other than Sidisi: ..."). The cost-line distance from `{T}`
+    // to `:` is 74 chars; the prior 60-char window cut off the colon.
+    ['{T}, Sacrifice a creature you control with mana value X other than Sidisi: Return target creature card with mana value X plus 1 from your graveyard to the battlefield. Activate only as a sorcery.'],
   ])('matches creatures with an activated ability: %s', (oracleText) => {
     expect(rule.matchCard!(card({ oracleText }))).toBeTruthy();
   });

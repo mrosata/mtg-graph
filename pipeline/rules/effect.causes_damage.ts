@@ -43,10 +43,26 @@ const PATTERNS = [
   // v0.20 — admit optional "then" filler before the anaphoric "it deals"
   // (Rabid Gnaw: "target creature you control fights ... . then it deals
   // damage ..."). The sentence-boundary anchor stays the same.
-  /\btarget creature(?:s)? you control\b[^.]*\.\s+(?:then\s+)?it deals damage equal to its (?:power|toughness) to target creature\b/,
+  // v0.33+ — relax tail to admit "up to (one|two|three) target creature"
+  // (Assert Perfection).
+  /\btarget creature(?:s)? you control\b[^.]*\.\s+(?:then\s+)?it deals damage equal to its (?:power|toughness) to (?:up to (?:one|two|three) )?target creature\b/,
+  // v0.33+ — Champion of the Path: tribal-ETB anaphoric "whenever
+  // (another|a) <tribe> you control enters, it deals damage equal to its
+  // (power|toughness)". Tight: single-word tribe slot, comma required, no
+  // intervening period.
+  /\bwhenever (?:another|a)\s+[\w\-]+\s+you control enters,\s+it deals damage equal to its (?:power|toughness)\b/,
   // Group-bolt — Case of the Gateway Express:
   // "Each creature you control deals N damage to …"
   /\beach creature you control deals \d+ (?:combat )?damage\b/,
+  // 2026-06-01 audit batch — Bartz and Boko: tribal-scoped group damage
+  // "each other Bird you control deals damage equal to its power to target
+  // creature an opponent controls". The subject is a tribe noun (plural or
+  // singular with "each other") rather than the literal "creature".
+  // Tightly scoped: requires "each (other )?<word> you control deals"
+  // followed by either "<N>/<X> damage" or "damage equal to" so we don't
+  // FP on prose like "each food you control deals" (foods can't deal).
+  /\beach\s+(?:other\s+)?[a-z][\w\-]*?\s+you control\s+deals?\s+(?:\d+|x)\s+(?:combat\s+)?damage\b/,
+  /\beach\s+(?:other\s+)?[a-z][\w\-]*?\s+you control\s+deals?\s+(?:combat\s+)?damage\s+equal\s+to\b/,
   // v0.20.0 — target-establishing antecedent + plural-anaphoric "they each
   // deal" or singular "the creature(s) you control deals" (Coordinated
   // Clobbering, Beastie Beatdown). Prior clause establishes "target ...

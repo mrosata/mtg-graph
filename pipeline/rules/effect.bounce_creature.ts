@@ -46,8 +46,12 @@ const PATTERN_RETURN_OWN =
 // `effect.return_from_graveyard_to_hand`.
 // v0.20 — admit commas in the qualifier filler so "nonland, nontoken
 // permanent" (Season of Weaving) is reached.
+// 2026-06-01 audit batch — Marang River Regent / Sunpearl Kirin / Jill /
+// Eject: admit "(up to )?<count> (other )?" count slot before the
+// determiner, so "return up to two other target nonland permanents to their
+// owners' hands" reaches the permanents? noun.
 const PATTERN_BROAD =
-  /\breturn(?:s)?\s+(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}noncreature\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owner'?s|their\s+owners'?)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:another\s+|target\s+|each\s+|all\s+)?(?!(?:[\w\-]+[,\s]+){0,5}noncreature\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owner'?s|their\s+owners'?)\s+hands?\b/;
 
 // v0.14.6 — delayed-trigger blink-back template (Anzrag's Rampage). Spells
 // that cheat a creature onto the battlefield and create a delayed end-step
@@ -75,6 +79,15 @@ const PATTERN_RETURN_THOSE =
 const PATTERN_RETURN_SELF =
   /\breturn(?:s)?\s+__self__\s+to\s+(?:its\s+owner'?s|your)\s+hand\b/;
 
+// 2026-06-01 audit batch — Cactuar: self-anaphoric "return it to its
+// owner's hand" where the antecedent is "this creature" earlier in the
+// clause. Bounded backward window requires "this creature" to be visible
+// within ~120 chars so a bare "return it" without a self antecedent
+// doesn't fire (those are handled by PATTERN_DELAYED_BLINKBACK or by the
+// flicker/blink rules with their own anchors).
+const PATTERN_SELF_ANAPHORIC_IT =
+  /\bthis\s+creature\b[^.]{0,120}?\breturn(?:s)?\s+it\s+to\s+(?:its\s+owner'?s|your)\s+hand\b/;
+
 // 2026-06-01 audit Wave 2 — the prior PATTERN_BLINK_OWN, PATTERN_BLINK_PRONOUN,
 // and PATTERN_EXILE_DELAYED_RETURN arms moved out of this rule. They matched
 // "exile <creature> ... return ... to the battlefield" frames which are
@@ -90,7 +103,8 @@ export const rule: Rule = {
       t.match(PATTERN_BROAD) ??
       t.match(PATTERN_DELAYED_BLINKBACK) ??
       t.match(PATTERN_RETURN_THOSE) ??
-      t.match(PATTERN_RETURN_SELF);
+      t.match(PATTERN_RETURN_SELF) ??
+      t.match(PATTERN_SELF_ANAPHORIC_IT);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['return'], proximity: ['creature', 'permanent', 'hand'], window: 12 },

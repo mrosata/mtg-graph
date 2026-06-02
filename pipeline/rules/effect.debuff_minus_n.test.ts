@@ -11,13 +11,25 @@ describe('effect.debuff_minus_n', () => {
     // Regression (Cogwork Wrestler): power-only debuff (-N/-0). Still a
     // debuff — same axis, just doesn't kill via toughness.
     ['when this creature enters, target creature an opponent controls gets -2/-0 until end of turn.'],
+    // 2026-06-01 audit batch — Desperate Measures: "+1/-1" — asymmetric
+    // pump that drops toughness. Same kill-via-toughness axis as -1/-1;
+    // can kill a 1-toughness creature. The prior test row asserted this
+    // SHOULD NOT match; flipped per the audit.
+    ['target creature gets +1/-1 until end of turn'],
+    // v0.32 — Group 16 — Overkill: "-0/-9999" — toughness-only debuff (power
+    // doesn't change). Same kill-by-toughness axis as -N/-N; the previous
+    // pattern required positive N on the power side and missed this.
+    ['target creature gets -0/-9999 until end of turn.'],
+    // v0.34 — 400-card audit batch (HIGH-19) — Gloom Ripper: "-0/-x"
+    // variable toughness-only debuff. Same axis as -0/-9999 but with
+    // x-scaling rather than literal large number.
+    ['when this creature enters, target creature you control gets +x/+0 until end of turn and up to one target creature an opponent controls gets -0/-x until end of turn, where x is the number of elves you control plus the number of elf cards in your graveyard.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
 
   it.each([
     ['target creature gets +3/+3 until end of turn'],
-    ['target creature gets +1/-1 until end of turn'],
     ['target creature gets +0/+1 until end of turn'],
     ['put a +1/+1 counter on target creature'],
     ['target creature gets +x/+x until end of turn'],

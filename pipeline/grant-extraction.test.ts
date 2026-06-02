@@ -1,6 +1,7 @@
 // pipeline/grant-extraction.test.ts
 import { describe, it, expect } from 'vitest';
 import { extractGrantedInnerTexts, normalizeInnerGrantText } from './grant-extraction';
+import { stripReminderText } from './normalize';
 
 describe('extractGrantedInnerTexts', () => {
   it.each([
@@ -62,6 +63,54 @@ describe('extractGrantedInnerTexts', () => {
   it('handles curly quotes', () => {
     const text = 'Creatures you control have “Whenever this creature dies, draw a card.”';
     expect(extractGrantedInnerTexts(text)).toEqual(['Whenever this creature dies, draw a card.']);
+  });
+
+  describe('HIGH-3 reminder-token-grant leak (call site wraps with stripReminderText)', () => {
+    // The call site in `pipeline/index.ts` must wrap raw oracle text in
+    // `stripReminderText` before calling `extractGrantedInnerTexts`, so
+    // that quoted ability bodies inside `(...)` reminder text for tokens
+    // like Clue / Food / Mutavault / etc. are NOT extracted as anthem
+    // grants on the host card.
+    it.each([
+      // Sold Out — Clue token reminder
+      [
+        "Exile target creature. If it was dealt damage this turn, create a Clue token. (It's an artifact with \"{2}, Sacrifice this token: Draw a card.\")",
+      ],
+      // Unlucky Cabbage Merchant — Food token reminder
+      [
+        "When this creature enters, create a Food token. (It's an artifact with \"{2}, {T}, Sacrifice this token: You gain 3 life.\")",
+      ],
+      // Zhao, the Moon Slayer — Mountain-conversion reminder
+      [
+        "As long as Zhao has a conqueror counter on him, nonbasic lands are Mountains. (They lose all other land types and abilities and have \"{T}: Add {R}.\")",
+      ],
+      // Mutable Explorer — Mutavault token reminder (two adjacent quoted clauses)
+      [
+        "When this creature enters, create a tapped Mutavault token. (It's a land with \"{T}: Add {C}\" and \"{1}: This token becomes a 2/2 creature with all creature types until end of turn. It's still a land.\")",
+      ],
+    ])('reminder-text quoted bodies are not extracted as grants: %s', (rawOracleText) => {
+      // Without the strip, the inner quoted body leaks. With it, the
+      // call site sees no grants.
+      expect(extractGrantedInnerTexts(stripReminderText(rawOracleText))).toEqual([]);
+    });
+
+    // Negative check: legitimate `with "..."` token grants OUTSIDE the
+    // reminder-text parens (e.g. Krenko-style token grants) still extract.
+    it('still extracts legitimate token-grant bodies outside reminder parens', () => {
+      const krenkoStyle =
+        'Create a 2/2 black Zombie creature token with "When this token dies, return it to the battlefield tapped."';
+      expect(extractGrantedInnerTexts(stripReminderText(krenkoStyle))).toEqual([
+        'When this token dies, return it to the battlefield tapped.',
+      ]);
+    });
+
+    // Negative check: anthem grant on creatures-you-control still extracts.
+    it('still extracts anthem grants on creatures-you-control', () => {
+      const anthem = 'Creatures you control have "Whenever this creature dies, draw a card."';
+      expect(extractGrantedInnerTexts(stripReminderText(anthem))).toEqual([
+        'Whenever this creature dies, draw a card.',
+      ]);
+    });
   });
 });
 

@@ -54,6 +54,12 @@ describe('trigger.self_etb', () => {
     // describes a replacement-effect side. Treat the legacy "as __self__
     // enters" anchor as a self-ETB trigger.
     ['as __self__ enters, you may exile two creature cards from graveyards. if you do, it enters as a copy of one of those cards with a number of additional +1/+1 counters on it equal to the power of the other card.'],
+    // v0.32 — Group 1 — Spacecraft and Planet are real permanent types in
+    // modern Standard (Edge of Eternities / Eoe). Add them to the type
+    // alternation so cards like Atmospheric Greenhouse (Spacecraft) and any
+    // Planet ETB trigger fire self_etb.
+    ['when this spacecraft enters, put a +1/+1 counter on each creature you control. station 8+ | flying, trample'],
+    ['when this planet enters, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

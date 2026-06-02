@@ -10,6 +10,13 @@ export const tagDef: TagDef = {
   pairsWith: ['trigger.counter_changed'],
 };
 
+// v0.33+ — observer-frame leak (Lasting Tarfire): "if you put a counter
+// on a creature this turn" is a CONDITIONAL OBSERVATION of a counter
+// event (trigger.counter_changed axis), not an imperative counter-placement
+// effect. Reject when the matched verb-clause is preceded by an
+// `if <player> <verb>` opener.
+const OBSERVER_PREFIX = /\bif\s+(?:you|target player|each opponent|a player)\s+$/;
+
 export const rule: Rule = {
   id: 'effect.counter_modified',
   axis: 'effect',
@@ -26,7 +33,12 @@ export const rule: Rule = {
     const m = t.match(
       /\b(?:puts?|places?|removes?|distributes?) (?:(?:a |an |\d+ |x |that many |a number of |any number of |one |two |three |four |five |six |seven |eight |nine |ten )(?:additional |another )?)?(?:\+1\/\+1 |-1\/-1 |[a-z][a-z'\-]+ )?counters?\b/,
     );
-    if (m) return { evidence: m[0] };
+    if (m && m.index !== undefined) {
+      // v0.33+ — reject observer-frame "if <player> <verb> ..." (Lasting
+      // Tarfire). Examine the 30 chars preceding the match.
+      const before = t.slice(Math.max(0, m.index - 30), m.index);
+      if (!OBSERVER_PREFIX.test(before)) return { evidence: m[0] };
+    }
     // "Enters [tapped] with [N] [type] counter(s) on it" — static ETB form
     // (Sleep-Cursed Faerie). Same axis as the active "put" verb: counters
     // are being placed on a permanent at ETB.

@@ -28,17 +28,19 @@ const TYPED_NOUN = '(?:plains|islands?|swamps?|mountains?|forests?)';
 // shared. Optional Oxford comma before the "or" alternative.
 const TYPED_NOUN_LIST = `(?:${TYPED_NOUN}(?:,\\s*${TYPED_NOUN})*(?:,?\\s*or\\s+${TYPED_NOUN})?)`;
 const PATTERN = new RegExp(
-  `\\bsearch (?:your|their|target player's|that player's|its controller's) library for ` +
+  `\\bsearch(?:es)?\\s+(?:your|their|target player's|that player's|its controller's) library for ` +
   // v0.14.7 — "up to" is now optional; bare counts ("three swamp cards") are
   // also valid tutor frames.
-  `(?:(?:up to )?(?:one|two|three|four|five|six|seven|\\d+) )?` +
+  // v0.33+ — admit `x` in the count slot (Prismatic Undercurrents:
+  // "up to X basic land cards").
+  `(?:(?:up to )?(?:one|two|three|four|five|six|seven|x|\\d+) )?` +
   `(?:a |an )?` +
   `(?:basic lands?|(?:basic )?${TYPED_NOUN_LIST}) cards?\\b`,
 );
 // Hybrid "<other-type> or basic land card" form (Huntsman's Redemption II) —
 // "or" connector precedes "basic land card", trailing noun shared.
 const PATTERN_HYBRID = new RegExp(
-  `\\bsearch (?:your|their|target player's|that player's|its controller's) library for (?:a |an )?[\\w\\s\\-]{1,30}? or basic (?:lands?|${TYPED_NOUN}) cards?\\b`,
+  `\\bsearch(?:es)?\\s+(?:your|their|target player's|that player's|its controller's) library for (?:a |an )?[\\w\\s\\-]{1,30}? or basic (?:lands?|${TYPED_NOUN}) cards?\\b`,
 );
 // v0.14.15 — modern templating: "land card with a basic land type" (Nervous
 // Gardener). Search-target is a land that has any of the basic land types
@@ -46,7 +48,7 @@ const PATTERN_HYBRID = new RegExp(
 // carrying a basic type. Functionally a basic-land tutor for graph edges
 // (yields a colored mana source).
 const PATTERN_WITH_BASIC_TYPE = new RegExp(
-  `\\bsearch (?:your|their|target player's|that player's|its controller's) library for (?:a |an )?land cards? with (?:a )?basic land types?\\b`,
+  `\\bsearch(?:es)?\\s+(?:your|their|target player's|that player's|its controller's) library for (?:a |an )?land cards? with (?:a )?basic land types?\\b`,
 );
 
 export const rule: Rule = {

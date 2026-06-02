@@ -7,6 +7,14 @@ describe('effect.counterspell', () => {
     ['counter target creature spell'],
     ['counter target spell unless its controller pays {3}'],
     ['counter target noncreature spell'],
+    // 2026-06-01 audit batch — Louisoix's Sacrifice: composite-target list
+    // ending in "or noncreature spell". The list includes "activated
+    // ability, triggered ability, OR noncreature spell" — because the
+    // "spell" component is in the alternation, this IS a counterspell.
+    ['counter target activated ability, triggered ability, or noncreature spell.'],
+    // HIGH-12 (Glen Elendra's Answer): plural "counter all spells your opponents control".
+    ['counter all spells your opponents control and all abilities your opponents control'],
+    ['counter target spells your opponents control'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

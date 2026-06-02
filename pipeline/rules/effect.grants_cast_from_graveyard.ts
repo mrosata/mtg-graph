@@ -56,7 +56,10 @@ const POSITIVE_PATTERNS = [
   // equivalent to "you may cast that card from your graveyard". The
   // condition.cast_from_graveyard axis is for PRINTED keywords; this is
   // the GRANT side.
-  /\bcards?\s+in\s+(?:your|a|an opponent's|target opponent's)\s+graveyards?\s+gains?\s+(?:flashback|jump-start|disturb|escape|unearth|embalm|eternalize|aftermath|mayhem)\b/,
+  // 2026-06-01 audit batch — Songcrafter Mage: "target instant or sorcery
+  // card in your graveyard gains harmonize". Harmonize is the FIN/TDM
+  // graveyard-cast keyword; same license axis as Flashback.
+  /\bcards?\s+in\s+(?:your|a|an opponent's|target opponent's)\s+graveyards?\s+gains?\s+(?:flashback|jump-start|disturb|escape|unearth|embalm|eternalize|aftermath|mayhem|harmonize)\b/,
 ];
 
 export const rule: Rule = {

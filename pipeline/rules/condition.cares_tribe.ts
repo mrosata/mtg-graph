@@ -12,6 +12,21 @@ import { THEME_TRIBES, tribePattern, capitalize, pluralize } from '../themes';
 const TOKEN_CREATE = /\bcreates?\s+(?:[\w\/]+\s+){1,12}?tokens?\b/g;
 const BECOMES_CREATURE = /\bbecomes?\s+(?:[\w\/]+\s+){1,12}?creature\b/g;
 
+// 2026-06-02 audit batch — strip sentence-leading ability-word headers
+// (e.g. "Goblin Formula — ...", "Dinosaur Formula — ...", "Top of the
+// Food Chain — ...", "Mind Swap — ..."). The header NAME often includes
+// a tribe / subtype word that isn't a payoff reference — the actual
+// payoff sits in the body after the em-dash. Strip 1-9 leading tokens
+// followed by " — " at the sentence start. Window widened to 9 tokens
+// to admit prefixes like "vigilance top of the food chain — " (Kraven,
+// Proud Predator) where the intrinsic keyword "vigilance" sits before
+// the ability-word header without an intervening period. Em-dashes in
+// MTG normalized text only appear in ability-word headers, saga
+// chapters ("I — ..."), and modal choice bullets — none of those carry
+// tribe-payoff intent inside the header span. Family-wide: applied
+// symmetrically in condition.cares_subtype.ts.
+const ABILITY_WORD_HEADER = /(?:^|\.\s+)[\w'\-]+(?:\s+[\w'\-]+){0,8}\s+—\s+/g;
+
 // v0.22.0 — Possessed Goat: "it becomes a black demon in addition to its other
 // colors and types" is self-typing transformation, not a tribal payoff. The
 // distinctive "in addition to (its other|all other) (colors|types|colors and
@@ -25,9 +40,16 @@ const BECOMES_CREATURE = /\bbecomes?\s+(?:[\w\/]+\s+){1,12}?creature\b/g;
 // to its other types" uses the verb `is` instead of `becomes`. Admit `is`
 // alongside `becomes?` in the verb slot; the trailing "in addition to its
 // other types" anchor still constrains this to genuine self-typing.
+// 2026-06-02 audit batch — admit contractions (`'s` for "it's a Skeleton",
+// "he's a 4/4 ...") and gendered possessives (`his|her|their`) alongside
+// `its` in the "in addition to ... other types" tail. Xu-Ifit's "it's a
+// skeleton in addition to its other types" and Superior Spider-Man's
+// "he's a 4/4 spider human hero in addition to his other types" both
+// fail the existing pattern. The new alternation accepts both verb
+// contractions and possessive variants.
 function becomesTribePattern(tribe: string): RegExp {
   return new RegExp(
-    `\\b(?:becomes?|is)\\s+(?:a\\s+|an\\s+)?(?:[\\w\\-]+\\s+){0,5}?${tribePattern(tribe)}\\b(?:\\s+in addition to (?:its other|all other)\\s+(?:colors|types|colors and types))`,
+    `\\b(?:becomes?|is|'s)\\s+(?:a\\s+|an\\s+)?(?:[\\w\\-\\/]+\\s+){0,5}?${tribePattern(tribe)}\\b(?:\\s+[\\w\\-\\/]+){0,3}?(?:\\s+in addition to (?:its other|all other|his other|her other|their other)\\s+(?:colors|types|colors and types))`,
     'g',
   );
 }
@@ -40,6 +62,7 @@ function makeRule(tribe: string): Rule {
     axis: 'condition',
     match: (raw) => {
       const t = raw
+        .replace(ABILITY_WORD_HEADER, (match) => (match.startsWith('.') ? '. ' : ''))
         .replace(TOKEN_CREATE, '')
         .replace(BECOMES_CREATURE, '')
         .replace(becomesTribe, '');

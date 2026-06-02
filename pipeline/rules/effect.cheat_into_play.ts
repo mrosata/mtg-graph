@@ -46,8 +46,11 @@ const SEARCH_PUT =
 // your library ... you may put it onto the battlefield". Relax the
 // quantifier before `cards?` to optional `\w+ ` so the singular "top card"
 // form reaches the put-onto-battlefield anchor.
+// 2026-06-01 audit batch — United Battlefront: admit "up to <count>"
+// count slot AND comma-separated typed-restrictor filler ("noncreature,
+// nonland permanent cards") before the typed-noun anchor.
 const LOOK_PUT =
-  /\blook at the top (?:\w+ )?cards? of your library\b[\s\S]{0,300}\bput (?:(?:it|them|that card|those cards)|(?:a |an |one |any number of )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|card)s?\s+(?:with [^.]{0,60}?)?from among them) onto the battlefield\b/;
+  /\blook at the top (?:\w+ )?cards? of your library\b[\s\S]{0,300}\bput (?:(?:it|them|that card|those cards)|(?:a |an |one |any number of |up to (?:one|two|three|four|five|\d+) )?(?:[\w\-]+[,\s]+){0,4}?(?:permanent|creature|artifact|enchantment|planeswalker|card)s?\s+(?:with [^.]{0,60}?)?from among them) onto the battlefield\b/;
 
 // v0.27.x — "Reveal the top X cards of your library ... put a <type> card
 // from among them onto the battlefield" (Genesis Wave). Parallel to LOOK_PUT
@@ -60,6 +63,14 @@ const REVEAL_PUT =
 const EXILED_PUT =
   /\b(?:exiled cards?|cards? exiled (?:this way|with [\w\s'—]+)|exiled creature cards?)[^.]{0,80}\bonto the battlefield\b/;
 
+// v0.33+ — Aurora Awakener: "reveal cards from the top of your library
+// until you reveal X permanent cards. Put any number of those permanent
+// cards onto the battlefield". Distinct from REVEAL_PUT (which anchors on
+// "reveal the top X cards of your library") because the count comes
+// AFTER "until you reveal".
+const REVEAL_UNTIL_PUT =
+  /\breveal cards? from the top of your library until you reveal\s+\S+\s+(?:[\w\-]+ ){0,3}?(?:permanent|creature|nonland|artifact|enchantment|planeswalker|land)\s+cards?\b[\s\S]{0,300}?\bput (?:any number of |a |an |one )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:from among them|of those [\w\-]+ cards)?\s*onto the battlefield\b/;
+
 // Pattern D (v0.20.0): hand → battlefield with explicit permanent type. Gates
 // on explicit permanent type token (NOT bare "card") to avoid the land-play
 // templating "play a land from your hand". A-Kona, Rescue Beastie uses
@@ -70,7 +81,7 @@ const EXILED_PUT =
 const HAND_PUT =
   /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
 
-const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, EXILED_PUT, HAND_PUT];
+const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, REVEAL_UNTIL_PUT, EXILED_PUT, HAND_PUT];
 
 // Post-match filter: any of these substrings inside the matched span
 // indicate this is effect.cloak territory (face-down creation), not

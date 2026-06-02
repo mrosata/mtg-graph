@@ -10,7 +10,7 @@ export const tagDef: TagDef = {
   pairsWith: ['condition.cares_graveyard'],
 };
 
-const PATTERN = /\bsurveil \d+\b/;
+const PATTERN = /\bsurveil (?:\d+|x)\b/;
 
 export const rule: Rule = {
   id: 'effect.surveil',

@@ -36,6 +36,10 @@ export const rule: Rule = {
       // v0.14.1 — variable-N mill via "equal to". The Ancient One: "target
       // player mills cards equal to its mana value".
       `|\\bmills? cards? equal to\\b` +
+      // 2026-06-01 audit batch — Jidoor, Aristocratic Capital: "target
+      // opponent mills half their library, rounded down". Fractional /
+      // proportional mill amount — same axis as numeric mill.
+      `|\\bmills?\\s+(?:half|all|x)\\s+(?:of\\s+)?(?:their|its owner's|each player's)\\s+library\\b` +
       // v0.21.0 — Nashi, Searcher in the Dark: anaphoric "mills that many
       // cards" — count bound to a prior numeric clause (combat-damage amount,
       // etc.). Subject slot mirrors the existing mill arms.
@@ -44,7 +48,15 @@ export const rule: Rule = {
       // for a card, put it into your graveyard, then shuffle". Bounded
       // fillers keep the match localized — the tutored card lands in
       // graveyard, functionally a self-mill.
-      `|\\bsearch [\\w\\s']+? library for (?:a|an|target)\\s+(?:[^.]{0,60}?\\s+)?cards?[^.]{0,60}?,?\\s+put (?:it|that card|them|those cards) into (?:your|their) graveyard\\b` +
+      // 2026-06-01 audit batch — Lotuslight Dancers: multi-card tutor with
+      // a SENTENCE BREAK between the search clause and the
+      // put-into-graveyard clause. "Search your library for a black card,
+      // a green card, and a blue card. Put those cards into your
+      // graveyard, then shuffle." The prior `[^.]` filler couldn't span
+      // the period. Use `[\\s\\S]` with a tight cap to admit one sentence
+      // boundary; anchor on "those cards into your graveyard" (or "it" /
+      // "them" / "that card") on the trailing side.
+      `|\\bsearch [\\w\\s']+? library for (?:a|an|target)\\s+[\\s\\S]{0,160}?,?\\s+put (?:it|that card|them|those cards) into (?:your|their) graveyard\\b` +
       // FIX 12 (BR-7) — Consuming Aberration: reveal-until-land mill. Each
       // opponent reveals from library until a land, then puts those cards
       // into their graveyard. Net effect is graveyard fill — same axis as

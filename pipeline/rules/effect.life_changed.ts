@@ -34,8 +34,16 @@ export const rule: Rule = {
     // v0.15 — anaphoric "they" added to the subject list (Bandit's Talent:
     // "if that player has one or fewer cards in hand, they lose 2 life" —
     // "they" back-references "that player" in the preceding clause).
-    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they) (?:may )?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
-    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they) (?:may )?)?(?:gains?|loses?) life equal to /;
+    // 2026-06-02 audit batch — admit optional `each\s+` between subject and
+    // verb (Parker Luck: "they each lose life equal to ..."). The "each"
+    // intensifier distributes the loss/gain over the plural antecedent;
+    // structurally still life_changed.
+    // 2026-06-02 audit batch — also admit a brief "who doesn't" / "who
+    // does" filler between subject and verb (The Death of Gwen Stacy:
+    // "each player who doesn't loses 3 life"). The filler describes a
+    // sub-class of the subject; the life-change still resolves.
+    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
+    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) life equal to /;
     // v0.15 — "pay N life" cost frame (Bonecache Overseer: "Pay 1 life" as
     // activation cost). Paying life is functionally life loss for the
     // controller. Allows X / digit / comma-amount.
@@ -47,7 +55,10 @@ export const rule: Rule = {
     // v0.20.0 — anaphoric "that much life" (Enduring Tenacity: "whenever you
     // gain life, target opponent loses that much life"). The amount is bound
     // to the prior trigger condition rather than a digit/x quantifier.
-    const THAT_MUCH = /(?:(?:^|[.,:\n—] ?)(?:then |and )?)(?:target opponent|each opponent|each player|target player|that player|they)\s+loses\s+that much life\b/;
+    // 2026-06-01 audit batch — Cecil, Dark Knight: "you lose that much life"
+    // (anaphoric on a prior damage-amount). Self-target life loss is a
+    // life-change effect.
+    const THAT_MUCH = /(?:(?:^|[.,:\n—] ?)(?:then |and )?)(?:target opponent|each opponent|each player|target player|that player|they|you)\s+loses?\s+that much life\b/;
     // v0.21.0 — Grievous Wound: fractional / catch-all life loss ("they lose
     // half their life, rounded up"). The amount is "half/all/x [of] their
     // life" — semantically still life_changed.
@@ -58,7 +69,9 @@ export const rule: Rule = {
     // FIX 11 (BR-6) — Bloodthirsty Conqueror: bare "you gain that much
     // life" anaphoric to a prior opponent-loses-life trigger. The amount
     // binds to the triggering loss; semantically lifegain.
-    const YOU_THAT_MUCH = /\byou gains?\s+that much life\b/;
+    // 2026-06-02 audit batch — Earth Kingdom General: "you may gain that
+    // much life" — admit optional `may ` between subject and verb.
+    const YOU_THAT_MUCH = /\byou\s+(?:may\s+)?gains?\s+that much life\b/;
     // v0.23 — variable PAY ("pay life equal to <X>" alt-cost — Eye of
     // Duskmantle, Valgavoth Terror Eater, Raubahn, Gwenom, Madame Null,
     // War Room, Marshland Bloodcaster, Nashi Moon Sage's Scion).
@@ -71,6 +84,11 @@ export const rule: Rule = {
     // Variable causative — "have target player lose life equal to <X>"
     // (Gempalm Polluter).
     const CAUSATIVE_VARIABLE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them)\s+(?:gains?|loses?) life equal to /;
+    // v0.32 — Group 10 — The Endstone: "your life total becomes half your
+    // starting life total, rounded up". Direct life-total assignment is a
+    // life-change effect (the player ends up at a new life total, regardless
+    // of whether the text uses the gain/lose verb).
+    const BECOMES = /\b(?:your|target player's|each opponent's|that player's|each player's|target opponent's)\s+life total becomes\b/;
     const m =
       t.match(QUANT) ??
       t.match(VARIABLE) ??
@@ -81,7 +99,8 @@ export const rule: Rule = {
       t.match(REPLACEMENT_GAIN) ??
       t.match(YOU_THAT_MUCH) ??
       t.match(CAUSATIVE) ??
-      t.match(CAUSATIVE_VARIABLE);
+      t.match(CAUSATIVE_VARIABLE) ??
+      t.match(BECOMES);
     return m ? { evidence: m[0] } : false;
   },
 };

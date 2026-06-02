@@ -35,7 +35,10 @@ const COPY_IT_FOR_EACH_SPELL = /\bcopy it (?:for each|once for each|twice|.{0,40
 // trailing "cast (the|that) copy" clause confirms the copy is a spell —
 // you can only `cast` a spell, not a creature in play. Bounded filler so
 // we don't bridge unrelated sentences.
-const COPY_IT_CAST_THE_COPY = /\bcopy it\b[^.]{0,40}?\.\s*[^.]{0,60}?\bcast (?:the|that) copy\b/;
+// 2026-06-01 audit batch — Shiko, Paragon of the Way: comma-separated
+// continuation "copy it, then you may cast the copy" (no period between
+// "copy it" and "cast the copy"). Admit comma+then as well as the period.
+const COPY_IT_CAST_THE_COPY = /\bcopy it\b[^.]{0,40}?(?:\.\s*|,\s*then\s+)[^.]{0,60}?\bcast (?:the|that) copy\b/;
 
 export const rule: Rule = {
   id: 'effect.copy_spell',

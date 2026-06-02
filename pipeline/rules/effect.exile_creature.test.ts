@@ -21,6 +21,18 @@ describe('effect.exile_creature', () => {
     // includes "other" between "up to N" and "target".
     ['exile up to one other target non-fox creature until __self__ leaves the battlefield'],
     ['exile another target creature you control'],
+    // 2026-06-01 audit batch — Strategic Betrayal: forced-edict-via-exile.
+    // The opponent must exile one of their own creatures. Parallels the
+    // effect.edict template "target opponent sacrifices a creature".
+    ['target opponent exiles a creature they control and their graveyard.'],
+    // 2026-06-02 audit batch — Mysterio, Master of Illusion: token-creator
+    // with delayed "exile those tokens" clean-up. Antecedent is `create …
+    // creature token` in the prior sentence; anaphor is `exile those tokens`.
+    ['when __self__ enters, create a 3/3 blue illusion villain creature token for each nontoken villain you control. exile those tokens when __self__ leaves the battlefield.'],
+    // HIGH-8 (Morningtide's Light): "exile any number of target creatures".
+    ["exile any number of target creatures."],
+    // HIGH-8 (Yangchen Saga II): "each player chooses up to one permanent ... exile those permanents".
+    ['each player chooses up to one permanent with mana value 3 or greater from among permanents your opponents control. exile those permanents.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -82,6 +94,15 @@ describe('effect.exile_creature', () => {
     // recast (not removal). Must NOT fire exile_creature.
     ['__self__ can\'t block. whenever a creature you control becomes blocked, you may exile it. you may play that card from exile this turn.'],
     ['whenever a creature you control attacks, you may exile it. you may play that card from exile this turn.'],
+    // 2026-06-02 audit batch — Superior Foes of Spider-Man: "exile another
+    // card with __self__" is impulse-recast bookkeeping ("you may play
+    // that card until you exile another card with this creature") — the
+    // "exile" is removing an impulse from the side area, not a battlefield
+    // creature. The 6-token filler in PATTERN_OWN was consuming "card with
+    // this " before reaching "creature".
+    ['trample whenever you cast a spell with mana value 4 or greater, you may exile the top card of your library. if you do, you may play that card until you exile another card with this creature.'],
+    ['you may play that card until you exile another card with this creature'],
+    ['you may play that card until you exile a card with __self__'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

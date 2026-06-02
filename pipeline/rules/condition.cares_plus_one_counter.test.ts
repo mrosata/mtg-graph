@@ -25,6 +25,12 @@ describe('condition.cares_plus_one_counter', () => {
     // both PUTS counters (covered by effect.plus_one_counter) AND cares about
     // whether counters are being added (the replacement payoff).
     ['if one or more +1/+1 counters would be put on a creature or vehicle you control, that many plus one +1/+1 counters are put on it instead'],
+    // 2026-06-01 audit batch — Yathan Tombguard: "whenever a creature you
+    // control with a counter on it deals combat damage to a player". The
+    // trigger gates on counter presence without naming +1/+1; in practice
+    // these gates target +1/+1 territory (stun/charge/loyalty counters
+    // don't appear in a "creature you control" damage trigger).
+    ['whenever a creature you control with a counter on it deals combat damage to a player, you draw a card and you lose 1 life.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

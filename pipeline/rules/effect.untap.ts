@@ -25,13 +25,39 @@ export const tagDef: TagDef = {
 //     effect-axis untap.
 //   - Disallow "one or more" inside the filler (only appears in trigger
 //     quantifiers like "untap one or more permanents").
-const PATTERN = /(?<!\bwhenever (?:you|a|an|another)\s)\buntap (?:up to (?:one|two|three|four|five|six|seven|eight|nine|ten|\d+) |all )?(?!one or more\b)(?:target )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|land|enchantment|__self__)s?\b/;
+// 2026-06-02 audit batch — Fancy Footwork: "untap one or two target
+// creatures". Admit "one or two" alongside "up to N" in the count slot.
+const PATTERN = /(?<!\bwhenever (?:you|a|an|another)\s)\buntap (?:up to (?:one|two|three|four|five|six|seven|eight|nine|ten|\d+) |one or two |all )?(?!one or more\b)(?:target )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|land|enchantment|__self__)s?\b/;
+
+// v0.33+ — Subtype-noun-slot broadening. Deepchannel Duelist
+// ("untap target Merfolk you control"). The noun is a creature subtype not
+// in the generic whitelist; require a `you control` anchor on the right
+// side to prevent over-fire on phrases like "untap step".
+const PATTERN_SUBTYPE = /(?<!\bwhenever (?:you|a|an|another)\s)\buntap (?:target |another untapped )(?:[\w\-]+ ){0,3}[\w\-]+s? you control\b/;
+
+// v0.33+ — "untap each other <subtype> you control" plural form
+// (Deepway Navigator). Distinct from PATTERN because the count slot uses
+// "each other" rather than "up to N" / "all".
+const EACH_OTHER_PATTERN = /\buntap each (?:other )?[\w\-]+ you control\b/;
 
 // Pronoun form (v0.12.9): "Untap it." / "Untap them." following a sentence
 // that established a target creature(s) referent (Leaping Ambush, Acrobatic
 // Leap). Bounded back-reference window keeps this from firing across
 // unrelated paragraphs.
-const PRONOUN_PATTERN = /\b(?:target (?:[\w\-]+\s+){0,4}creatures?|creatures? you control)[^.]*\.\s*untap (?:it|them)\b/;
+// 2026-06-02 audit batch — Living Brain, Mechanical Marvel: "untap it"
+// anaphoric to a "target ... artifact" antecedent (the artifact becomes a
+// creature via a preceding clause). Broaden the antecedent slot to admit
+// artifacts and permanents alongside creatures.
+//
+// v0.33+ — broaden antecedent to admit "creatures target player controls"
+// (Trystan's Command). The shape is plural-noun + "target player controls"
+// rather than "target X" / "X you control".
+const PRONOUN_PATTERN = /\b(?:target (?:[\w\-]+\s+){0,4}(?:creatures?|artifacts?|permanents?)|creatures? you control|artifacts? you control|permanents? you control|(?:creatures?|artifacts?|permanents?)\s+target player controls?)[^.]*\.\s*untap (?:it|them)\b/;
+
+// v0.33+ — Broadcast Takeover: "gain control of all artifacts your
+// opponents control until end of turn. Untap them." The antecedent is a
+// "gain control of" clause rather than "target X / X you control".
+const GAIN_CONTROL_PRONOUN = /\bgain control of [^.]{0,80}?\.\s*untap them\b/;
 
 // v0.20.0 — tribal-list antecedent: "<tribe>s, <tribe>s, ..., and <tribe>s
 // you control get +X/+Y until end of turn. Untap them." Valley Floodcaller
@@ -78,17 +104,23 @@ export const rule: Rule = {
       const after = t.replace(STATIC_RIDER, '');
       const m =
         after.match(PATTERN) ??
+        after.match(PATTERN_SUBTYPE) ??
+        after.match(EACH_OTHER_PATTERN) ??
         after.match(PRONOUN_PATTERN) ??
         after.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
         after.match(CHAINED_GAIN_CONTROL) ??
+        after.match(GAIN_CONTROL_PRONOUN) ??
         after.match(SELF_TRIGGER_PRONOUN);
       return m ? { evidence: m[0] } : false;
     }
     const m =
       t.match(PATTERN) ??
+      t.match(PATTERN_SUBTYPE) ??
+      t.match(EACH_OTHER_PATTERN) ??
       t.match(PRONOUN_PATTERN) ??
       t.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
       t.match(CHAINED_GAIN_CONTROL) ??
+      t.match(GAIN_CONTROL_PRONOUN) ??
       t.match(SELF_TRIGGER_PRONOUN);
     return m ? { evidence: m[0] } : false;
   },

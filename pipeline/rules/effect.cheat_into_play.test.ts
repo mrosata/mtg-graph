@@ -38,6 +38,15 @@ describe('effect.cheat_into_play', () => {
     // sentence break followed by "Put it onto the battlefield (if|tapped)".
     ['vigilance when this vehicle enters, you may search your library for an artifact card and reveal it. put it onto the battlefield if its mana value is 2 or less. otherwise, put it into your hand. if you search your library this way, shuffle. crew 2'],
     ['search your library for an artifact card and reveal it. put it onto the battlefield tapped'],
+    // 2026-06-01 audit batch — United Battlefront: look-at-top-N + multi-
+    // typed "noncreature, nonland permanent cards" cheat-into-play. The
+    // pre-noun filler must admit "up to two" count slot AND comma-separated
+    // typed-restrictor tokens.
+    ['look at the top seven cards of your library. put up to two noncreature, nonland permanent cards with mana value 3 or less from among them onto the battlefield. put the rest on the bottom of your library in a random order.'],
+    // HIGH-17 (Aurora Awakener): "reveal cards from the top of your library
+    // until you reveal X permanent cards ... put any number of those
+    // permanent cards onto the battlefield".
+    ['when this creature enters, reveal cards from the top of your library until you reveal x permanent cards, where x is the number of colors among permanents you control. put any number of those permanent cards onto the battlefield, then put the rest of the revealed cards on the bottom of your library in a random order.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

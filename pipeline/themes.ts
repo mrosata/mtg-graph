@@ -81,6 +81,10 @@ export const THEME_TRIBES = [
   // 2026-06-01 audit Group 10 — Aatchik, Emerald Radian and the broader
   // Insect tribal payoff family (commander reprints + LCI/MKM appearances).
   'insect',
+  // v0.32 — Group 12 — Sliver tribal (Thrumming Hivepool, plus the broader
+  // Sliver family that recurs in Standard reprints). "Affinity for slivers"
+  // + "slivers you control have <kw>" payoff frames.
+  'sliver',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];

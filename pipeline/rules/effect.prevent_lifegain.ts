@@ -30,7 +30,10 @@ export const tagDef: TagDef = {
 // "each player", "enchanted player", and anaphoric "they" (Screaming
 // Nemesis: "they can't gain life for the rest of the game").
 const SUBJECT = '(?:players|opponents|your opponents?|target opponent|each opponent|each player|enchanted player|they)';
-const CANT_GAIN = new RegExp(`\\b${SUBJECT}\\s+can(?:not|'?t)\\s+gain life\\b`);
+// v0.33+ — Mornsong Aria: admit a short disjunctive interpolation between
+// "can't" and "gain life" so "players can't draw cards or gain life" still
+// fires the anti-lifegain axis.
+const CANT_GAIN = new RegExp(`\\b${SUBJECT}\\s+can(?:not|'?t)\\s+(?:[\\w\\s,]{0,40}?\\s+or\\s+)?gain life\\b`);
 
 // Tainted Remedy substitution form: "if <subject> would gain life,
 // <object> loses that much life instead". Substitution form is a real

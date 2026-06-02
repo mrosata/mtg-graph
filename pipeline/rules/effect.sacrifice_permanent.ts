@@ -36,6 +36,12 @@ const NEGATIVE_UNLESS = /(?:each|target|an?)\s+opponents?\s+[^.]{0,80}?\bunless\
 // v0.14.36 — Ward action-cost suffix (Vein Ripper-shape): paid by the
 // opponent targeting this card, not by the controller.
 const NEGATIVE_WARD = /\bward\s*[—\-]\s*sacrifices?\s+[^.\n]*/g;
+// v0.32 Group 2 — fail-to-pay span (Command Bridge): "sacrifice it unless
+// you tap/pay/exile/discard ... permanent". The "permanent" here is the cost
+// to AVOID sacrificing, not the thing being sacrificed. Span must cover the
+// `sacrifice ... permanent` window so it suppresses the parent PATTERN whose
+// match anchor is at `sacrifice`.
+const NEGATIVE_UNLESS_TAP = /\bsacrifices?\b[^.]{0,40}?\bunless\s+(?:you|they)\s+(?:tap|pay|exile|discard)[^.]{0,80}?\bpermanents?\b/g;
 
 function collectNegativeSpans(t: string): Array<[number, number]> {
   const spans: Array<[number, number]> = [];
@@ -49,6 +55,9 @@ function collectNegativeSpans(t: string): Array<[number, number]> {
     if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
   }
   for (const m of t.matchAll(NEGATIVE_WARD)) {
+    if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
+  }
+  for (const m of t.matchAll(NEGATIVE_UNLESS_TAP)) {
     if (m.index !== undefined) spans.push([m.index, m.index + m[0].length]);
   }
   return spans;

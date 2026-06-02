@@ -38,6 +38,9 @@ describe('trigger.creature_dies', () => {
     ['target creature gets +3/+0 until end of turn. when it dies this turn, manifest dread.'],
     ['target creature gets +2/+2 until end of turn. when it dies this turn, draw a card.'],
     ['target creature gets +1/+0. when that creature dies this turn, create a 2/2 zombie.'],
+    // 2026-06-01 audit batch — Desperate Measures: "when it dies UNDER YOUR
+    // CONTROL this turn". Admit short filler between "dies" and "this turn".
+    ['target creature gets +1/-1 until end of turn. when it dies under your control this turn, draw two cards.'],
     // v0.23 — Colfenor's Urn: RAW "is put into your graveyard from the
     // battlefield" templating. Per CR 700.4, semantically a dies trigger.
     ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],

@@ -8,7 +8,7 @@ import { fetchSetFromScryfall } from './fetch';
 import { DEFAULT_CACHE_DIR } from './cache';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { normalizeOracleText } from './normalize';
+import { normalizeOracleText, stripReminderText } from './normalize';
 import { extractGrantedInnerTexts, normalizeInnerGrantText } from './grant-extraction';
 import { applyRules } from './rules/runner';
 import { getAllRules } from './rules';
@@ -103,7 +103,11 @@ function tagCards(cards: Card[]): Card[] {
     // a filtered subset onto the host.
     const grantedTags: CardTag[] = [];
     const hostTagIds = new Set(hostTags.map((t) => t.tagId));
-    for (const inner of extractGrantedInnerTexts(c.oracleText)) {
+    // v0.33+ — strip reminder text BEFORE grant extraction so quoted
+    // ability bodies inside `(...)` (Clue / Food / Mutavault token
+    // reminders, Mountain-conversion reminders) don't leak as grants
+    // onto the host card. See HIGH-3 in audit-ship-list.md.
+    for (const inner of extractGrantedInnerTexts(stripReminderText(c.oracleText))) {
       const innerNorm = normalizeInnerGrantText(inner);
       for (const innerTag of applyRules(innerNorm, c, rules)) {
         if (!isForwardable(innerTag, hostTagIds)) continue;

@@ -16,8 +16,16 @@ describe('effect.control_change', () => {
     // Zidane, Tantalus Thief — mixed: ETB steal + observe-opponent-gain trigger;
     // the steal clause must still match.
     ["when zidane enters, gain control of target creature an opponent controls until end of turn."],
-    // Coerced to Kill — Aura Control Magic template.
-    ['enchant creature. you control enchanted creature'],
+    // Coerced to Kill — Aura Control Magic template. The normalized form
+    // line-concatenates "Enchant creature" + "You control enchanted
+    // creature." → "enchant creature you control enchanted creature. ...".
+    // Distinct from With Great Power-style buffs where the line-concat
+    // produces "enchant creature you control enchanted creature gets +2/+2
+    // ..." — the noun is followed by a buff verb, not a sentence boundary.
+    // The AURA_CONTROL match requires the noun NOT be followed by a
+    // stat-buff verb.
+    ['enchant creature you control enchanted creature. enchanted creature has base power and toughness 1/1, has deathtouch, and is an assassin in addition to its other types.'],
+    ['enchant creature you control enchanted creature'],
     // Variants for the Aura family.
     ['you control enchanted permanent'],
     ['you control attached creature'],
@@ -43,6 +51,15 @@ describe('effect.control_change', () => {
     ['lifelink {2}, {t}: target opponent gains control of another target permanent you control. if they do, you draw a card.'],
     // Iroh, Tea Master — donate, then create a token.
     ['at the beginning of combat on your turn, you may have target opponent gain control of target permanent you control. when you do, create a 1/1 white ally creature token.'],
+    // 2026-06-02 audit batch — With Great Power: Aura buff template. Oracle
+    // lines "Enchant creature you control" + "Enchanted creature gets +2/+2
+    // for each Aura ..." normalize to "enchant creature you control enchanted
+    // creature gets +2/+2 ..." via line concatenation. The collision with
+    // Control Magic's "you control enchanted creature" substring is broken
+    // by requiring the noun NOT be followed by a stat-buff verb.
+    ['enchant creature you control enchanted creature gets +2/+2 for each aura and equipment attached to it. all damage that would be dealt to you is dealt to enchanted creature instead.'],
+    // Avatar Destiny — same Aura-buff template, different payoff.
+    ['enchant creature you control enchanted creature gets +1/+1 for each creature card in your graveyard and is an avatar in addition to its other types.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

@@ -35,6 +35,24 @@ describe('effect.untap', () => {
     ['whenever this creature attacks while saddled, untap it and put a +1/+1 counter on it'],
     ['whenever this creature deals combat damage, untap it and you gain 2 life'],
     ['whenever this creature becomes tapped during your turn, untap it'],
+    // 2026-06-02 audit batch — Fancy Footwork: "Untap one or two target
+    // creatures." The count slot needs to admit the "one or two" form (used
+    // alongside "up to two" in similar template patterns).
+    ['untap one or two target creatures'],
+    ['untap one or two target creatures. they each get +2/+2 until end of turn.'],
+    // 2026-06-02 audit batch — Living Brain, Mechanical Marvel: "untap it"
+    // anaphoric to a "target ... artifact" antecedent. The PRONOUN_PATTERN's
+    // antecedent slot only admitted "target creature" / "creatures you
+    // control"; broaden to also admit artifacts and permanents.
+    ['at the beginning of combat on your turn, target non-equipment artifact you control becomes an artifact creature with base power and toughness 3/3 until end of turn. untap it.'],
+    // HIGH-4d (Deepchannel Duelist): tribal subtype target noun slot.
+    ['at the beginning of your end step, untap target merfolk you control.'],
+    // HIGH-4d (Deepway Navigator): "untap each other Merfolk you control" plural form.
+    ['when this creature enters, untap each other merfolk you control.'],
+    // HIGH-4e (Trystan's Command): "creatures target player controls ... untap them" antecedent.
+    ['creatures target player controls get +3/+3 until end of turn. untap them.'],
+    // HIGH-4e (Broadcast Takeover): "gain control of ... untap them" antecedent.
+    ['gain control of all artifacts your opponents control until end of turn. untap them. they gain haste until end of turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

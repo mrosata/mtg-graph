@@ -44,6 +44,25 @@ const PATTERNS = [
   // via the keyword-counter mechanism (DOM/SNC/MKM era).
   // Call a Surprise Witness: "put a flying counter on it".
   /\bput a (?:flying|menace|intimidate) counter\b/,
+  // 2026-06-01 audit batch — multi-counter clause variant (Qarsi Revenant
+  // family). "Put a flying counter, a deathtouch counter, and a lifelink
+  // counter on target creature". Each grants_<kw> fires on its own kw
+  // anywhere in the list.
+  /\bput (?:a|an)\s+(?:[a-z][\w\- ]*?\s+counter\s*,\s+){1,4}(?:and\s+)?(?:a\s+|an\s+)?(?:flying|menace|intimidate)\s+counter\b/,
+  // 2026-06-01 follow-up — Pattern D: "X counter and a <kw> counter" —
+  // bare "and" conjunction (no comma). Kheru Goldkeeper: "Put two +1/+1
+  // counters and a flying counter on target creature."
+  /\bput\s+(?:a|an|one|two|three|four|five|six|seven|\d+|x)\s+(?:[\w\-+/]+\s+)?counters?\s+and\s+(?:a\s+|an\s+)?(?:flying|menace|intimidate)\s+counter\b/,
+  // 2026-06-01 follow-up — Pattern D: "with a <kw> counter ... on it"
+  // — reanimation/return-with frame, guarded by a preceding enters/
+  // returns verb within ~120 chars to keep the "with" arm from leaking
+  // onto unrelated frames. (Perennation doesn't involve evasion keywords
+  // — it's hexproof + indestructible — but the analogous frame for the
+  // evasion axis is included for symmetry; e.g. "return target creature
+  // from your graveyard to the battlefield with a flying counter on it".)
+  // Inner counter-list slot admits multi-counter with-clauses so each
+  // kw in a list fires on its own.
+  /\b(?:enters?|returns?)\b[^.]{0,120}?\bwith\s+(?:(?:a\s+|an\s+)?[a-z][\w\-+/ ]*?\s+counter\s*(?:,\s+|\s+and\s+)){0,4}(?:a\s+|an\s+)?(?:flying|menace|intimidate)\s+counter\b/,
 ];
 
 // v0.14.6 — strip "as long as/while/if <gate>, it has/gains <kw>." self-
@@ -111,7 +130,27 @@ function stripSelfAnaphor(t: string): string {
     // by the as-long-as/while/if/during strip. The clause is bounded by
     // the next sentence period. Always self-scoped by Max speed's
     // mechanic-design so safe to strip the whole sentence.
-    .replace(/\bmax speed\s*—\s*[^.]*?\./g, '');
+    .replace(/\bmax speed\s*—\s*[^.]*?\./g, '')
+    // 2026-06-01 follow-up — Sarkhan, Dragon Ascendant: "Until end of
+    // turn, __self__ becomes a Dragon in addition to its other types
+    // and gains flying." Self-conditional flying — the flying belongs
+    // to SELF (the freshly-typed Dragon), not to other creatures.
+    // Belongs in effect.gains_keyword_self_conditional. Per the v0.21
+    // policy memo, stripping this becomes-and-gains-evasion clause from
+    // grants_evasion is safe because the companion tag exists for
+    // evasion only; non-evasion grantable keywords are unaffected
+    // because they don't appear in the typical "becomes a [type] and
+    // gains <kw>" templating.
+    //
+    // Inner type slot accepts stats (4/4), type words, hyphens, and "in
+    // addition to its other types" prefixed clauses. Bounded at ~60
+    // chars between "becomes a" and "and gains <evasion>" to keep the
+    // strip from spanning unrelated sentences. Trailing tail is also
+    // bounded so it doesn't gobble post-period anthem clauses.
+    .replace(
+      /\b(?:until end of turn,?\s+)?(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__)\s+becomes\s+a\s+[\w\-+/ ]{1,60}?\s+and\s+gains?\s+(?:flying|menace|intimidate)\b[^.]*\./g,
+      '',
+    );
 }
 
 export const rule: Rule = {

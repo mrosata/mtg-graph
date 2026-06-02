@@ -41,6 +41,8 @@ describe('effect.tutors_basic_land', () => {
     ['when this artifact enters, search your library for a basic plains, swamp, or forest card, reveal it, put it into your hand, then shuffle.'],
     ['search your library for a basic plains or island card'],
     ['search your library for a basic mountain, forest, or plains card'],
+    // HIGH-7-BROADEN (Prismatic Undercurrents): variable count "up to X basic land cards".
+    ['search your library for up to x basic land cards, where x is the number of colors among permanents you control'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

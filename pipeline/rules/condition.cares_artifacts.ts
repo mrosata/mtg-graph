@@ -82,6 +82,11 @@ const PATTERNS = [
   // this mana only to cast an artifact spell" — payoff routed through
   // restricted mana, still an artifact-payoff axis.
   /\bto cast an? artifact spell\b/,
+  // v0.32 — Group 7 — static-gate "as long as/while/if you control an
+  // artifact" (Cloudsculpt Technician, Gravblade Heavy, Magitek Infantry).
+  // Conditional/while-it-stands frame; the controller's payoff scales on
+  // whether they currently control an artifact.
+  /\b(?:if|as long as|while) you control (?:an?|another|one or more) artifacts?\b/,
 ];
 
 export const rule: Rule = {

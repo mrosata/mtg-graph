@@ -26,6 +26,13 @@ const PATTERNS = [
   // +1/+1 counters would be put on <subject>" antecedent cares whether a
   // counter is being placed.
   /\bif one or more \+1\/\+1 counters would be put on\b/,
+  // 2026-06-01 audit batch — Yathan Tombguard: "whenever a creature you
+  // control with a counter on it deals combat damage". The trigger gates
+  // on a creature having "a counter on it". Without a separate "+1/+1
+  // counter" mention the LOOSE_PATTERN doesn't fire. Stun / charge /
+  // loyalty counters don't appear on "a creature you control" in a
+  // damage trigger — the gate is +1/+1-territory in practice.
+  /\bwhenever\s+a\s+(?:[\w\-]+\s+){0,3}?creature\s+you control\s+with\s+(?:a|an|one or more)\s+counters?\s+on\s+(?:it|them)\b/,
 ];
 
 // Looser phrasings that say "counter" without specifying "+1/+1". Only fire

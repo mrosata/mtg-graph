@@ -22,8 +22,9 @@ export const tagDef: TagDef = {
 const PATTERNS = [
   // Ordinal triggers: "whenever you cast your first/second/third [...] spell each turn"
   /\bwhenever (?:you|a player|an opponent) casts? (?:their |your )?(?:first|second|third|fourth|fifth) [\w\s,'-]{0,40}?spell (?:each|this) turn\b/,
-  // Threshold gates: "if you've cast two or more spells this turn"
-  /\bif you'?ve cast (?:two|three|four|\d+) or more [\w\s,'-]{0,40}?spells? this turn\b/,
+  // Threshold gates: "if/as long as/while you've cast two or more spells this
+  // turn" (Brightspear Zealot uses "as long as" anchor — same gate axis).
+  /\b(?:if|as long as|while) you'?ve cast (?:two|three|four|\d+) or more [\w\s,'-]{0,40}?spells? this turn\b/,
   // Scaling: "number of spells you've cast this turn"
   /\bnumber of [\w\s,'-]{0,40}?spells (?:you'?ve cast|cast) this turn\b/,
   // Compound gate: "if you've cast both a creature spell and a noncreature spell this turn"
@@ -34,6 +35,15 @@ const PATTERNS = [
   // also "earlier this turn". This is the count-based scaling axis even
   // without an explicit "number of" framing.
   /\bfor each (?:other )?[\w\s,'-]{0,40}?spells? you'?ve cast (?:before it )?(?:this turn|earlier this turn)\b/,
+  // 2026-06-01 audit batch — Sage of the Skies / Focus the Mind: "(if|when)
+  // you've cast another spell this turn". This is the count≥2 gate ("you've
+  // cast at least one other spell besides this one"). Same axis as the
+  // "two or more" threshold gate just templated differently.
+  /\b(?:if|when) you'?ve cast another [\w\s,'-]{0,40}?spell this turn\b/,
+  // 2026-06-01 audit batch — Highspire Bell-Ringer: "the Nth spell you cast
+  // each turn costs ...". Ordinal-scaling cost reduction is the same count
+  // axis without a `whenever` verb.
+  /\bthe (?:second|third|fourth|fifth) [\w\s,'-]{0,40}?spell you cast each turn\b/,
 ];
 
 export const rule: Rule = {

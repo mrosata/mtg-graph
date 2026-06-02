@@ -26,8 +26,9 @@ export const tagDef: TagDef = {
 //     Mystical Tutor, Sanar.
 // (2) "search ... library for an instant card or a card with flash" —
 //     Mystical Teachings (the historic mono-print form).
-const PATTERN = /\bsearch [\w\s']+? library for [\w\s,'-]{0,40}?\b(?:an instant or sorcery|an instant or a sorcery) cards?\b/;
-const PATTERN_TEACHINGS = /\bsearch [\w\s']+? library for an instant card or a card with flash\b/;
+// v0.33+ — admit "searches" third-person template.
+const PATTERN = /\bsearch(?:es)?\s+[\w\s']+? library for [\w\s,'-]{0,40}?\b(?:an instant or sorcery|an instant or a sorcery) cards?\b/;
+const PATTERN_TEACHINGS = /\bsearch(?:es)?\s+[\w\s']+? library for an instant card or a card with flash\b/;
 
 export const rule: Rule = {
   id: 'effect.tutors_instant_sorcery',

@@ -44,6 +44,17 @@ describe('effect.tuck_to_library', () => {
     ["double strike prowess when this creature enters, for each opponent, put up to one target nonland permanent that player controls into its owner's library third from the top."],
     ["put target creature into its owner's library second from the top"],
     ["put target permanent into its owner's library fourth from the top"],
+    // 2026-06-01 audit batch — Monastery Messenger: graveyard→top-of-library
+    // with "up to one target" count prefix.
+    ['when this creature enters, put up to one target noncreature, nonland card from your graveyard on top of your library.'],
+    // 2026-06-01 audit batch — Rite of Renewal: graveyard→library shuffle.
+    // Multi-card soft graveyard-hate.
+    ['target player shuffles up to four target cards from their graveyard into their library.'],
+    // HIGH-16 (Temporal Cleansing): owner-puts-into-library Nth-from-the-top form
+    // ("the owner of target nonland permanent puts it into their library second
+    // from the top or on the bottom"). Distinct Frame A variant — preposition
+    // "into" + position "Nth from the top or on the bottom".
+    ['the owner of target nonland permanent puts it into their library second from the top or on the bottom.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

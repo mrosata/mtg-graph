@@ -18,7 +18,8 @@ export const tagDef: TagDef = {
 
 // NUM matches an explicit count token. Optional in Frame A ("exile the top
 // card" = singular, no number).
-const NUM = '(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|twenty|x|that many)';
+// v0.33+ — admit "a number of" (End-Blaze Epiphany).
+const NUM = '(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|twenty|x|that many|a number of)';
 const LIBRARY_OWNER = '(?:your|target opponent\'s|target player\'s|their|each opponent\'s|each player\'s)';
 
 export const rule: Rule = {
@@ -32,6 +33,11 @@ export const rule: Rule = {
       // Frame B: "<player> exiles the top [N] cards? of <library>" — opponent-
       // performs-it templating (Ashiok −7, Memory Plunder, etc.).
       + `|\\b(?:target (?:player|opponent)|each opponent|each player) exiles the top (?:${NUM} )?cards? of ${LIBRARY_OWNER} library\\b`
+      // v0.33+ — Frame B': "<player> exiles cards from the top of <library>"
+      // (Dream Harvest). The "top N" / "top card" arm above misses this
+      // shape because "cards" precedes "from the top of" rather than
+      // following "the top".
+      + `|\\b(?:target (?:player|opponent)|each opponent|each player) exiles (?:${NUM} )?cards? from the top of ${LIBRARY_OWNER} library\\b`
       // Frame C: "exile (that many|N|count-less) cards from the top of
       // <library>" — life-cost replacement and Embereth-style payoffs.
       // v0.20 — NUM made optional so "exile cards from the top of your

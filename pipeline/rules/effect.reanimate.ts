@@ -95,7 +95,19 @@ const PATTERNS = [
   // intermediate sentences. Bounded by 200 chars so the two halves stay in
   // tight scope. Filler admits periods so 1-2 intermediate sentences (cost
   // clauses like "you may sacrifice an artifact") can sit between.
-  /\bchoose target [^.]+? card in (?:your|a|an opponent's|target opponent's) graveyard\.[\s\S]{0,200}?return the chosen card to the battlefield/,
+  //
+  // v0.33+ — Brilliance Unleashed: "choose target artifact card in your
+  // graveyard. return it to the battlefield ...". Anaphor broadened from
+  // "the chosen card" to "(?:it|the chosen card)" since "choose target
+  // ... card" antecedent uniquely binds "it" to that card.
+  /\bchoose target [^.]+? card in (?:your|a|an opponent's|target opponent's) graveyard\.[\s\S]{0,200}?return (?:it|the chosen card) to the battlefield/,
+  // v0.33+ — Zuko's Conviction: "return ... from <X>'s graveyard to your
+  // hand. ... (instead )?put that card (onto|to) the battlefield". The
+  // grave-to-hand-then-battlefield modal shape uses "that card" anaphor
+  // bound to the prior graveyard-source clause. Distinct from the existing
+  // graveyard-anaphor arm (which uses "return that card"), this uses
+  // "put that card".
+  /\bfrom (?:your|a|an opponent's|any) graveyard[^.]{0,200}?\.[^.]{0,100}?(?:instead )?put that card (?:onto|to) the battlefield/,
 ];
 
 export const rule: Rule = {

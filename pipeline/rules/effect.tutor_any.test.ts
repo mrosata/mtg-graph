@@ -7,6 +7,10 @@ describe('effect.tutor_any', () => {
     ['search your library for any card'],
     ['search your library for a card, reveal it, put it into your hand, then shuffle'],
     ['search your library for any card, put it into your hand, then shuffle'],
+    // HIGH-15 (Mornsong Aria): third-person "searches their library for a card".
+    ['at the beginning of each player\'s draw step, that player loses 3 life, searches their library for a card, puts it into their hand, then shuffles.'],
+    ['that player searches their library for a card'],
+    ['each player searches their library for a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

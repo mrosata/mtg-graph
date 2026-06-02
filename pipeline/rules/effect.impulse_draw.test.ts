@@ -29,6 +29,8 @@ describe('effect.impulse_draw', () => {
     // intermediate clause (~80 chars defining X), then the play-from-exile
     // permission in the next sentence.
     ['exile the top x cards of your library, where x is the number of card types among other nonland permanents you control. you may play those cards this turn.'],
+    // HIGH-5c (End-Blaze Epiphany): "exile a number of cards from the top of your library equal to its power, then choose a card exiled this way. Until the end of your next turn, you may play that card."
+    ['__self__ deals x damage to target creature. when that creature dies this turn, exile a number of cards from the top of your library equal to its power, then choose a card exiled this way. until the end of your next turn, you may play that card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

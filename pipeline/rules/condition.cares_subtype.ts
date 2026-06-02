@@ -39,13 +39,33 @@ const SUBTYPE_ALT_PATTERNS: Record<string, RegExp | undefined> = {
 // Family-wide strip (the leak is symmetric across all subtypes).
 const GIFT_TOKEN_NAME = /\bgift a [a-z\-]+\b/g;
 
+// 2026-06-01 audit batch — strip "named <X>" clauses before matching so
+// the word "Dragon" inside `named "Boulderborn Dragon"` doesn't FP
+// cares_subtype.dragon (Dragonstorm Forecaster). The strip is family-wide
+// — applies to every cares_subtype.<X> rule against named-card lookups.
+// The clause runs from "named " to the next sentence terminator; "or"/
+// "and" connecting alternative names is consumed too.
+const NAMED_CLAUSE = /\bnamed\s+[^.,;:]*/g;
+
+// 2026-06-02 audit batch — strip sentence-leading ability-word headers
+// (e.g. "Top of the Food Chain — ...", "Goblin Formula — ..."). The
+// header name often contains a subtype word that isn't a payoff
+// reference; the actual payoff is in the body after the em-dash.
+// Strip 1-9 leading tokens followed by " — " at the sentence start.
+// Window widened to 9 tokens to admit prefixes like "vigilance top of
+// the food chain — " (Kraven, Proud Predator). Family-wide: mirrors
+// the strip in condition.cares_tribe.ts.
+const ABILITY_WORD_HEADER = /(?:^|\.\s+)[\w'\-]+(?:\s+[\w'\-]+){0,8}\s+—\s+/g;
+
 function stripFraming(t: string, subtype: string): string {
   const selfRef = new RegExp(`\\bthis ${subtypePattern(subtype)}\\b`, 'g');
   return t
+    .replace(ABILITY_WORD_HEADER, (match) => (match.startsWith('.') ? '. ' : ''))
     .replace(selfRef, '')
     .replace(TOKEN_CREATE, '')
     .replace(BECOMES_CREATURE, '')
-    .replace(GIFT_TOKEN_NAME, '');
+    .replace(GIFT_TOKEN_NAME, '')
+    .replace(NAMED_CLAUSE, 'named X');
 }
 
 function makeRule(subtype: string): Rule {

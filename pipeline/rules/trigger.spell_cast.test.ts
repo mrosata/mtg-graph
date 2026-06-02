@@ -32,6 +32,15 @@ describe('trigger.spell_cast', () => {
     // fits ("a faerie or wizard permanent spell").
     ['whenever you cast a faerie or wizard permanent spell, copy it.'],
     ['whenever you cast a dragon permanent spell, draw a card.'],
+    // v0.32 — Group 9 — The Endstone: "whenever you play a land or cast a
+    // spell" — disjunctive landfall+spell-cast trigger. The spell-cast half is
+    // a real spell_cast trigger.
+    ['whenever you play a land or cast a spell, draw a card. at the beginning of your end step, your life total becomes half your starting life total, rounded up.'],
+    // v0.32 — Group 15 — Summon: Brynhildr / Summon: G.F. Cerberus — delayed
+    // "when you next cast a <type> spell this turn" trigger. The "when ...
+    // next cast" anchor schedules the next-cast event as a triggered ability.
+    [' i — chain — exile the top card of your library. during any turn you put a lore counter on this saga, you may play that card. ii, iii — gestalt mode — when you next cast a creature spell this turn, it gains haste until end of turn.'],
+    [' i — surveil 1. ii — double — when you next cast an instant or sorcery spell this turn, copy it. you may choose new targets for the copy. iii — triple — when you next cast an instant or sorcery spell this turn, copy it twice. you may choose new targets for the copies.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

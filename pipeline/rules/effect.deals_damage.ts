@@ -37,7 +37,14 @@ const SELF = '(?:__self__|this (?:room|creature|artifact|enchantment|land|perman
 // damage" (Cursed Recording, Vivi Ornitier) bind correctly. The Valley
 // Flamecaller damage-replacement FP is suppressed by the G26 mask in the
 // match function (no `and` precedes `it` in that card anyway).
-const IT = '(?<=: |, |and )it';
+// 2026-06-02 audit batch — gendered/plural anaphors: also admit `he|she|they`
+// under the same lookbehind. Marvel cards (Electro, Morlun, Shocker)
+// re-introduce the host with the pronoun matching the character's pronoun
+// set ("when __self__ enters, he deals X damage"). Same antecedent
+// semantics as `it`; the surrounding `(?<=: |, |and )` guard keeps
+// post-period leaks out. The `(?<!\. )` post-period exclusion is preserved
+// because the new alternatives share the same enclosing lookbehind.
+const IT = '(?<=: |, |and )(?:it|he|she|they)';
 const SUBJ = `(?:${SELF}|${IT})`;
 
 // Multiplier-prefix slot: "twice", "thrice", or "N times" between `deals`

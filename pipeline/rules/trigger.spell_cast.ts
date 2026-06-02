@@ -33,9 +33,16 @@ export const rule: Rule = {
     // alternation can sit in either position (Lilah: "a multicolored instant
     // or sorcery spell"; Archmage of Echoes: "a faerie or wizard permanent
     // spell"). Either slot may also be a bare adjective.
-    const m = t.match(
-      /whenever (?:you cast|an opponent casts|a player casts) (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b/,
-    );
+    // v0.32 — Group 9 — "whenever you play a land or cast a spell" (The
+    // Endstone). Parallel arm to the existing cast trigger; landfall rule
+    // handles the "play a land" half independently.
+    // v0.32 — Group 15 — "when (you|an opponent|a player) next cast(s) a ...
+    // spell" delayed trigger (Summon: Brynhildr / Summon: G.F. Cerberus).
+    // The Final Fantasy "Summon: <X>" sagas schedule a one-shot trigger that
+    // fires the next time a spell of the named type is cast.
+    const re =
+      /whenever (?:you cast|an opponent casts|a player casts) (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b|whenever you play a land or cast (?:a|an|your) (?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b|when (?:you|an opponent|a player) next cast(?:s)? (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b/;
+    const m = t.match(re);
     return m ? { evidence: m[0] } : false;
   },
 };

@@ -19,7 +19,18 @@ const GAIN_CONTROL = /\b(?:gain|gains) control of (?:target |another target |tha
 const EXCHANGE = /\bexchange control of\b/;
 // Aura/Equipment static control grant: "you control enchanted|attached|equipped <type>".
 // Coerced to Kill (Aura), and Equipment analogs.
-const AURA_CONTROL = /\byou control (?:enchanted|attached|equipped) (?:creature|permanent|artifact|planeswalker|land)\b/;
+// 2026-06-02 audit batch — With Great Power / Avatar Destiny collide on the
+// same substring after line concatenation: oracle lines "Enchant creature
+// you control" + "Enchanted creature gets +2/+2 ..." normalize to "enchant
+// creature you control enchanted creature gets +2/+2 ...". The leading
+// "you control enchanted creature" is line-concat noise, not a steal — the
+// real first clause is "enchant creature you control" (target-restricted
+// Aura that doesn't change control). Discriminator: the noun is followed
+// by a stat-buff verb (`gets? +N/+N` / `gets? +x/+x`) rather than a
+// sentence terminator. Negative lookahead excludes the buff template;
+// Coerced to Kill's "you control enchanted creature." still fires because
+// the noun is followed by a period, not "gets".
+const AURA_CONTROL = /\byou control (?:enchanted|attached|equipped) (?:creature|permanent|artifact|planeswalker|land)\b(?!\s+gets?\s+[+\-](?:\d+|x)\/[+\-](?:\d+|x))/;
 
 // v0.23 — donation suppressor. "Target opponent gains control of <X>" / "an
 // opponent gains control of <X>" is a *gift*, not a steal — the tagDef

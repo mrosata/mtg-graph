@@ -60,7 +60,11 @@ export const rule: Rule = {
     // Backward 120-char window guard requires `target creature` to be in
     // scope so the "it" anaphor has something to bind to. The `this turn`
     // tail keeps the arm bounded; bare "when it dies" is too generic.
-    const itDies = t.match(/\bwhen\s+(?:it|that creature)\s+dies\s+this turn\b/);
+    // 2026-06-01 audit batch — Desperate Measures: admit a short filler
+    // between "dies" and "this turn" so "when it dies UNDER YOUR CONTROL
+    // this turn" still matches. Filler is bounded to ~40 chars to keep
+    // the anaphoric arm tight.
+    const itDies = t.match(/\bwhen\s+(?:it|that creature)\s+dies(?:\s+[^.,]{0,40}?)?\s+this turn\b/);
     if (itDies && itDies.index !== undefined) {
       const before = t.substring(Math.max(0, itDies.index - 120), itDies.index);
       if (/\btarget\s+creature\b/.test(before)) {

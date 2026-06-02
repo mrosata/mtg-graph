@@ -24,8 +24,11 @@ export const rule: Rule = {
     // <count> [type] cards from among them to your hand". The mill creates
     // the graveyard contents; "from among them" anaphorically refers to those
     // milled cards — semantically a graveyard-to-hand recursion.
+    // v0.34 — 400-card audit batch (HIGH-20) — Midnight Tilling: admit
+    // optional "you may" between "then" and "return", and `a`/`an` singular
+    // indefinite counts (in addition to one/two/three/.../x/any number of).
     const millFromAmong = t.match(
-      /\bmills?\s+(?:\w+\s+)?cards?[^.]{0,80}?,?\s*(?:then\s+)?return\s+(?:up to\s+)?(?:\d+|one|two|three|four|five|x|any number of)\s+(?:[\w\-]+\s+)?cards?\s+from among them\s+to your hand\b/,
+      /\bmills?\s+(?:\w+\s+)?cards?[^.]{0,80}?,?\s*(?:then\s+)?(?:you may\s+)?return\s+(?:up to\s+)?(?:a |an |\d+|one|two|three|four|five|x|any number of)\s*(?:[\w\-]+\s+)?cards?\s+from among them\s+to your hand\b/,
     );
     if (millFromAmong) return { evidence: millFromAmong[0] };
     // v0.30 Group 30 — Dredger's Insight family: "put <Q> [type] card from

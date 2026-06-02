@@ -26,8 +26,21 @@ export const tagDef: TagDef = {
 // or <type>" (Reckless Velocitaur: "that Mount or Vehicle gets +2/+0").
 // The anaphor refers back to a subject established earlier in the trigger
 // clause; structurally still a stat-buff grant.
+// 2026-06-02 audit batch — admit "they each" anaphor (Fancy Footwork:
+// "two target creatures. They each get +2/+2"). The "they each" form
+// distributes the buff over a plural antecedent established in the
+// preceding sentence; structurally still a stat-buff grant.
 const PATTERN =
-  /(?:creatures?|permanents?|attackers?|blockers?|target [a-z]+(?: [a-z]+)?|that\s+[a-z]+(?:\s+or\s+[a-z]+)?|\bit\b)[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
+  /(?:creatures?|permanents?|attackers?|blockers?|target [a-z]+(?: [a-z]+)?|that\s+[a-z]+(?:\s+or\s+[a-z]+)?|they\s+(?:each\s+)?|\bit\b)[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
+
+// 2026-06-01 audit batch — Adelbert Steiner: "__self__ gets +1/+1 for each
+// Equipment you control". Self-buff scaling on a "for each" axis. The
+// existing PATTERN doesn't admit `__self__` as a subject (it scopes to
+// other creatures / pronouns). Restrict to `for each` so the self-buff
+// isn't a flat anthem — anthem-style self-statics are owned by the
+// effect.has_stat_buff axis (intrinsic), not by grants_stat_buff.
+const PATTERN_SELF_FOR_EACH =
+  /\b__self__\s+gets?\s+\+(?:\d+|x)\/\+(?:\d+|x)\s+for each\b/;
 
 // v0.12.9: tribal-anthem frame — "<tribe>s you control get +N/+N" (Goddric,
 // Cloaked Reveler grants "Dragons you control get +1/+0" through a nested
@@ -39,14 +52,16 @@ const PATTERN =
 // v0.19 — irregular plurals (Bloomburrow Mice/Geese, plus the standard
 // English-irregular set) added to the alternation. "Mice you control get
 // +1/+0" (Flowerfoot Swordmaster, Mabel) doesn't fit -s/-en suffix gating.
+// v0.33+ — kithkin added (Champion of the Clachan). Like merfolk, kithkin
+// is an irregular plural with no -s/-en suffix.
 const TRIBAL_PATTERN =
-  /\b(?:[a-z]+(?:s|en)|merfolk|mice|geese|dwarves|elves|wolves|men|women|fungi|axolotls)\s+you\s+control[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
+  /\b(?:[a-z]+(?:s|en)|merfolk|kithkin|mice|geese|dwarves|elves|wolves|men|women|fungi|axolotls)\s+you\s+control[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
 
 export const rule: Rule = {
   id: 'effect.grants_stat_buff',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(TRIBAL_PATTERN);
+    const m = t.match(PATTERN) ?? t.match(TRIBAL_PATTERN) ?? t.match(PATTERN_SELF_FOR_EACH);
     return m ? { evidence: m[0] } : false;
   },
 };

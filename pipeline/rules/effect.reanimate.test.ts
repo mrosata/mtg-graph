@@ -56,6 +56,10 @@ describe('effect.reanimate', () => {
     // arm since the existing patterns require "from graveyard" or "those
     // cards" anaphors.
     ['whenever __self__ enters or attacks, choose target artifact card in your graveyard. you may sacrifice an artifact. if you do, return the chosen card to the battlefield.'],
+    // HIGH-6 (Zuko's Conviction): "return ... from your graveyard to your hand. if this spell was kicked, instead put that card onto the battlefield tapped."
+    ['return target creature card from your graveyard to your hand. if this spell was kicked, instead put that card onto the battlefield tapped.'],
+    // HIGH-6 (Brilliance Unleashed): "choose target artifact card in your graveyard. return it to the battlefield..."
+    ["choose target artifact card in your graveyard. return it to the battlefield if it's an artifact creature card. otherwise, return it to the battlefield and it's a 3/3 robot artifact creature with flying."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

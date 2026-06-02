@@ -39,6 +39,11 @@ const PATTERNS = [
   // Boss). Same axis as multiplicative doublers — modifies a damage event
   // to scale it. The +N tail before "instead" is the structural anchor.
   /\bdeals?\s+that much damage plus\s+\d+\s+instead\b/,
+  // v0.33+ — Collective Inferno: "double all damage that sources you
+  // control of the chosen type would deal". Tribal/source-scoped damage
+  // doubler — different lexical shape (verb "double" precedes the
+  // subject) but same axis as the replacement-effect doublers.
+  /\bdouble all damage that (?:sources?|creatures?|permanents?)[^.]{0,80}? would deal\b/,
 ];
 
 export const rule: Rule = {

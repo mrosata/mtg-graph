@@ -93,6 +93,17 @@ describe('trigger.another_creature_etb', () => {
     ['whenever a gate you control enters, you may put this card from your graveyard on top of your library.'],
     ['whenever a cave you control enters, scry 1'],
     ['whenever a desert you control enters, draw a card'],
+    // 2026-06-02 audit batch — Kyoshi Island Plaza, Crescent Island Temple,
+    // Northern Air Temple: "Shrine" is an ENCHANTMENT subtype, not a creature
+    // subtype. The tribal arm must exclude enchantment subtypes (shrine,
+    // aura, saga, class, curse, background, role) so these shrine-tribal
+    // triggers don't poach the creature-ETB axis. (cares_subtype.shrine
+    // covers the actual tribal payoff.)
+    ['whenever another shrine you control enters or dies, search your library for a basic land card, put it onto the battlefield tapped, then shuffle.'],
+    ['whenever another shrine you control enters, scry 1'],
+    ['whenever a saga you control enters, draw a card'],
+    ['whenever an aura you control enters, gain 1 life'],
+    ['whenever this creature or another shrine you control enters, draw a card'],
     // v0.30 — Group 13 — Pactdoll Terror: "this creature or another artifact"
     // compound disjunct names a non-creature permanent type for the other
     // half. The compound arm must gate the second slot to creature / known

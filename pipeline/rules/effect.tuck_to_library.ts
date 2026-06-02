@@ -52,11 +52,19 @@ export const rule: Rule = {
     const re = new RegExp(
       // Frame A: "the owner of target X puts it on (their choice of the)? top|bottom of (their|its owner's) library"
       `\\b(?:the )?owner of target [^.]+? puts? (?:it|them) on (?:their|its) (?:choice of ${TOP_OR_BOTTOM}|${TOP_OR_BOTTOM}) of (?:their|its owner's|your|the owner's) library\\b`
+      // v0.33+ — Frame A3: "into <library> Nth from the top (or on the
+      // bottom)?" (Temporal Cleansing). Preposition "into" rather than
+      // "on (top|bottom) of"; destination is positional ("second from
+      // the top") with an optional "or on the bottom" tail.
+      + `|\\b(?:the )?owner of target [^.]+? puts? (?:it|them) into (?:their|its owner's|the owner's) library ${NTH_FROM_TOP}(?:\\s+or on the bottom)?\\b`
       // v0.14.1 — Frame A2: possessive form "target X's owner puts it on ...".
       // Unlucky Drop.
       + `|\\btarget [^.]+?'s owner puts? (?:it|them) on (?:their|its) (?:choice of ${TOP_OR_BOTTOM}|${TOP_OR_BOTTOM}) of (?:their|its owner's|your|the owner's) library\\b`
       // Frame B: "put target X from a graveyard on top|bottom of <library>"
-      + `|\\bput target [^.]+? from (?:a |your |target opponent's |target player's )?graveyard on ${TOP_OR_BOTTOM} of ${LIBRARY_OWNER} library\\b`
+      // 2026-06-01 audit batch — Monastery Messenger: admit "up to <count>"
+      // count slot before "target" so "put up to one target noncreature,
+      // nonland card from your graveyard on top of your library" matches.
+      + `|\\bput (?:up to (?:one|two|three|four|five|\\d+)\\s+)?target [^.]+? from (?:a |your |target opponent's |target player's )?graveyard on ${TOP_OR_BOTTOM} of ${LIBRARY_OWNER} library\\b`
       // Frame C: "put target permanent/creature on top|bottom of <library>"
       + `|\\bput target (?:creature|permanent|nonland permanent|artifact|enchantment|planeswalker) on ${TOP_OR_BOTTOM} of ${LIBRARY_OWNER} library\\b`
       // Frame D1: "the owner of target X shuffles it into their library" — Zoyowa's Justice.
@@ -74,7 +82,14 @@ export const rule: Rule = {
       // top" (Riptide Gearhulk). Battlefield-to-library tuck where the
       // destination is positional ("third from the top") rather than the
       // bare top/bottom slot.
-      + `|\\bput\\s+(?:up to (?:one|two|three|\\d+)\\s+)?target\\s+[^.]{0,80}?\\s+into\\s+${LIBRARY_OWNER}\\s+library\\s+${NTH_FROM_TOP}\\b`,
+      + `|\\bput\\s+(?:up to (?:one|two|three|\\d+)\\s+)?target\\s+[^.]{0,80}?\\s+into\\s+${LIBRARY_OWNER}\\s+library\\s+${NTH_FROM_TOP}\\b`
+      // 2026-06-01 audit batch — Frame F: graveyard→library shuffle (Rite
+      // of Renewal: "target player shuffles up to four target cards from
+      // their graveyard into their library"). Soft graveyard-hate — cards
+      // re-enter the deck rather than the battlefield. Bounded subject
+      // span; requires explicit "from <owner> graveyard ... into <owner>
+      // library" so generic "shuffle into your library" doesn't FP.
+      + `|\\b(?:target\\s+player\\s+)?shuffles?\\s+(?:up to (?:one|two|three|four|five|\\d+)\\s+)?target\\s+[^.]{0,80}?\\s+from\\s+(?:their|your|target opponent's|target player's|a)\\s+graveyards?\\s+into\\s+${LIBRARY_OWNER}\\s+librar(?:y|ies)\\b`,
     );
     const m = cleaned.match(re);
     return m ? { evidence: m[0] } : false;

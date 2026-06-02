@@ -165,6 +165,12 @@ describe('effect.grants_keyword parametric', () => {
       ['equipped creature has double strike'],
       // Gallant Pie-Wielder — Celebration self-grant via "has"
       ['this creature has double strike as long as two or more nonland permanents entered the battlefield under your control this turn'],
+      // v0.32 — Group 13 — Thrumming Hivepool: "slivers you control have
+      // double strike and haste". Tribal anthem with kw on the LEFT side of
+      // "have <kw> and <other-kw>". Existing Frame (f2) catches kw on the
+      // RIGHT side; Frame (f3) added to catch the left side. The trailing
+      // "have haste" already fires grants_haste via Frame (f2).
+      ['affinity for slivers slivers you control have double strike and haste. at the beginning of your upkeep, create two 1/1 colorless sliver creature tokens.'],
     ])('matches: %s', (text) => {
       expect(r.match(text)).toBeTruthy();
     });
@@ -325,6 +331,95 @@ describe('effect.grants_keyword parametric', () => {
       const result = ruleFor('effect.grants_first_strike').match('put a double strike counter on it');
       expect(result).toBeTruthy();
       expect(result).toMatchObject({ metadata: { doubleStrike: true } });
+    });
+
+    // 2026-06-01 audit batch — Qarsi Revenant: multi-counter clause "put a
+    // flying counter, a deathtouch counter, and a lifelink counter on
+    // target creature". Each grants_<kw> fires on its own keyword wherever
+    // it sits in the list.
+    const qarsi =
+      'put a flying counter, a deathtouch counter, and a lifelink counter on target creature';
+
+    it('grants_deathtouch matches Qarsi Revenant multi-counter clause (middle)', () => {
+      expect(ruleFor('effect.grants_deathtouch').match(qarsi)).toBeTruthy();
+    });
+
+    it('grants_lifelink matches Qarsi Revenant multi-counter clause (last)', () => {
+      expect(ruleFor('effect.grants_lifelink').match(qarsi)).toBeTruthy();
+    });
+
+    // 2026-06-01 follow-up — Pattern D under-shipment: "+1/+1 counter and a
+    // <kw> counter" — bare "and" conjunction, no comma between counters.
+    // The v0.30 multi-counter regex required ≥1 comma; this catches the
+    // 2-item "+1/+1 and a <kw>" frame used by the BLB/DSK Renew family.
+    //
+    // Driving cards:
+    //   - Champion of Dusan: "put a +1/+1 counter and a trample counter"
+    //   - Sagu Pummeler:     "put two +1/+1 counters and a reach counter"
+    it('grants_trample matches Champion of Dusan "+1/+1 counter and a trample counter"', () => {
+      const champion =
+        'renew — {1}{g}, exile this card from your graveyard: put a +1/+1 counter and a trample counter on target creature. activate only as a sorcery.';
+      expect(ruleFor('effect.grants_trample').match(champion)).toBeTruthy();
+    });
+
+    it('grants_reach matches Sagu Pummeler "two +1/+1 counters and a reach counter"', () => {
+      const sagu =
+        'renew — {4}{g}, exile this card from your graveyard: put two +1/+1 counters and a reach counter on target creature. activate only as a sorcery.';
+      expect(ruleFor('effect.grants_reach').match(sagu)).toBeTruthy();
+    });
+
+    // 2026-06-01 follow-up — Pattern D: "with a <kw> counter ... on it"
+    // frame for reanimation/return-with effects.
+    //
+    // Driving card:
+    //   - Perennation: "return target permanent card from your graveyard to
+    //     the battlefield with a hexproof counter and an indestructible
+    //     counter on it"
+    //
+    // The "with X counter" arm is anchored on a preceding battlefield-
+    // entering verb (enters | returns) within ~120 chars to keep it from
+    // leaking onto unrelated "with ... counter" clauses (e.g. "deal damage
+    // equal to the number of cards in your hand with a charge counter").
+    const perennation =
+      'return target permanent card from your graveyard to the battlefield with a hexproof counter and an indestructible counter on it.';
+
+    it('grants_hexproof matches Perennation "return ... with a hexproof counter on it"', () => {
+      expect(ruleFor('effect.grants_hexproof').match(perennation)).toBeTruthy();
+    });
+
+    it('grants_indestructible matches Perennation "return ... with an indestructible counter on it"', () => {
+      expect(ruleFor('effect.grants_indestructible').match(perennation)).toBeTruthy();
+    });
+
+    // Negative — "with" arm must not fire when no enters/returns verb
+    // anchors the clause. These are unrelated "with"-clauses that happen to
+    // contain a kw-named counter word.
+    it('grants_hexproof does NOT fire on bare "with a hexproof counter" without enter/return verb', () => {
+      const r = ruleFor('effect.grants_hexproof');
+      // Cards that already have hexproof counters but don't grant them.
+      expect(r.match('target creature with a hexproof counter on it')).toBe(false);
+      expect(r.match('whenever a creature with a hexproof counter dies, draw a card.')).toBe(false);
+    });
+  });
+
+  // ── 2026-06-01 follow-up — Sarkhan, Dragon Ascendant self-conditional ───
+  // Sarkhan's text: "Until end of turn, __self__ becomes a Dragon in
+  // addition to its other types and gains flying." This is a self-
+  // conditional evasion grant (companion tag: effect.gains_keyword_self_conditional).
+  // Per the v0.21 policy memo, stripping ability-word self-conditional
+  // self-becomes-X-and-gains-evasion clauses from grants_evasion is safe.
+  // The non-evasion grants_<kw> family is unaffected because evasion-only
+  // keywords (flying/menace/intimidate) hit the strip; non-evasion
+  // keywords are not part of the becomes-and-gains-evasion frame.
+  //
+  // Sanity: non-evasion grantable keywords (trample/lifelink/etc.) on a
+  // genuine become-with frame still fire. This regression guards that
+  // path.
+  describe('grants_<kw> — Sarkhan becomes-X-and-gains-flying does not over-narrow non-evasion (v0.31)', () => {
+    // Sanity: still fires on the genuine "becomes a [type] with [...], <kw>" frame.
+    it('grants_trample still fires on "becomes a beast with ..., trample"', () => {
+      const r = ruleFor('effect.grants_trample');
+      expect(r.match('this creature is a beast with base power and toughness 4/4, trample')).toBeTruthy();
     });
   });
 

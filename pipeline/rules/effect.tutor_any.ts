@@ -16,7 +16,9 @@ export const tagDef: TagDef = {
 // card", "for an artifact card") — those carry their own subtype-tutor tags.
 // Word boundary after "card" prevents bleed into "cards" (multi-card tutors
 // are a different effect family).
-const PATTERN = /\bsearch [\w\s]+? library for (?:an? |any )card\b/;
+// v0.33+ — admit third-person "searches" template (Mornsong Aria: "each
+// player searches their library for a card").
+const PATTERN = /\bsearch(?:es)?\s+[\w\s]+? library for (?:an? |any )card\b/;
 
 export const rule: Rule = {
   id: 'effect.tutor_any',

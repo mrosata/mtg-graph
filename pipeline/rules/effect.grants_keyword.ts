@@ -105,6 +105,12 @@ function buildGrantRegex(kw: string): RegExp {
       // ("gains flying and hexproof"). Same verb anchor as Frame (f), but the
       // separator is "<kw> and" rather than "<kw>, [...,] and".
       `\\b(?:has|have|gains?)\\s+[a-z]+(?:\\s+strike)?\\s+and\\s+${kw}\\b`,
+      // v0.32 — Group 13 — Frame (f3): kw on the LEFT side of a 2-item "and"
+      // list — Thrumming Hivepool ("slivers you control have double strike
+      // and haste"). Frame (f2) catches kw on the RIGHT; this catches it on
+      // the LEFT. Verb anchor preserved so it doesn't FP on bare keyword
+      // lines.
+      `\\b(?:has|have|gains?)\\s+${kw}\\s+and\\s+[a-z]+(?:\\s+strike)?\\b`,
       // v0.14.4 — Frame (j): "gains your choice of <kw1>, <kw2>(, ...)?, or <kw>"
       // Multi-keyword choice grant. Ezrim Agency Chief: "gains your choice of
       // vigilance, lifelink, or hexproof". Each listed keyword fires its own
@@ -140,6 +146,38 @@ function buildGrantRegex(kw: string): RegExp {
       // era). The counter grants the keyword to the target creature.
       // Call a Surprise Witness: "put a flying counter on it".
       `\\bput a ${kw} counter\\b`,
+      // 2026-06-01 audit batch — Frame (i2): multi-counter clause. Qarsi
+      // Revenant: "put a flying counter, a deathtouch counter, and a
+      // lifelink counter on target creature". Each grants_<kw> needs to
+      // fire on its own keyword wherever it sits in the list. Anchor on
+      // "put a/an" then a 0-N list of "<kw> counter, " then the target kw
+      // counter. The list permits "and " before the final item.
+      `\\bput (?:a|an)\\s+(?:[a-z][\\w\\- ]*?\\s+counter\\s*,\\s+){1,4}(?:and\\s+)?(?:a\\s+|an\\s+)?${kw}\\s+counter\\b`,
+      // 2026-06-01 follow-up — Frame (i3): "X counter and a <kw> counter"
+      // — bare "and" conjunction (no comma). Two-counter shape used by
+      // the BLB/DSK Renew family. Champion of Dusan ("put a +1/+1 counter
+      // and a trample counter"), Sagu Pummeler ("put two +1/+1 counters
+      // and a reach counter"), Kheru Goldkeeper ("put two +1/+1 counters
+      // and a flying counter" — handled in grants_evasion).
+      // Count slot accepts "a|an", "one|two|three|four", a digit, or a
+      // bare word numeral (covers "X" placeholder too). Optional 1-token
+      // descriptor before "counter(s)" handles "+1/+1" or other simple
+      // counter names.
+      `\\bput\\s+(?:a|an|one|two|three|four|five|six|seven|\\d+|x)\\s+(?:[\\w\\-+/]+\\s+)?counters?\\s+and\\s+(?:a\\s+|an\\s+)?${kw}\\s+counter\\b`,
+      // 2026-06-01 follow-up — Frame (i4): "with a <kw> counter ... on it"
+      // — reanimation/return-with frame. Perennation: "return target
+      // permanent card from your graveyard to the battlefield with a
+      // hexproof counter and an indestructible counter on it".
+      //
+      // Guarded by a preceding battlefield-entering verb (enters | returns)
+      // within ~120 chars to prevent leakage onto unrelated "with ...
+      // counter" clauses (cares clauses, etc.). The guard reuses
+      // /(?:enters|returns?)[^.]{0,120}?with/ within a single sentence.
+      // Inner counter-list slot mirrors Frame (i2) — accepts 0-N
+      // "<kw> counter, " or "<kw> counter and " items before the target
+      // kw, so multi-counter with-clauses (Perennation: "with a hexproof
+      // counter and an indestructible counter") fire on each kw.
+      `\\b(?:enters?|returns?)\\b[^.]{0,120}?\\bwith\\s+(?:(?:a\\s+|an\\s+)?[a-z][\\w\\-+/ ]*?\\s+counter\\s*(?:,\\s+|\\s+and\\s+)){0,4}(?:a\\s+|an\\s+)?${kw}\\s+counter\\b`,
     ].join('|'),
   );
 }

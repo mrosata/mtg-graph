@@ -46,4 +46,21 @@ describe('effect.tutors_subtype', () => {
       expect(r.axis).toBe('effect');
     }
   });
+
+  // 2026-06-01 audit batch — Dragonstorm Forecaster: "search your library
+  // for a card named Dragonstorm Globe or Boulderborn Dragon". The word
+  // "Dragon" inside a `named` clause is a card-name lookup, NOT a Dragon-
+  // subtype tutor. Strip "named <X>" clauses before matching.
+  it('dragon does NOT match named-card lookup ("a card named Boulderborn Dragon")', () => {
+    const r = ruleFor('effect.tutors_subtype.dragon');
+    expect(
+      r.match('search your library for a card named dragonstorm globe or boulderborn dragon, reveal it, put it into your hand, then shuffle'),
+    ).toBe(false);
+  });
+
+  // Sanity — real Dragon-card tutor still fires.
+  it('dragon still matches "search ... for a Dragon card"', () => {
+    const r = ruleFor('effect.tutors_subtype.dragon');
+    expect(r.match('search your library for a dragon card and put it onto the battlefield')).toBeTruthy();
+  });
 });

@@ -50,6 +50,14 @@ describe('effect.exile_from_graveyard', () => {
     // the matched cards — semantically a graveyard exile (and library exile,
     // both rules should fire).
     ["search target opponent's graveyard, hand, and library for up to four cards with that name and exile them"],
+    // 2026-06-01 audit batch — Tersa Lightshatter: "exile a card at random
+    // from your graveyard". The triggered effect targets the controller's
+    // own graveyard with a random pick; not a cost (no colon).
+    ['whenever __self__ attacks, if there are seven or more cards in your graveyard, exile a card at random from your graveyard. you may play that card this turn.'],
+    // 2026-06-01 audit batch — Strategic Betrayal: "target opponent exiles
+    // a creature they control and their graveyard". The "their graveyard"
+    // half is a whole-graveyard wipe; forced-edict on the opponent.
+    ['target opponent exiles a creature they control and their graveyard.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

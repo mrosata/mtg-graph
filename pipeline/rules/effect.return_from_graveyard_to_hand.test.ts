@@ -26,6 +26,10 @@ describe('effect.return_from_graveyard_to_hand', () => {
     ['whenever one or more artifact and/or creature cards leave your graveyard, you gain 1 life. when this enchantment enters, mill four cards. you may put an artifact, creature, or land card from among the milled cards into your hand.'],
     ['put a card from among the milled cards into your hand'],
     ['put up to two cards from among the cards milled this way into your hand'],
+    // v0.34 — 400-card audit batch (HIGH-20) — Midnight Tilling: same mill-
+    // then-return-from-among-them frame as Greenhouse / Rickety Gazebo,
+    // but with optional "you may" + `a` (singular indefinite) count.
+    ['mill four cards, then you may return a permanent card from among them to your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

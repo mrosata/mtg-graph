@@ -30,16 +30,17 @@ export const tagDef: TagDef = {
 // extension; the structural anchor is still "search ... for ... creature
 // card". Adding `\/` to the filler and an `(?:\s+and(?:\/|\s)?or\s+graveyard)?`
 // segment after `library`.
-const PATTERN = /search [\w\s']+? library(?:\s+and(?:\/|\s)?or\s+graveyard)? for [\w\s,'\-\/]{0,60}?\bcreature cards?\b/;
+// v0.33+ — admit "searches" third-person template.
+const PATTERN = /search(?:es)?\s+[\w\s']+? library(?:\s+and(?:\/|\s)?or\s+graveyard)? for [\w\s,'\-\/]{0,60}?\bcreature cards?\b/;
 // Hybrid "A or B card" form sharing a trailing noun — "a creature or basic
 // land card" (Huntsman's Redemption II). Allow a short alternative clause
 // between "creature" and "card".
-const PATTERN_HYBRID = /search [\w\s']+? library(?:\s+and(?:\/|\s)?or\s+graveyard)? for [\w\s,'-]{0,40}?\bcreature or [\w\s\-]{1,30}? cards?\b/;
+const PATTERN_HYBRID = /search(?:es)?\s+[\w\s']+? library(?:\s+and(?:\/|\s)?or\s+graveyard)? for [\w\s,'-]{0,40}?\bcreature or [\w\s\-]{1,30}? cards?\b/;
 // 2026-06-01 audit Group 16 — Brightglass Gearhulk: multi-type tutor chains
 // joined by commas and "and/or" — "artifact, creature, and/or enchantment
 // cards". Admit `/` and longer filler so the `creature` noun in the middle
 // of the list is reached and `cards?` plural is honored.
-const PATTERN_MULTI = /search [\w\s']+? library(?:\s+and(?:\/|\s)?or\s+graveyard)? for [\w\s,'\-\/]{0,80}?\bcreature[\w\s,'\-\/]{0,60}?cards?\b/;
+const PATTERN_MULTI = /search(?:es)?\s+[\w\s']+? library(?:\s+and(?:\/|\s)?or\s+graveyard)? for [\w\s,'\-\/]{0,80}?\bcreature[\w\s,'\-\/]{0,60}?cards?\b/;
 
 export const rule: Rule = {
   id: 'effect.tutors_creature',

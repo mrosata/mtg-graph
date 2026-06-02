@@ -46,6 +46,13 @@ const OWN_QUANTIFIED = /exile one or more [^:.—]+? from your graveyard(?!s*\s*
 // Peace's ETB). Broadest possible graveyard-exile — every card in every
 // graveyard at once.
 const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponent|player)'s) graveyards?/;
+
+// 2026-06-01 audit batch — Strategic Betrayal: "target opponent exiles a
+// creature they control and their graveyard". The whole-graveyard wipe
+// uses bare `their graveyard` because the opponent antecedent is in scope
+// from `target opponent exiles`. The forced-edict-via-exile is in
+// effect.exile_creature; this arm handles the graveyard half.
+const OPPONENT_FORCED_GRAVEYARD = /\btarget opponent exiles\b[^.]*?\btheir graveyards?\b/;
 // v0.14.22 — "exile target X card IN a graveyard" — modern templating
 // (Reenact the Crime). Semantically the same as "from a graveyard": the
 // graveyard is the source zone, and the targeted card is what's exiled.
@@ -58,6 +65,15 @@ const IN_GRAVEYARD = /exile (?:up to [\w-]+ |any number of )?target [^.]{0,60}? 
 // exile (1+ cards, fixed N). The negative lookahead `(?!\s*[:—])` preserves
 // Renew-style cost suppression (those use a colon/em-dash terminator).
 const OWN_NUMBER_QUANTIFIED = /\bexile (?:\d+|two|three|four|five|six|seven|eight|nine|ten) cards? from your graveyard(?!\s*[:—])/;
+
+// 2026-06-01 audit batch — Tersa Lightshatter: "exile a card at random from
+// your graveyard" — the "at random" infix breaks the FOREIGN_OR_GENERIC
+// match (which doesn't admit "your" graveyard) AND doesn't fit
+// OWN_NUMBER_QUANTIFIED (count is "a", not numeric). Triggered effects with
+// a controller-graveyard exile (not a cost) are the same axis as the
+// targeted/numbered forms. The negative lookahead `(?!\s*[:—])` preserves
+// Renew-style cost suppression.
+const OWN_AT_RANDOM = /\bexile (?:a|an|that)\s+(?:[\w\-]+\s+){0,3}?card\s+at\s+random\s+from\s+your\s+graveyard(?!\s*[:—])/;
 
 // v0.23 — anaphoric "exile that card / that creature / those cards" from
 // your graveyard (Containment Construct, Currency Converter — "you may exile
@@ -86,7 +102,9 @@ export const rule: Rule = {
       t.match(IN_GRAVEYARD) ??
       t.match(OWN_NUMBER_QUANTIFIED) ??
       t.match(OWN_ANAPHORIC) ??
-      t.match(SEARCH_GRAVEYARD_EXILE);
+      t.match(SEARCH_GRAVEYARD_EXILE) ??
+      t.match(OWN_AT_RANDOM) ??
+      t.match(OPPONENT_FORCED_GRAVEYARD);
     return m ? { evidence: m[0] } : false;
   },
 };

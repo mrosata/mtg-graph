@@ -15,6 +15,15 @@ describe('effect.flicker', () => {
     ['exile target creature. return it to the battlefield at the beginning of the next end step.'],
     // Until-end-of-turn variant: "exile ... return ... at the beginning of the next turn"
     ['exile target creature. return that card to the battlefield at the beginning of the next turn.'],
+    // 2026-06-02 audit batch — Hide on the Ceiling: exiles a mixed bag of
+    // artifacts and/or creatures, then refers to them as "the exiled cards".
+    // The return-anaphor needs to admit "the exiled cards/creatures/permanents"
+    // in addition to "it"/"them"/"that card"/"that creature".
+    ["exile x target artifacts and/or creatures. return the exiled cards to the battlefield under their owners' control at the beginning of the next end step."],
+    ['exile two target creatures. return the exiled creatures to the battlefield at the beginning of the next end step.'],
+    ['exile target permanent. return the exiled permanent to the battlefield at the beginning of the next end step.'],
+    // HIGH-9 (Morningtide's Light): "exile any number of target creatures. at the beginning of the next end step, return those cards to the battlefield".
+    ["exile any number of target creatures. at the beginning of the next end step, return those cards to the battlefield tapped under their owners' control."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

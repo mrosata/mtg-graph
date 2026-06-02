@@ -18,16 +18,17 @@ export const tagDef: TagDef = {
 };
 
 // "search [your|target opponent's]? library for [optional clause]? artifact card"
-const PATTERN = /search [\w\s']+? library for [\w\s,'-]{0,60}?\bartifact cards?\b/;
+// v0.33+ — admit "searches" third-person template across all four arms.
+const PATTERN = /search(?:es)?\s+[\w\s']+? library for [\w\s,'-]{0,60}?\bartifact cards?\b/;
 // Hybrid "A or B card" sharing trailing noun — "an artifact or enchantment card",
 // "a creature or artifact card".
-const PATTERN_HYBRID = /search [\w\s']+? library for [\w\s,'-]{0,40}?\bartifact or [\w\s\-]{1,30}? cards?\b/;
-const PATTERN_HYBRID_2 = /search [\w\s']+? library for [\w\s,'-]{0,40}?\b[\w\s\-]{1,30}? or artifact cards?\b/;
+const PATTERN_HYBRID = /search(?:es)?\s+[\w\s']+? library for [\w\s,'-]{0,40}?\bartifact or [\w\s\-]{1,30}? cards?\b/;
+const PATTERN_HYBRID_2 = /search(?:es)?\s+[\w\s']+? library for [\w\s,'-]{0,40}?\b[\w\s\-]{1,30}? or artifact cards?\b/;
 // 2026-06-01 audit Group 16 — Brightglass Gearhulk: multi-type tutor chains
 // joined by commas and "and/or" — "artifact, creature, and/or enchantment
 // cards". Admit `/` and longer filler so the trailing `artifact` noun is
 // reached when it appears in the middle/start of the list.
-const PATTERN_MULTI = /search [\w\s']+? library for [\w\s,'\-\/]{0,80}?\bartifact[\w\s,'\-\/]{0,60}?cards?\b/;
+const PATTERN_MULTI = /search(?:es)?\s+[\w\s']+? library for [\w\s,'\-\/]{0,80}?\bartifact[\w\s,'\-\/]{0,60}?cards?\b/;
 
 export const rule: Rule = {
   id: 'effect.tutors_artifact',

@@ -36,6 +36,15 @@ describe('effect.causes_damage', () => {
     // v0.20.0 — singular anaphoric "the creature you control deals damage"
     // with target-establishing antecedent (Beastie Beatdown).
     ['choose target creature you control and target creature an opponent controls. delirium — if there are four or more card types among cards in your graveyard, put two +1/+1 counters on the creature you control. the creature you control deals damage equal to its power to the creature an opponent controls.'],
+    // 2026-06-01 audit batch — Bartz and Boko: tribal-scoped group damage.
+    // "each other Bird you control deals damage equal to its power to
+    // target creature an opponent controls".
+    ['when __self__ enters, each other bird you control deals damage equal to its power to target creature an opponent controls.'],
+    // HIGH-18a (Assert Perfection): tail relax — "up to (one|two|three) target creature".
+    ['target creature you control gets +1/+0 until end of turn. it deals damage equal to its power to up to one target creature an opponent controls.'],
+    // HIGH-18b (Champion of the Path): tribal-ETB anaphoric arm — "whenever (another|a) <tribe> you control enters, it deals damage equal to its power".
+    ['whenever another elemental you control enters, it deals damage equal to its power to each opponent.'],
+    ['whenever a goblin you control enters, it deals damage equal to its toughness to each opponent'],
   ])('matches indirect damage: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

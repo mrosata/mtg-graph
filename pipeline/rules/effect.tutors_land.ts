@@ -26,7 +26,8 @@ export const tagDef: TagDef = {
 // form which is the basic-land axis (Nervous Gardener). The "with a basic
 // land type" disqualifier is enforced via a NEGATIVE LOOKAHEAD on the trailing
 // clause.
-const PATTERN = /\bsearch [\w\s']+? library for a land cards?\b(?! with a basic land type)(?<!\bbasic land cards?\b)/;
+// v0.33+ — admit "searches" third-person template.
+const PATTERN = /\bsearch(?:es)?\s+[\w\s']+? library for a land cards?\b(?! with a basic land type)(?<!\bbasic land cards?\b)/;
 
 export const rule: Rule = {
   id: 'effect.tutors_land',

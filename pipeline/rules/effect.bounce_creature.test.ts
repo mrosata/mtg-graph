@@ -45,6 +45,14 @@ describe('effect.bounce_creature', () => {
     // admit singular "their owner's" (plural was already admitted via
     // "their owners'").
     ["return all nonland permanents target player controls to their owner's hand."],
+    // 2026-06-01 audit batch — Marang River Regent / Sunpearl Kirin / Jill.
+    // Broad-permanent bounces with "(up to )?<count> (other )?target" count
+    // slot before "target nonland permanent(s)".
+    ["return up to two other target nonland permanents to their owners' hands"],
+    ["return up to one other target nonland permanent you control to its owner's hand"],
+    ["return up to one other target nonland permanent to its owner's hand"],
+    // Cactuar — self-anaphoric "return it" with "this creature" antecedent.
+    ["at the beginning of your end step, if this creature didn't enter the battlefield this turn, return it to its owner's hand."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

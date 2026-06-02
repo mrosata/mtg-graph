@@ -49,8 +49,13 @@ export const rule: Rule = {
     // triggers like Gate Colossus / Gateway Sneak ("whenever a gate you
     // control enters") don't poach the creature-ETB axis. Those are handled
     // by trigger.landfall instead.
+    // 2026-06-02 audit batch — also exclude enchantment subtypes (shrine,
+    // aura, saga, class, curse, background, role). Shrine is an enchantment
+    // subtype; "whenever another shrine you control enters" (Kyoshi Island
+    // Plaza family) shouldn't fire the creature-ETB axis. cares_subtype.<X>
+    // carries the actual tribal payoff for these.
     const tribal = t.match(
-      /whenever (?:a|another|one or more (?:other )?)\s*(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature|gate|cave|sphere|plains|island|swamp|mountain|forest|locus|desert|lair|town|mine|tower|power-plant|urza)s?\b)[\w\-]+s?(?:,\s+[\w\-]+s?){0,4}(?:,?\s+(?:or|and|and\/or)\s+[\w\-]+s?)?\s+(?:you control\s+)?(?:enters?|enter\b|enters or is turned face up)/,
+      /whenever (?:a|another|one or more (?:other )?)\s*(?:nontoken\s+)?(?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|creature|gate|cave|sphere|plains|island|swamp|mountain|forest|locus|desert|lair|town|mine|tower|power-plant|urza|shrine|aura|saga|class|curse|background|role)s?\b)[\w\-]+s?(?:,\s+[\w\-]+s?){0,4}(?:,?\s+(?:or|and|and\/or)\s+[\w\-]+s?)?\s+(?:you control\s+)?(?:enters?|enter\b|enters or is turned face up)/,
     );
     if (tribal) return { evidence: tribal[0] };
     // v0.14.20 — compound subject "this <type> or another <subject>"
@@ -68,7 +73,7 @@ export const rule: Rule = {
     // control" must not fire here — non-creature permanent ETBs have their
     // own dedicated trigger.another_<type>_etb tags.
     const compound = t.match(
-      /whenever (?:__self__|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)) or (?:a|another|one or more) (?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|gate|cave|sphere|plains|island|swamp|mountain|forest|locus|desert|lair|town|mine|tower|power-plant|urza)s?\b)[\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
+      /whenever (?:__self__|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)) or (?:a|another|one or more) (?!(?:artifact|enchantment|land|planeswalker|battle|permanent|token|gate|cave|sphere|plains|island|swamp|mountain|forest|locus|desert|lair|town|mine|tower|power-plant|urza|shrine|aura|saga|class|curse|background|role)s?\b)[\w\-\s]{1,80}?(?:enters?|enters or is turned face up)/,
     );
     return compound ? { evidence: compound[0] } : false;
   },
