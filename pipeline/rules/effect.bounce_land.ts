@@ -22,8 +22,15 @@ export const tagDef: TagDef = {
 // existing `another|target|each|all` allowlist missed the entire cycle (Arid
 // Archway and partners). Land/typed-land subject still required, so generic
 // "return a creature you control to its owner's hand" stays out.
+// v0.35.0 — Batch 11: forbid `cards?` inside the pre-noun filler so the
+// "exiled with this land" frame can't bridge through a `card` antecedent.
+// Northampton Farm ("return each other card exiled with this land to its
+// owner's hand") was FPing because the lazy filler consumed "other card
+// exiled with this" then satisfied `lands?` on the "land" token. The
+// bounced object is "card", not "land". Adding `(?!cards?\s)` at the
+// filler entry rejects any filler token starting with "card".
 const PATTERN_RETURN_OWN =
-  /\breturn(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,5}?lands?(?!\s+card)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+)(?:(?!cards?\s)[\w\-]+[,\s]+){0,5}?lands?(?!\s+card)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
 
 // `(?!\s+card)` + graveyard guard reject "return target permanent card from
 // your graveyard to your hand" (graveyard recursion, e.g. Coati Scavenger).

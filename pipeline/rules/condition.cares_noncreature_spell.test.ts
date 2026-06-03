@@ -45,6 +45,15 @@ describe('condition.cares_noncreature_spell', () => {
     // register from the noncreature half.
     ['whenever you cast a noncreature or otter spell, you may exile the top card of your library'],
     ['whenever you cast a noncreature or rat spell, draw a card'],
+    // v0.35.0 — Batch 6: anthem-with-PP filler (Quandrix, the Proof). The
+    // "spells you cast from your hand have cascade" form has a PP clause
+    // ("from your hand") between "cast" and the anthem verb.
+    ['flying, trample cascade instant and sorcery spells you cast from your hand have cascade.'],
+    // v0.35.0 — Batch 6: activation/cast-conditional gate (Burrog Barrage,
+    // Potioner's Trove). Payoff gates on "if you've cast an instant or
+    // sorcery spell this turn".
+    ["target creature you control gets +1/+0 until end of turn if you've cast another instant or sorcery spell this turn."],
+    ["activate only if you've cast an instant or sorcery spell this turn"],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

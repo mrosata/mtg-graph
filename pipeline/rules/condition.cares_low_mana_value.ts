@@ -36,8 +36,14 @@ export const tagDef: TagDef = {
 // v0.14.10 — admit verb-bearing variant "mana value IS N or less" via
 // optional `is\s+` arm. Same semantic; covers Beseech the Mirror,
 // Soul Search, Guidelight Pathmaker, Thunderous Velocipede.
+// v0.35.0 — Batch 10: also admit `was` (past tense, trigger-aftermath
+// conditions like Tainted Treats "if its mana value was 4 or less") and
+// `x` as a placeholder in the count slot (variable-X spells like Vicious
+// Rivalry "with mana value X or less" and Mind into Matter "with mana
+// value X or less"). The X-as-count form is unambiguously low-MV scope
+// because the spell itself has X in its cost.
 const PATTERNS = [
-  /(?<!total\s)\bmana value (?:is\s+)?[1-4]\s*or less\b/,
+  /(?<!total\s)\bmana value (?:is\s+|was\s+)?(?:[1-4]|x)\s*or less\b/,
   // v0.30 Group 7 — count-comparator: "mana value (is)? less than or equal
   // to the number/amount" / "≤ the number/amount/x" (Quag Feast).
   // Dynamic ceiling — still a low-MV gate axis. Per ship list tiebreaker,

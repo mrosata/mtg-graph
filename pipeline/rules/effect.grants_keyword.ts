@@ -49,6 +49,12 @@ function buildGrantRegex(kw: string): RegExp {
       // as long as…" (Grand Ball Guest, Gallant Pie-Wielder) matches.
       `\\b(?:other|target|enchanted|equipped|all|each|this)\\s+(?:[\\w\\-]+\\s+){0,4}?creatures?[^.]{0,50}?(?:has|have)\\s+${kw}\\b`,
       `\\bcreatures?\\s+(?:you control|you don't control|an opponent controls)\\s+(?:has|have)\\s+${kw}\\b`,
+      // v0.35.0 — Batch 23: conditional anthem — "creatures you control with
+      // <modifier> have <kw>" (Emil, Vastlands Roamer: "creatures you control
+      // with +1/+1 counters on them have trample"). The `with [^.]{0,60}?`
+      // filler admits the typical conditional clause ("+1/+1 counters on them",
+      // "power 3 or greater", etc.) between the subject and the anthem verb.
+      `\\bcreatures?\\s+(?:you control|you don't control|an opponent controls)\\s+with\\s+[^.]{0,60}?\\s+(?:has|have)\\s+${kw}\\b`,
       // v0.14.1 — tribal anthem: "Other Dinosaurs you control have haste"
       // (Palani's Hatcher). The subject is a tribe plural noun, not the
       // generic "creatures". Require the plural-`s` suffix to keep this

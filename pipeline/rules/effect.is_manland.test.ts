@@ -23,6 +23,11 @@ describe('effect.is_manland', () => {
     // <stats> creature" frame — the existing PATTERN requires "this land"
     // or "__self__" as the explicit subject of `is/becomes`.
     ['{t}: add {c}.\n{4}: put two +1/+1 counters on this land. then you may have it become a 0/0 elemental creature until end of turn. it\'s still a land.'],
+    // v0.35.0 — Batch 21: conditional self-animation (Great Hall of the
+    // Biblioplex). "If this land isn't a creature, it becomes a 2/4 Wizard
+    // creature" — the activation toggles the manland state once; same
+    // self-animation semantic as the unconditional cycle.
+    ["{5}: if this land isn't a creature, it becomes a 2/4 wizard creature with   it's still a land."],
   ])('matches lands that become creatures: %s', (text) => {
     expect(rule.matchCard!(card(['Land'], text), text)).toBeTruthy();
   });

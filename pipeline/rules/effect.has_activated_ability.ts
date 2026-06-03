@@ -32,7 +32,14 @@ export const tagDef: TagDef = {
 // creature you control with mana value X other than Sidisi:" — 74 chars
 // between `{t}` and `:`. The prior 60-char window cut off the colon. Bumped
 // to 100 to admit long restrictive subjects on the sacrifice cost.
-const SYMBOL_ACTIVATED_PATTERN = /\{[wubrgcxstq0-9](?:\/[wubrgcps])?\}[^.\n]{0,100}?:\s/;
+// v0.35.0 — Batch 12a: admit multi-digit generic mana `{10}`, `{12}`, etc.
+// in the leading symbol slot. The prior single-digit class `[0-9]` matched
+// only one digit, so `{10}` was parsed as `{1` + `0}` (no closing brace) and
+// the regex would skip past it. For has_activated_ability the failure was
+// masked when a subsequent `{T}` symbol re-anchored the match, but cards
+// whose first cost symbol is `{10}` with no follow-on tap could miss.
+// Mirrored fix on effect.has_mana_activated_ability.ts.
+const SYMBOL_ACTIVATED_PATTERN = /\{(?:[wubrgcxstq]|\d+)(?:\/[wubrgcps])?\}[^.\n]{0,100}?:\s/;
 
 // Spelled-out non-symbol activation costs (v0.12.9). Some abilities use a cost
 // that contains no {mana}/{T} token at all — "Sacrifice another creature: ...",

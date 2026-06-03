@@ -43,6 +43,14 @@ describe('effect.cast_from_exile', () => {
     ['until end of turn, you may cast cards exiled this way without paying their mana costs.'],
     // HIGH-5a (anchored Taster of Wares): "exile ... you may cast (it|that card) for as long as you control this creature".
     ['that player exiles it. if an instant or sorcery card is exiled this way, you may cast it for as long as you control this creature, and mana of any type can be spent to cast that spell.'],
+    // v0.35.0 — Batch 30: anaphoric "you may cast it/that card" after an
+    // exile clause. Nita, Forum Conciliator ("Exile target ... You may
+    // cast it this turn") and Practiced Scrollsmith ("Exile target ...
+    // Until the end of your next turn, you may cast that card"). The
+    // backward exile-window guard prevents FPs on bare "you may cast it"
+    // templates outside an exile context.
+    ["exile target instant or sorcery card from an opponent's graveyard. you may cast it this turn, and mana of any type can be spent to cast that spell."],
+    ['when this creature enters, exile target noncreature, nonland card from your graveyard. until the end of your next turn, you may cast that card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

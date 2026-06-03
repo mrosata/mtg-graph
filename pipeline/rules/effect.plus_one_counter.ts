@@ -39,6 +39,12 @@ const PATTERNS = [
   // put on <subject> instead" — or "twice/three times that many". Both halves
   // describe putting counters; semantically a counter-adder.
   /\bif one or more \+1\/\+1 counters would be put on [^.]{0,120}? \+1\/\+1 counters? are put on [^.]{0,60}? instead\b/,
+  // v0.35.0 — Batch 13: move-counter frame. Tester of the Tangential ("move
+  // X +1/+1 counters from this creature onto another target creature").
+  // Target-side addition implies +1/+1 placement on the destination — fits
+  // the plus_one_counter axis. The source-side removal also fits
+  // effect.counter_modified.
+  /\bmove\s+(?:\d+|x|one|two|three|four|five)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
 ];
 
 export const rule: Rule = {

@@ -39,8 +39,15 @@ export const tagDef: TagDef = {
 // nontoken permanents" parses as a single qualifier list.
 // FIX 18 (BR-13) — Desecration Demon: "any opponent may sacrifice ...".
 // Add `any opponent` to the subject alternation alongside `each` / `target`.
+// v0.35.0 — Batch 34: extend the object noun alternation to include typed
+// permanents (artifact, enchantment, planeswalker, land). Lorehold Charm
+// ("Each opponent sacrifices a nontoken artifact of their choice") and
+// related opponent-edict-with-typed-permanent frames now fire on this
+// axis. The companion typed-sacrifice rules (effect.sacrifice_artifact,
+// etc.) intentionally suppress opponent-edict frames via their
+// NEGATIVE_EDICT strips — edict owns this routing.
 const PATTERN =
-  /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player|any\s+opponent)\s+(?:may\s+(?:[^.]{0,40}?\s+or\s+)?)?sacrifices?\s+(?:a\s+|an\s+|two\s+|three\s+|x\s+|that\s+many\s+|half\s+(?:the\s+)?(?:non-?\w+\s+)?)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent)s?\b/;
+  /\b(?:target\s+opponent|each\s+opponent|each\s+player|target\s+player|any\s+opponent)\s+(?:may\s+(?:[^.]{0,40}?\s+or\s+)?)?sacrifices?\s+(?:a\s+|an\s+|two\s+|three\s+|x\s+|that\s+many\s+|half\s+(?:the\s+)?(?:non-?\w+\s+)?)?(?:[\w\-,]+\s+){0,4}?(?:creature|permanent|artifact|enchantment|planeswalker|land)s?\b/;
 
 // v0.20 — "unless <opponent> sacrifices" punisher-edict (Rottenmouth Viper:
 // "each opponent loses 4 life unless that player sacrifices a nonland

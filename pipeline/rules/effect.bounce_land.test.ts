@@ -22,6 +22,12 @@ describe('effect.bounce_land', () => {
     // (delayed) or BLINK (immediate), not bounce. Mirrors the narrowing
     // already applied to effect.bounce_creature / effect.bounce_artifact.
     ['exile target land, then return that land to the battlefield'],
+    // v0.35.0 — Batch 11: Northampton Farm. "Return each other card exiled
+    // with this land to its owner's hand" — the returned object is "card",
+    // not "land". The lazy filler used to bridge through the "card" token
+    // to reach the "land" of "exiled with this land". The negative
+    // `(?!cards?\s)` at the filler entry rejects this FP shape.
+    ["return each other card exiled with this land to its owner's hand."],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

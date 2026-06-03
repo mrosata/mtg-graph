@@ -87,6 +87,14 @@ const PATTERNS = [
   // card for as long as you control this creature". Tight anchor required
   // because the bare "you may cast it" template appears in many contexts.
   /\bexile(?:d)?\b[^.]{0,120}?\byou may cast (?:it|that card|the exiled cards?) for as long as you control (?:__self__|this creature)\b/,
+  // (8) v0.35.0 — Batch 30: anaphoric "you may cast it/that card" after an
+  // exile clause (Nita, Forum Conciliator: "Exile target ... You may cast
+  // it this turn"; Practiced Scrollsmith: "Exile target ... Until the end
+  // of your next turn, you may cast that card"). The leading `exile`
+  // anchor + 150-char backward window binds the anaphor to the prior
+  // exile clause, preventing FPs on bare "you may cast it" templates
+  // outside an exile context.
+  /\bexile[^.]{0,150}?\.\s*(?:until the end of your next turn,?\s*)?you may cast (?:it|that card)(?:\s+(?:this turn|until the end of your next turn))?\b/,
 ];
 
 export const rule: Rule = {

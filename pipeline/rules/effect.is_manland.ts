@@ -32,12 +32,22 @@ const PATTERN = /\b(?:this land|__self__)\s+(?:is|becomes)\s+(?:a|an)\b[^.]*?\bc
 // in the text).
 const PATTERN_HAVE_IT_BECOME = /\bhave it become\s+(?:a|an)\b[^.]*?\bcreature\b/;
 
+// v0.35.0 — Batch 21: conditional self-animation. Great Hall of the
+// Biblioplex: "{5}: If this land isn't a creature, it becomes a 2/4
+// Wizard creature with ...". The conditional gate ensures the land
+// transitions back and forth between land-only and land-creature; still
+// self-animation, just guarded by the "not currently a creature" check.
+const PATTERN_CONDITIONAL = /\bif (?:this land|__self__) isn'?t a creature,?\s*it becomes\s+(?:a|an)\b[^.]*?\bcreature\b/;
+
 export const rule: Rule = {
   id: 'effect.is_manland',
   axis: 'effect',
   matchCard: (card, normalizedText) => {
     if (!card.types.includes('Land')) return false;
-    const m = normalizedText.match(PATTERN) ?? normalizedText.match(PATTERN_HAVE_IT_BECOME);
+    const m =
+      normalizedText.match(PATTERN) ??
+      normalizedText.match(PATTERN_HAVE_IT_BECOME) ??
+      normalizedText.match(PATTERN_CONDITIONAL);
     return m ? { evidence: m[0].slice(0, 80) } : false;
   },
 };

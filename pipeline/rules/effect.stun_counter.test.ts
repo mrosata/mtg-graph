@@ -15,6 +15,11 @@ describe('effect.stun_counter', () => {
     ['this creature gets +1/+1 for each stun counter on it'],
     // Anaphoric "with a stun counter".
     ["target creature with a stun counter on it can't attack or block"],
+    // v0.35.0 — Batch 13: ETB-with-stun-counters (Slumbering Trudge).
+    // Static ETB form with "a number of stun counters" count slot.
+    ['this creature enters with a number of stun counters on it equal to three minus x. if x is 2 or less, it enters tapped.'],
+    // v0.35.0 — Batch 13: compound count "twice X" (Procrastinate).
+    ['tap target creature. put twice x stun counters on it.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

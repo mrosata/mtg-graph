@@ -20,8 +20,13 @@ export const tagDef: TagDef = {
 // v0.20 — added copula arm "<name>'s/its power is N or less" (Reptilian
 // Recruiter: "if that creature's power is 2 or less"). Mirrors the
 // cares_high_power copula arm.
+// v0.35.0 — Batch 33: admit optional "or toughness" infix in the bare
+// "power N or less" arm. Arnyn, Deathbloom Botanist: "with power or
+// toughness 1 or less". The disjunction triggers BOTH the low-power
+// branch AND the low-toughness branch (handled separately); the power
+// branch correctly fires here.
 const PATTERN =
-  /\bpower (?:[0-2]|one|two) or (?:less|fewer)\b|\bwith the least power\b|\b(?:[\w']+?'s|its)\s+power\s+(?:is|are)\s+(?:[0-2]|one|two) or (?:less|fewer)\b/;
+  /\bpower (?:or toughness )?(?:[0-2]|one|two) or (?:less|fewer)\b|\bwith the least power\b|\b(?:[\w']+?'s|its)\s+power\s+(?:is|are)\s+(?:[0-2]|one|two) or (?:less|fewer)\b/;
 
 // v0.14.4 Task 4.3: "can't be blocked by creatures with power N or less" is a
 // blocker-restriction (pseudo-evasion), NOT a cares-low-power payoff. Mirror

@@ -58,6 +58,23 @@ describe('effect.exile_from_graveyard', () => {
     // a creature they control and their graveyard". The "their graveyard"
     // half is a whole-graveyard wipe; forced-edict on the opponent.
     ['target opponent exiles a creature they control and their graveyard.'],
+    // v0.35.0 Batch 7 — Rubble Rouser: "{T}, exile a card from your
+    // graveyard: <effect>" — non-self generic cost activation. Rubble
+    // Rouser's mana ability exiles foreign material (a controller-graveyard
+    // card other cards reference). Distinct from Renew-style self-exile,
+    // which keeps `__self__` as the determiner.
+    ['{t}, exile a card from your graveyard: add one mana of any color.'],
+    // v0.35.0 Batch 7 — Lluwen, Exchange Student: typed-card cost-exile
+    // ("exile a creature card from your graveyard: ..."). The determiner
+    // is `a` and the noun chain includes a card-type qualifier.
+    ['exile a creature card from your graveyard: __self__ becomes prepared. activate only as a sorcery.'],
+    // v0.35.0 Batch 7 — Postmortem Professor: mana-cost-plus-graveyard-exile
+    // activation. Includes the mana cost prefix `{1}{b},` before the exile clause.
+    ['{1}{b}, exile an instant or sorcery card from your graveyard: return this card from your graveyard to the battlefield.'],
+    // v0.35.0 Batch 7 — Heated Argument: optional non-cost graveyard exile
+    // ("you may exile a card from your graveyard. if you do, …"). No colon
+    // terminator — this is a payoff-conditional, not an activation cost.
+    ['__self__ deals 6 damage to target creature. you may exile a card from your graveyard. if you do, __self__ also deals 2 damage to that creature\'s controller.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -71,8 +88,9 @@ describe('effect.exile_from_graveyard', () => {
     ['{1}{g}, exile __self__ from your graveyard: search your library for a desert card.'],
     ['renew — {1}{g}, exile __self__ from your graveyard: put a +1/+1 counter on target creature.'],
     ['{5}, exile __self__ from your graveyard: discover 5.'],
-    // Generic untargeted cost-form on the activator's own graveyard.
-    ['{t}, exile a card from your graveyard: add one mana of any color.'],
+    // v0.35.0 Batch 7 — numeric-determiner cost still excluded (the
+    // COST_NONSELF arm only admits `(a|an|one|that)` determiners, so
+    // numeric "two" stays in the cost-suppression bucket).
     ['exile two cards from your graveyard: draw a card.'],
     // Regression (Fabrication Foundry): OWN_QUANTIFIED used to span across
     // the colon — "exile one or more other artifacts you control with total

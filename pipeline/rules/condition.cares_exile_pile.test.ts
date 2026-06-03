@@ -60,6 +60,10 @@ describe('condition.cares_exile_pile', () => {
     // Huskburster Swarm — singular "card" in "cards you own in exile" frame.
     // The original pattern required plural "cards".
     ['this spell costs {1} less to cast for each creature card you own in exile and in your graveyard'],
+    // v0.35.0 — Batch 24: Ennis, Debate Moderator. Plural count "one or
+    // more cards were put into exile this turn" — same turn-scoped trigger
+    // gate with a count quantifier and plural verb.
+    ['at the beginning of your end step, if one or more cards were put into exile this turn, put a +1/+1 counter on __self__.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

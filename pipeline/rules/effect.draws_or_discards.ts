@@ -32,8 +32,12 @@ export const rule: Rule = {
     // reaches the subject slot. Without it the em-dash modal header swallows
     // the clause boundary and the regex falls off.
     // v0.21.0 — Miasma Demon: "any number of cards" added to count slot.
+    // v0.35.0 — Batch 8: added `half (?:the )?cards?(?: in [^.]+? hand)?` to
+    // the count slot so Pox Plague's "each player ... discards half the cards
+    // in their hand" matches. The "in <player>'s hand" tail is optional and
+    // bounded so the match terminates on the next clause.
     const m = t.match(
-      /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player|each of (?:\w+(?:'s)?\s+){1,3}(?:opponents?|controllers?|players?))\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|any number of cards|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
+      /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player|each of (?:\w+(?:'s)?\s+){1,3}(?:opponents?|controllers?|players?))\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|any number of cards|half (?:the )?cards?(?: in [^.]+? hand)?|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
     );
     if (m) return { evidence: m[0] };
     // v0.15 — causative "have <opponent> draw/discard" frame (Alania,
@@ -49,10 +53,25 @@ export const rule: Rule = {
     // draws a card"). The primary regex's leadin gate `(?:^|[.,:\n—] ?)`
     // requires a sentence boundary; space-bounded mid-sentence third-party
     // draws slipped through.
+    // v0.35.0 — Batch 8: count slot admits a single digit optionally followed
+    // by a Unicode superscript digit / modifier-letter x. Mathemagics ("draws
+    // 2ˣ cards", where `ˣ` is U+02E3) needed the superscript variant for the
+    // X-cost payoff to register. Kept the digit class tight to avoid
+    // FPs on "no cards" / "creature cards".
     const thirdParty = t.match(
-      /\b(?:target\s+player|target\s+opponent|its\s+controller|that\s+player)\s+(?:may\s+)?(?:draws?|discards?)\s+(?:a card|that card|the chosen card|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|cards equal to \S+)/,
+      /\b(?:target\s+player|target\s+opponent|its\s+controller|that\s+player)\s+(?:may\s+)?(?:draws?|discards?)\s+(?:a card|that card|the chosen card|\d+[ˣ⁰¹²³⁴⁵⁶⁷⁸⁹]? cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|cards equal to \S+)/,
     );
     if (thirdParty) return { evidence: thirdParty[0] };
+    // v0.35.0 — Batch 8: plural-subject "any number of target players each
+    // discard a card" (Ral Zarek, Guest Lecturer) and "you and target
+    // (player|opponent) each draw/discard" (Joined Researchers, Turtles in
+    // Time). The "each" anchor between the plural subject and the draw/
+    // discard verb keeps this from FPing on bare "players draw" without an
+    // explicit each-distribution.
+    const pluralSubject = t.match(
+      /(?:^|[.,:\n— ])(?:any number of target (?:players|opponents)|you and target (?:player|opponent))\s+each\s+(?:may\s+)?(?:draws?|discards?)\s+(?:a card|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?)/,
+    );
+    if (pluralSubject) return { evidence: pluralSubject[0] };
     // v0.20.0 — bound-pronoun "they draw/discard" subject (Thought-Stalker
     // Warlock: "choose target opponent ... they discard that card"). The
     // sentence-leadin gate suppresses bare conditional clauses like

@@ -28,7 +28,14 @@ export const tagDef: TagDef = {
   pairsWith: ['condition.reduces_activated_mana_cost'],
 };
 
-const SYMBOL_ACTIVATED_PATTERN = /\{[wubrgcxstq0-9](?:\/[wubrgcps])?\}[^.\n]{0,60}?:\s/;
+// v0.35.0 — Batch 12a: admit multi-digit generic mana `{10}`, `{12}`, etc.
+// in the leading symbol slot. Pizza Face, Gastromancer ({10}, {T}, Sacrifice
+// Pizza Face:) was missing has_mana_activated_ability because the prior
+// single-digit class `[0-9]` skipped `{10}` (parsed as `{1` + `0}`) and the
+// regex began matching at `{T}` — a tap symbol which fails MANA_BEARING_SYMBOL.
+// Admitting `\d+` (one or more digits) inside the alternation lets the match
+// begin at `{10}`, which then satisfies the mana-bearing gate.
+const SYMBOL_ACTIVATED_PATTERN = /\{(?:[wubrgcxstq]|\d+)(?:\/[wubrgcps])?\}[^.\n]{0,60}?:\s/;
 
 // v0.20 — keyword-cost prefix exclusion. After normalization collapses
 // newlines into spaces, a keyword's mana cost (Offspring {2}, Kicker {1},

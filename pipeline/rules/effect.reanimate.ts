@@ -108,6 +108,12 @@ const PATTERNS = [
   // graveyard-anaphor arm (which uses "return that card"), this uses
   // "put that card".
   /\bfrom (?:your|a|an opponent's|any) graveyard[^.]{0,200}?\.[^.]{0,100}?(?:instead )?put that card (?:onto|to) the battlefield/,
+  // v0.35.0 — Batch 2: mill-then-reanimate with anaphoric "from among them".
+  // Vastlands Scavenger // Bind to Life: "Mill seven cards. Then put a
+  // creature card from among them onto the battlefield". The "them" binds
+  // to the just-milled cards (now in graveyard); same semantic as the
+  // existing "from among the milled cards" arm with a pronoun anaphor.
+  /\bmill\s+\S+\s+cards?\.\s*then\s+put\s+(?:a |an |one |any number of )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|card)s?\s+from among them onto the battlefield\b/,
 ];
 
 export const rule: Rule = {

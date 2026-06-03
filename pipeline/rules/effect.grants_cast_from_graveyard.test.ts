@@ -30,6 +30,12 @@ describe('effect.grants_cast_from_graveyard', () => {
     // grant. Harmonize is the FIN/TDM graveyard-cast keyword; same license
     // axis as Flashback / Disturb / Embalm.
     ['target instant or sorcery card in your graveyard gains harmonize until end of turn. its harmonize cost is equal to its mana cost.'],
+    // v0.35.0 — Batch 32: card name = keyword (Flashback the instant).
+    // `normalize.replaceSelfReferences` rewrites the literal keyword
+    // "flashback" in the grant clause to `__self__`. The frame anchor
+    // ("card in your graveyard gains") keeps the broadening safe — only
+    // cards literally named after a graveyard-cast keyword match.
+    ['target instant or sorcery card in your graveyard gains __self__ until end of turn. the __self__ cost is equal to its mana cost.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -13,6 +13,11 @@ describe('effect.exile_planeswalker', () => {
     // permanent damaged. exile_creature already fires via PATTERN_REPLACEMENT;
     // the planeswalker sister-tag should mirror this.
     ['__self__ deals 2 damage to target creature or planeswalker. if a permanent dealt damage by __self__ would die this turn, exile it instead'],
+    // v0.35.0 — Batch 16: End of the Hunt. Forced-edict with "creature or
+    // planeswalker" disjunction — the planeswalker branch should fire the
+    // exile-planeswalker axis.
+    ['target opponent exiles a creature or planeswalker they control with the greatest mana value among creatures and planeswalkers they control.'],
+    ['target opponent exiles a planeswalker they control.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

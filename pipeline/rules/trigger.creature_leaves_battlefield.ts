@@ -39,8 +39,14 @@ const LTB_VERB = "(?:leaves? the battlefield|(?:is|are) put into (?:a|your|an op
 // Adjective filler char class includes `/` so compound subjects with
 // "and/or" don't break tokenization (Kaya: "creatures you control and/or
 // creature cards in your graveyard are put into exile").
+// v0.35.0 — Batch 31: added `+` to the inner-filler char class so
+// interposed-modifier subjects with `+1/+1` survive (The Ooze:
+// "whenever a creature you control with a +1/+1 counter on it leaves
+// the battlefield"). Without `+`, the modifier token "+1/+1" broke the
+// adjective-filler tokenization between "creature you control" and
+// "leaves the battlefield".
 const PATTERN_TEXT = new RegExp(
-  `\\bwhen(?:ever)?\\s+(?:a\\s+|an\\s+|another\\s+|the\\s+|each\\s+|each\\s+other\\s+|an?\\s+enchanted\\s+|one or more\\s+)?(?:[\\w\\-]+\\s+){0,3}?creatures?(?:\\s+[\\w\\-/]+){0,10}?\\s+${LTB_VERB}\\b`,
+  `\\bwhen(?:ever)?\\s+(?:a\\s+|an\\s+|another\\s+|the\\s+|each\\s+|each\\s+other\\s+|an?\\s+enchanted\\s+|one or more\\s+)?(?:[\\w\\-]+\\s+){0,3}?creatures?(?:\\s+[\\w\\-/+]+){0,10}?\\s+${LTB_VERB}\\b`,
 );
 
 // SELF trigger: text says "when __self__ leaves the battlefield" AND the card is a creature.

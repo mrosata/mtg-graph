@@ -60,6 +60,11 @@ describe('effect.reanimate', () => {
     ['return target creature card from your graveyard to your hand. if this spell was kicked, instead put that card onto the battlefield tapped.'],
     // HIGH-6 (Brilliance Unleashed): "choose target artifact card in your graveyard. return it to the battlefield..."
     ["choose target artifact card in your graveyard. return it to the battlefield if it's an artifact creature card. otherwise, return it to the battlefield and it's a 3/3 robot artifact creature with flying."],
+    // v0.35.0 — Batch 2: mill-then-reanimate with anaphoric "from among them"
+    // (Vastlands Scavenger // Bind to Life). The "them" binds back to the
+    // immediately-prior "mill N cards" antecedent — same semantic as the
+    // existing "from among the milled cards" arm but with a pronoun anaphor.
+    ['deathtouch this creature enters prepared. mill seven cards. then put a creature card from among them onto the battlefield.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

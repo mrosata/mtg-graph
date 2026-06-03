@@ -14,6 +14,11 @@ describe('effect.cant_block_until_eot', () => {
     ["target creature an opponent controls can't block this turn"],
     // Modal — Daring Discovery / Untimely Malfunction (plural via mode).
     ["target creatures can't block this turn"],
+    // v0.35.0 — Batch 22: anaphoric "it can't block this turn" after a
+    // single-target damage clause (Duel Tactics). The damage clause's
+    // single-target gate binds "it" unambiguously to the damaged target.
+    ["__self__ deals 1 damage to target creature. it can't block this turn."],
+    ["this creature deals 2 damage to target creature an opponent controls. it can't block this turn."],
   ])('matches block-disable phrasings: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

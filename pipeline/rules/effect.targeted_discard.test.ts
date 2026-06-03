@@ -37,6 +37,11 @@ describe('effect.targeted_discard', () => {
     ['when this creature enters, any number of target opponents each discard a card.'],
     ['target opponents each discard a card'],
     ['each of those opponents discards a card'],
+    // v0.35.0 — Batch 17: Ral Zarek, Guest Lecturer. "Any number of target
+    // players each discard a card" — plural `players` (singular `player` is
+    // targetable too, distinct from `opponents`). Same disruption axis.
+    ['−1: any number of target players each discard a card.'],
+    ['target players each discard a card'],
     // Regression (Thought-Stalker Warlock): "choose target opponent" antecedent
     // followed by "they discard a card / that card" — bound-pronoun antecedent
     // form that the existing "target opponent reveals their hand" gate misses.

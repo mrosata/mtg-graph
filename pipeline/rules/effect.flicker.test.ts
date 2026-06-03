@@ -24,6 +24,12 @@ describe('effect.flicker', () => {
     ['exile target permanent. return the exiled permanent to the battlefield at the beginning of the next end step.'],
     // HIGH-9 (Morningtide's Light): "exile any number of target creatures. at the beginning of the next end step, return those cards to the battlefield".
     ["exile any number of target creatures. at the beginning of the next end step, return those cards to the battlefield tapped under their owners' control."],
+    // v0.35.0 — Batch 19: ransom-branch flicker (Koya, Death from Above).
+    // "Exile X. At the beginning of the next end step, you may pay {3}{B}.
+    // If you don't, return that card to the battlefield." The default
+    // (no-pay) path is canonical flicker; the optional pay branch keeps
+    // the card exiled.
+    ["flying when __self__ enters, exile up to one other target creature. at the beginning of the next end step, you may pay {3}{b}. if you don't, return that card to the battlefield under its owner's control."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

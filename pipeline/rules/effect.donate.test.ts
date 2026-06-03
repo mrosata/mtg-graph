@@ -19,7 +19,6 @@ describe('effect.donate', () => {
     // structurally includes the donate half (your permanent goes to an
     // opponent).
     ['exchange control of target artifact or creature you control and target artifact or creature an opponent controls. cycling {2}'],
-    ['exchange control of two target creatures'],
   ])('matches donate phrasings: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -40,6 +39,12 @@ describe('effect.donate', () => {
     // Zidane, Tantalus Thief — triggered on opponent gaining control (a payoff
     // for donation, not a donation itself). Must not fire.
     ['whenever an opponent gains control of a permanent from you, you create a treasure token.'],
+    // v0.35.0 Batch 26 — Kitsune-shape two-opponent-symmetric swap. Two
+    // creatures controlled by different players are exchanged; neither
+    // side is `you control`. Structurally not a donation — controller
+    // doesn't give anything away. Excluded by the tightened EXCHANGE_CONTROL
+    // anchor.
+    ['exchange control of two other target creatures controlled by different players.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

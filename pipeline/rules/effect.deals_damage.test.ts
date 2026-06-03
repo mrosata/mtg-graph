@@ -115,6 +115,30 @@ describe('effect.deals_damage', () => {
     expect(rule.match!(text)).toBeTruthy();
   });
 
+  // v0.35.0 — Batch 5: plural-verb conjugation for multi-named legendaries.
+  // Tokka & Rahzar, Terrible Twos — "__self__ deal 3 damage to that player".
+  // The name "Tokka & Rahzar" normalizes to __SELF__ as a single token but
+  // the surrounding text uses "deal" (plural) because the original name
+  // parses as two subjects joined by &. The count-bearing arms accept
+  // `deal[s]?`; the equal-to arm (no count) stays singular.
+  it.each([
+    ["this spell can't be countered. menace whenever a player casts a spell, if the amount of mana spent to cast it was less than its mana value, __self__ deal 3 damage to that player."],
+    ['__self__ deal 5 damage to any target'],
+    ['__self__ deal that much damage to each opponent'],
+  ])('matches plural-verb self-subject (multi-named legendaries): %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
+  // v0.35.0 — Batch 5: equal-to arm must stay singular to avoid trigger-form
+  // FPs. "whenever __self__ deal damage equal to its power" is a trigger
+  // phrasing, not a damage-dealing effect.
+  it.each([
+    ['whenever __self__ deal damage equal to its power'],
+    ['whenever __self__ deal combat damage to a player'],
+  ])('does not match plural-verb trigger forms: %s', (text) => {
+    expect(rule.match!(text)).toBe(false);
+  });
+
   // 2026-06-02 audit batch — gendered/plural anaphoric pronoun subjects.
   // Electro, Assaulting Battery — "he deals X damage" after "when __self__
   // leaves the battlefield" antecedent.

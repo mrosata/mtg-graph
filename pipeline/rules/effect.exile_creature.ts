@@ -84,8 +84,13 @@ const PATTERN_COMBAT_ANAPHORIC =
 // anchor on `(?:target|each|all|another) ... creature` after the verb
 // `exile`, which doesn't match the indirect subject "target opponent
 // exiles a creature they control".
+// v0.35.0 — Batch 16: admit the `or planeswalker` disjunction (End of the
+// Hunt: "Target opponent exiles a creature or planeswalker they control").
+// The exile-creature axis fires on the creature branch of the disjunction;
+// the parallel arm on effect.exile_planeswalker covers the planeswalker
+// branch.
 const PATTERN_FORCED_EDICT =
-  /\btarget opponent exiles\s+(?:[\w\-]+\s+){0,4}?creatures?\s+they control\b/;
+  /\btarget opponent exiles\s+(?:[\w\-]+\s+){0,4}?creatures?(?:\s+or\s+planeswalkers?)?\s+they control\b/;
 
 // 2026-06-02 audit batch — Mysterio, Master of Illusion: token-creator with a
 // delayed "exile those tokens" clean-up trigger. Antecedent is `create … creature

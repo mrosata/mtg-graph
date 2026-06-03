@@ -47,7 +47,12 @@ const PATTERNS = [
   // "you cast" added alongside "you control" — Mocking Sprite's cost-reduction
   // frame ("instant and sorcery spells you cast cost {1} less") gates on the
   // SAME spell axis (noncreature-spell casts) and should pair the same way.
-  /\b(?:instant\s+and\s+sorcery|sorcery\s+and\s+instant|noncreature)\s+spells?\s+you\s+(?:control|cast)\s+(?:have|has|get|gets|cost|costs)\b/,
+  // v0.35.0 — Batch 6: admit an optional prepositional-phrase filler between
+  // "you cast/control" and the anthem verb (Quandrix, the Proof: "instant
+  // and sorcery spells you cast from your hand have cascade"). The filler
+  // is bounded to short PP clauses (from|with|under|in <30 chars>); the
+  // anchoring verb list (have/has/get/gets/cost/costs) keeps it tight.
+  /\b(?:instant\s+and\s+sorcery|sorcery\s+and\s+instant|noncreature)\s+spells?\s+you\s+(?:control|cast)(?:\s+(?:from|with|under|in)\s+[^.]{0,30}?)?\s+(?:have|has|get|gets|cost|costs)\b/,
   // Spell-as-trigger-subject framings: "whenever an instant or sorcery spell
   // you control ... <verb>" (Imodane the Pyrohammer, also several spell-
   // resolves/spell-deals-damage triggers). The trigger gates on a SPELL rather
@@ -61,6 +66,15 @@ const PATTERNS = [
   // qualifiers naturally use "or" ("the first instant or sorcery spell").
   // The cost-reduction / spell-anthem axis pairs the same way.
   /\b(?:the|each|your)\s+(?:first|second|third|fourth|fifth|next)?\s*(?:instant\s+(?:spell\s+)?or\s+sorcery|sorcery\s+(?:spell\s+)?or\s+instant|noncreature)\s+spell\s+you\s+cast\b/,
+  // v0.35.0 — Batch 6: activation / cast-conditional gate. Burrog Barrage
+  // ("if you've cast another instant or sorcery spell this turn") and
+  // Potioner's Trove ("Activate only if you've cast an instant or sorcery
+  // spell this turn") gate a payoff (creature buff / ability activation) on
+  // having already cast a noncreature spell this turn. The gate scales the
+  // payoff on noncreature-spell casts and pairs the same way as trigger
+  // frames. Anchored tightly on `if|while|as long as` + `you've/have cast`
+  // + canonical noncreature-spell descriptor to avoid Counterspell-shape FPs.
+  /\b(?:if|while|as long as)\s+you('ve| have)\s+cast\s+(?:an?|another|one)\s+(?:instant\s+or\s+sorcery|sorcery\s+or\s+instant|noncreature)\s+spell\b/,
 ];
 
 export const rule: Rule = {

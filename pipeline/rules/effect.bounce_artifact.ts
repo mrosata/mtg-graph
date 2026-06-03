@@ -25,8 +25,16 @@ export const tagDef: TagDef = {
 // existing `(?!\s+card)` lookahead didn't catch it because the noun was
 // "artifact and/or enchantment cards" with intervening "and/or enchantment"
 // tokens between "artifact" and "cards".
+// v0.35.0 — Batch 20: admit `(?:other\s+)?` after the "up to <count>"
+// quantifier so "up to one other target artifact ..." (Metalhead, Nobody)
+// reaches the artifact noun. Metalhead's "return up to one other target
+// artifact or creature to its owner's hand" — the artifact branch of the
+// disjunction fires bounce_artifact (alongside bounce_creature on the
+// other branch). Nobody's "return up to one other target artifact you
+// control to its owner's hand" is the self-controlled artifact bounce
+// shape.
 const PATTERN_RETURN_OWN =
-  /\breturn(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+|this\s+)(?:[\w\-]+[,\s]+){0,5}?(?:artifacts?|equipment|vehicles?)(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+(?:other\s+)?)?(?:another\s+|target\s+|each\s+|all\s+|this\s+)(?:[\w\-]+[,\s]+){0,5}?(?:artifacts?|equipment|vehicles?)(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?)\s+hands?\b/;
 
 // `(?!\s+card)` + graveyard guard reject "return target permanent card from
 // your graveyard to your hand" (graveyard recursion, e.g. Coati Scavenger).

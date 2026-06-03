@@ -42,8 +42,13 @@ export const rule: Rule = {
     // does" filler between subject and verb (The Death of Gwen Stacy:
     // "each player who doesn't loses 3 life"). The filler describes a
     // sub-class of the subject; the life-change still resolves.
-    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
-    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) life equal to /;
+    // v0.35.0 — Batch 28: added `its controller|its owner` to the subject
+    // alternation. Emeritus of Truce // Swords to Plowshares: "Exile target
+    // creature. Its controller gains life equal to its power." The anaphoric
+    // "its controller" subject binds to the exiled creature's controller —
+    // canonical Swords to Plowshares frame.
+    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they|its controller|its owner)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
+    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they|its controller|its owner)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) life equal to /;
     // v0.15 — "pay N life" cost frame (Bonecache Overseer: "Pay 1 life" as
     // activation cost). Paying life is functionally life loss for the
     // controller. Allows X / digit / comma-amount.

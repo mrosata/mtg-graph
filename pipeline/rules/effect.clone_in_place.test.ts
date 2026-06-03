@@ -43,6 +43,12 @@ describe('effect.clone_in_place', () => {
     ['create a 1/1 white spirit creature token.'],
     // Unrelated
     ['draw a card.'],
+    // v0.35.0 — Batch 3: Choreographed Sparks FP. "Copy target creature spell"
+    // is effect.copy_spell territory; the "spell" disambiguator means the
+    // permanent-on-battlefield clone semantic doesn't apply. Add negative
+    // lookahead `(?! spell)` after the type noun.
+    ['copy target creature spell you control. the copy gains haste.'],
+    ['copy target creature spell.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

@@ -42,7 +42,12 @@ const TRIGGER_SCRUB = /\b(?:when|whenever) (?:an? |target |each |that )?opponent
 
 // v0.30 Group 23 — Exchange control is bidirectional but includes the donate
 // half (your permanent goes to an opponent). Trade the Helm.
-const EXCHANGE_CONTROL = /\bexchange control of\b/;
+// v0.35.0 Batch 26 — anchor on `you control` within the same clause so the
+// rule requires a controller-to-opponent transfer. Kitsune ("exchange
+// control of two other target creatures controlled by different players")
+// swaps two opponent-controlled creatures and never touches anything you
+// control — not a donation.
+const EXCHANGE_CONTROL = /\bexchange control of [^.]{0,200}?\byou control\b/;
 
 export const rule: Rule = {
   id: 'effect.donate',

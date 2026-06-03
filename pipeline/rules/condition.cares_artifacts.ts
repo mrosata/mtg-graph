@@ -86,7 +86,10 @@ const PATTERNS = [
   // artifact" (Cloudsculpt Technician, Gravblade Heavy, Magitek Infantry).
   // Conditional/while-it-stands frame; the controller's payoff scales on
   // whether they currently control an artifact.
-  /\b(?:if|as long as|while) you control (?:an?|another|one or more) artifacts?\b/,
+  // v0.35.0 — Batch 4: add `unless` to the alternation. Mouser Mark III
+  // ("This creature can't attack unless you control another artifact") uses
+  // the negation-polarity form of the same conditional gate.
+  /\b(?:if|as long as|while|unless) you control (?:an?|another|one or more) artifacts?\b/,
 ];
 
 export const rule: Rule = {

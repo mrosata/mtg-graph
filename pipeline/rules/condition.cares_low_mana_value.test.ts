@@ -28,6 +28,15 @@ describe('condition.cares_low_mana_value', () => {
     ['choose target creature, planeswalker, or vehicle. mill two cards, then destroy the chosen permanent if its mana value is less than or equal to the number of cards in your graveyard.'],
     ['its mana value is less than or equal to x'],
     ['if its mana value ≤ the amount of damage'],
+    // v0.35.0 — Batch 10: past-tense "was N or less" (Tainted Treats: "if
+    // its mana value was 4 or less, create a food token"). Trigger-aftermath
+    // condition that references the destroyed permanent's MV.
+    ['destroy target artifact or creature. if its mana value was 4 or less, create a food token.'],
+    // v0.35.0 — Batch 10: X-placeholder count slot (Vicious Rivalry "with
+    // mana value X or less", Mind into Matter "with mana value X or less").
+    // Variable-X spells where the cast-time X bounds the affected set.
+    ['as an additional cost to cast this spell, pay x life. destroy all artifacts and creatures with mana value x or less.'],
+    ['draw x cards. then you may put a permanent card with mana value x or less from your hand onto the battlefield tapped.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

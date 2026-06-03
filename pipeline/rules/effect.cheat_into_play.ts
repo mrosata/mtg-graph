@@ -68,8 +68,11 @@ const EXILED_PUT =
 // cards onto the battlefield". Distinct from REVEAL_PUT (which anchors on
 // "reveal the top X cards of your library") because the count comes
 // AFTER "until you reveal".
+// v0.35.0 — Batch 1: admit anaphoric "put that card / those cards / it /
+// them onto the battlefield" after the reveal-until clause (Raph & Mikey,
+// Troublemakers, where the anaphor binds to the just-revealed creature card).
 const REVEAL_UNTIL_PUT =
-  /\breveal cards? from the top of your library until you reveal\s+\S+\s+(?:[\w\-]+ ){0,3}?(?:permanent|creature|nonland|artifact|enchantment|planeswalker|land)\s+cards?\b[\s\S]{0,300}?\bput (?:any number of |a |an |one )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:from among them|of those [\w\-]+ cards)?\s*onto the battlefield\b/;
+  /\breveal cards? from the top of your library until you reveal\s+\S+\s+(?:[\w\-]+ ){0,3}?(?:permanent|creature|nonland|artifact|enchantment|planeswalker|land)\s+cards?\b[\s\S]{0,300}?\bput (?:that card|those cards|it|them|(?:any number of |a |an |one )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s*(?:from among them|of those [\w\-]+ cards)?)\s*onto the battlefield\b/;
 
 // Pattern D (v0.20.0): hand → battlefield with explicit permanent type. Gates
 // on explicit permanent type token (NOT bare "card") to avoid the land-play
@@ -78,8 +81,13 @@ const REVEAL_UNTIL_PUT =
 // v0.22.0 — admit a "with <restriction>" interpolation between "card" and
 // "from your hand" (Kinscaer Sentry: "put a creature card with mana value X
 // or less from your hand onto the battlefield tapped and attacking").
+// v0.35.0 — Batch 1: admit "and/or <type> card" disjunction so cards like
+// Michelangelo, Improviser ("put a creature card and/or a land card from
+// your hand onto the battlefield") match. The disjunction's second branch
+// also admits "land" as a noun (the leading branch already excludes it via
+// the negative-list guard above).
 const HAND_PUT =
-  /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
+  /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?(?:\s+and\/or\s+(?:a |an )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|land)\s+cards?)?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
 
 const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, REVEAL_UNTIL_PUT, EXILED_PUT, HAND_PUT];
 

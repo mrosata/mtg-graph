@@ -52,18 +52,27 @@ const SUBJ = `(?:${SELF}|${IT})`;
 // existing positives ("deals 2 damage", "deals X damage") still match.
 const MULT = '(?:twice |thrice |\\d+ times )?';
 
+// v0.35.0 — Batch 5: count-bearing arms accept `deal[s]?` (optional `s`)
+// so multi-named legendaries whose `__SELF__` parses as a "X & Y" plural
+// noun subject (Tokka & Rahzar, Terrible Twos — "__self__ deal 3 damage")
+// still fire. The equal-to arm (pattern 3) keeps `deals` so trigger-form
+// phrasings like "whenever __self__ deal damage equal to its power" do not
+// accidentally match.
 const PATTERNS = [
-  new RegExp(`\\b${SUBJ} deals ${MULT}\\d+ (?:combat )?damage\\b`),
-  new RegExp(`\\b${SUBJ} deals ${MULT}x (?:combat )?damage\\b`),
+  new RegExp(`\\b${SUBJ} deal[s]? ${MULT}\\d+ (?:combat )?damage\\b`),
+  new RegExp(`\\b${SUBJ} deal[s]? ${MULT}x (?:combat )?damage\\b`),
   // Optional `(?: to [^.]*?)?` accepts a target phrase between "damage" and
   // "equal to" — Food Fight phrasing "deals damage to any target equal to
   // 1 plus the number of...". Existing positives ("deals damage equal to its
-  // power") still match because the inner group is optional.
+  // power") still match because the inner group is optional. Keep `deals`
+  // (singular) here — the equal-to arm has no numeric count, and broadening
+  // to `deal[s]?` would FP on trigger-form "whenever __self__ deal damage
+  // equal to its power".
   new RegExp(`\\b${SUBJ} deals (?:combat )?damage(?: to [^.]*?)? equal to\\b`),
   // v0.12.9: variable bound damage where the amount was bound earlier in the
   // ability ("...deals damage to that creature, __self__ deals that much
   // damage to each opponent"). Imodane the Pyrohammer is the canonical case.
-  new RegExp(`\\b${SUBJ} deals that (?:much|many) (?:combat )?damage\\b`),
+  new RegExp(`\\b${SUBJ} deal[s]? that (?:much|many) (?:combat )?damage\\b`),
   // v0.23 — subjunctive "may have <SUBJ> deal N damage" (Requiem Monolith:
   // "may have this artifact deal 1 damage to it"; Kederekt Parasite has the
   // same frame). Verb is `deal` without the -s — same axis as the active
@@ -104,11 +113,13 @@ export const rule: Rule = {
     if (text.includes('__self__')) return false;
     const lower = firstWord.toLowerCase();
     const escaped = lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // v0.35.0 — Batch 5: mirror PATTERNS `deal[s]?` broadening on the
+    // count-bearing arms only. The equal-to arm keeps `deals` (singular).
     const dyn = [
-      new RegExp(`\\b${escaped}\\s+deals ${MULT}\\d+ (?:combat )?damage\\b`),
-      new RegExp(`\\b${escaped}\\s+deals ${MULT}x (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deal[s]? ${MULT}\\d+ (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deal[s]? ${MULT}x (?:combat )?damage\\b`),
       new RegExp(`\\b${escaped}\\s+deals (?:combat )?damage(?: to [^.]*?)? equal to\\b`),
-      new RegExp(`\\b${escaped}\\s+deals that (?:much|many) (?:combat )?damage\\b`),
+      new RegExp(`\\b${escaped}\\s+deal[s]? that (?:much|many) (?:combat )?damage\\b`),
     ];
     for (const re of dyn) {
       const m = text.match(re);

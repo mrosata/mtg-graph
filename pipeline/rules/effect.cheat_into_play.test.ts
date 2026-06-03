@@ -47,6 +47,13 @@ describe('effect.cheat_into_play', () => {
     // until you reveal X permanent cards ... put any number of those
     // permanent cards onto the battlefield".
     ['when this creature enters, reveal cards from the top of your library until you reveal x permanent cards, where x is the number of colors among permanents you control. put any number of those permanent cards onto the battlefield, then put the rest of the revealed cards on the bottom of your library in a random order.'],
+    // v0.35.0 — Batch 1: HAND_PUT admit "and/or <type> card" disjunction.
+    // Michelangelo, Improviser — combat-damage trigger lets you put both a
+    // creature card AND a land card from hand onto the battlefield.
+    ['whenever __self__ deals combat damage to a player, you may put a creature card and/or a land card from your hand onto the battlefield.'],
+    // v0.35.0 — Batch 1: REVEAL_UNTIL_PUT admit anaphoric "put that card".
+    // Raph & Mikey, Troublemakers — reveal-until + put-that-card pattern.
+    ['trample, haste whenever __self__ attack, reveal cards from the top of your library until you reveal a creature card. put that card onto the battlefield tapped and attacking and the rest on the bottom of your library in a random order.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -90,6 +90,22 @@ describe('effect.draws_or_discards', () => {
     // added.
     ['you may discard any number of cards'],
     ['when this creature enters, you may discard any number of cards. when you do, up to that many target creatures each get -2/-2 until end of turn.'],
+    // v0.35.0 — Batch 8: Mathemagics. "Target player draws 2ˣ cards" uses a
+    // Unicode modifier-letter x (U+02E3) in the count slot, which the
+    // digit-anchored count alternation didn't admit. The third-party arm
+    // now accepts `\d+[ˣ⁰¹²³⁴⁵⁶⁷⁸⁹]? cards?`.
+    ['target player draws 2ˣ cards.'],
+    // v0.35.0 — Batch 8: Ral Zarek, Guest Lecturer. "Any number of target
+    // players each discard a card" — plural-subject, "each"-distributed
+    // discard frame. The new pluralSubject arm anchors on "any number of
+    // target (players|opponents) each" or "you and target (player|opponent)
+    // each".
+    ['−1: any number of target players each discard a card.'],
+    ['you and target opponent each draw three cards.'],
+    // v0.35.0 — Batch 8: Pox Plague. "Each player ... discards half the
+    // cards in their hand" — the half-count slot was missing from the
+    // primary regex.
+    ['each player loses half their life, then discards half the cards in their hand, then sacrifices half the permanents they control of their choice.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

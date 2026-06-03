@@ -35,6 +35,11 @@ describe('trigger.creature_leaves_battlefield', () => {
     // battlefield" templating. Possessive graveyard qualifier (was previously
     // limited to "a graveyard").
     ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],
+    // v0.35.0 — Batch 31: interposed `+1/+1` modifier (The Ooze).
+    // "Whenever a creature you control with a +1/+1 counter on it leaves
+    // the battlefield" — the `+` in `+1/+1` previously broke the
+    // inner-filler tokenization.
+    ['whenever a creature you control with a +1/+1 counter on it leaves the battlefield, create a mutagen token for each +1/+1 counter on it.'],
   ])('text-matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

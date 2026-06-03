@@ -31,6 +31,11 @@ describe('condition.cares_plus_one_counter', () => {
     // these gates target +1/+1 territory (stun/charge/loyalty counters
     // don't appear in a "creature you control" damage trigger).
     ['whenever a creature you control with a counter on it deals combat damage to a player, you draw a card and you lose 1 life.'],
+    // v0.35.0 — Batch 29: trigger on +1/+1 counter placement (Pensive
+    // Professor: "Whenever one or more +1/+1 counters are put on this
+    // creature, draw a card."). Direct +1/+1-specific trigger frame.
+    ['whenever one or more +1/+1 counters are put on this creature, draw a card.'],
+    ['whenever a +1/+1 counter is put on target creature'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -75,6 +75,20 @@ const OWN_NUMBER_QUANTIFIED = /\bexile (?:\d+|two|three|four|five|six|seven|eigh
 // Renew-style cost suppression.
 const OWN_AT_RANDOM = /\bexile (?:a|an|that)\s+(?:[\w\-]+\s+){0,3}?card\s+at\s+random\s+from\s+your\s+graveyard(?!\s*[:—])/;
 
+// v0.35.0 Batch 7 — non-self cost activation arm. "{T}, exile a card from
+// your graveyard: <effect>" / "{1}{B}, exile an instant or sorcery card
+// from your graveyard: <effect>" (Rubble Rouser, Postmortem Professor,
+// Lluwen). Indefinite/definite determiner alternation `(a|an|one|that)`
+// keeps Renew-style self-exile excluded (Renew uses `__self__`, not these
+// determiners). The `(?=\s*:)` positive lookahead distinguishes the cost
+// form from passive references.
+const COST_NONSELF = /\bexile\s+(?:a|an|one|that)\s+(?:[\w\-]+\s+){0,3}?cards?\s+from\s+your\s+graveyard(?=\s*:)/;
+// v0.35.0 Batch 7 — optional/conditional non-cost arm. "You may exile a
+// card from your graveyard. if you do, …" (Heated Argument). Standalone
+// sentence-ending exile in a may-clause; not a cost (no colon/em-dash)
+// and not the `from your graveyard to <zone>` reanimation frame.
+const OPTIONAL_NONSELF = /\b(?:you\s+may\s+)?exile\s+(?:a|an|one|that)\s+(?:[\w\-]+\s+){0,3}?cards?\s+from\s+your\s+graveyard(?!\s*(?:[:—]|to))/;
+
 // v0.23 — anaphoric "exile that card / that creature / those cards" from
 // your graveyard (Containment Construct, Currency Converter — "you may exile
 // that card from your graveyard"). The colon/em-dash exclusion preserves
@@ -104,6 +118,8 @@ export const rule: Rule = {
       t.match(OWN_ANAPHORIC) ??
       t.match(SEARCH_GRAVEYARD_EXILE) ??
       t.match(OWN_AT_RANDOM) ??
+      t.match(COST_NONSELF) ??
+      t.match(OPTIONAL_NONSELF) ??
       t.match(OPPONENT_FORCED_GRAVEYARD);
     return m ? { evidence: m[0] } : false;
   },

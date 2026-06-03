@@ -60,6 +60,11 @@ describe('effect.counter_modified', () => {
     ['trample each other vehicle and creature you control enters with an additional +1/+1 counter on it if its mana value is 4 or less. otherwise, it enters with three additional +1/+1 counters on it. crew 3'],
     ['this creature enters with an additional +1/+1 counter on it'],
     ['__self__ enters with another +1/+1 counter on it'],
+    // v0.35.0 — Batch 13: move-counter frame (Tester of the Tangential).
+    // "Move N +1/+1 counters from <source> onto <target>" — both source-side
+    // removal and target-side addition imply counter modification.
+    ['when you do, move x +1/+1 counters from this creature onto another target creature.'],
+    ['move two +1/+1 counters from target creature onto another target creature.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -42,7 +42,17 @@ const PATTERN_BRIDGED =
 const PATTERN_REVERSED =
   /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+\s+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*?\.\s*at the beginning of the (?:next end step|next turn|next player'?s end step),\s*return\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield\b/;
 
-const PATTERNS: ReadonlyArray<RegExp> = [PATTERN_TIGHT, PATTERN_BRIDGED, PATTERN_REVERSED];
+// v0.35.0 — Batch 19: ransom-branch flicker. Koya, Death from Above:
+// "exile up to one other target creature. At the beginning of the next end
+// step, you may pay {3}{B}. If you don't, return that card to the battlefield".
+// The DEFAULT path returns the exiled card; the OPTIONAL pay-mana branch
+// keeps it exiled. Same canonical flicker shape with an intermediate
+// "you may pay" / "if you don't" branch. Anchored on the "if you don't,
+// return" clause to bind the default-return semantic.
+const PATTERN_RANSOM =
+  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+)?(?:[\w\-\/]+\s+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*?\.\s*at the beginning of the (?:next end step|next turn)[^.]*?\.\s*if you don'?t,?\s*return (?:it|them|that card|that creature) to the battlefield\b/;
+
+const PATTERNS: ReadonlyArray<RegExp> = [PATTERN_TIGHT, PATTERN_BRIDGED, PATTERN_REVERSED, PATTERN_RANSOM];
 
 export const rule: Rule = {
   id: 'effect.flicker',

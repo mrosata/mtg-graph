@@ -71,6 +71,11 @@ describe('effect.grants_keyword parametric', () => {
       ['__self__ has trample, hexproof, and haste as long as an opponent controls a planeswalker'],
       // v0.14.4 — 2-item choice variant ("your choice of trample or vigilance").
       ['target creature gains your choice of trample or vigilance until end of turn'],
+      // v0.35.0 — Batch 23: conditional anthem with `with <modifier>` clause.
+      // Emil, Vastlands Roamer: "creatures you control with +1/+1 counters
+      // on them have trample" — the `with` filler admits a short modifier
+      // clause between the subject and the anthem verb.
+      ['creatures you control with +1/+1 counters on them have trample.'],
     ])('matches: %s', (text) => {
       expect(r.match(text)).toBeTruthy();
     });

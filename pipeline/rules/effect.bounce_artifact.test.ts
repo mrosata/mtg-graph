@@ -16,6 +16,11 @@ describe('effect.bounce_artifact', () => {
     ["return this artifact to its owner's hand"],
     // 2026-06-01 audit batch — broad-permanent bounce with count slot.
     ["return up to two other target nonland permanents to their owners' hands"],
+    // v0.35.0 — Batch 20: "up to one other target artifact" determiner
+    // (Metalhead, Nobody). The `(?:other\s+)?` slot after the up-to count
+    // admits the "other" modifier so the noun anchor is reached.
+    ["when __self__ enters, return up to one other target artifact or creature to its owner's hand."],
+    ["when this creature enters, return up to one other target artifact you control to its owner's hand."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

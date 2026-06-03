@@ -51,6 +51,10 @@ describe('effect.plus_one_counter', () => {
     ['if one or more +1/+1 counters would be put on a creature or vehicle you control, that many plus one +1/+1 counters are put on it instead'],
     // Branching Evolution-style frame
     ['if one or more +1/+1 counters would be put on a creature you control, twice that many +1/+1 counters are put on it instead'],
+    // v0.35.0 — Batch 13: move-counter frame (Tester of the Tangential).
+    // "Move N +1/+1 counters from <source> onto <target>" — target-side
+    // counter addition fits the plus_one_counter axis.
+    ['when you do, move x +1/+1 counters from this creature onto another target creature.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

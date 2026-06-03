@@ -27,7 +27,24 @@ export const tagDef: TagDef = {
 export const rule: Rule = {
   id: 'effect.has_prepared',
   axis: 'effect',
+  // v0.35.0 — Batch 9: AND-guard the keywords check with a self-signal in
+  // oracle text. Scryfall over-populates `keywords` to include 'Prepared' on
+  // cards that GRANT Prepared (Skycoach Waypoint, Biblioplex Tomekeeper)
+  // rather than ones that themselves enter/become prepared. Self-keyword
+  // axis violation. Require either:
+  //   (a) MFC name ("X // Y") — the Prepared back-face is the spell side,
+  //       which is the canonical Strixhaven Prepared frame; OR
+  //   (b) oracle text says "this creature/permanent enters/becomes prepared"
+  //       (single-faced cards that are themselves Prepared at ETB).
+  // Verified all 47 cards in cards-standard.json with Prepared keyword
+  // satisfy one of these guards EXCEPT Skycoach Waypoint and Biblioplex
+  // Tomekeeper, which are the FPs being corrected.
   matchCard: (card) => {
-    return card.keywords.includes('Prepared') ? { evidence: 'Prepared' } : false;
+    if (!card.keywords.includes('Prepared')) return false;
+    if (card.name.includes('//')) return { evidence: 'Prepared' };
+    const text = (card.oracleText || '').toLowerCase();
+    if (/this (?:creature|permanent) enters prepared/.test(text)) return { evidence: 'Prepared' };
+    if (/this (?:creature|permanent) becomes prepared/.test(text)) return { evidence: 'Prepared' };
+    return false;
   },
 };

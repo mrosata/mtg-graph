@@ -17,6 +17,11 @@ describe('condition.cares_low_power', () => {
     ["if that creature's power is 2 or less or if you control another lizard, gain control of that creature"],
     ['if its power is 1 or less, sacrifice it'],
     ["only if your commander's power is 2 or less"],
+    // v0.35.0 — Batch 33: "power or toughness N or less" disjunction
+    // (Arnyn, Deathbloom Botanist). The power branch should fire on this
+    // axis (toughness branch is owned by cares_low_toughness).
+    ['whenever a creature you control with power or toughness 1 or less dies, target opponent loses 2 life and you gain 2 life.'],
+    ['creatures with power or toughness 2 or less'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

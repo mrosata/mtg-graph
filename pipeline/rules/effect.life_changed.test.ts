@@ -107,6 +107,12 @@ describe('effect.life_changed', () => {
     // tolerate a brief intervening clause between subject and verb.
     ["each player may discard a card. each player who doesn't loses 3 life."],
     ["each player who doesn't loses 3 life"],
+    // v0.35.0 — Batch 28: "its controller" subject (Emeritus of Truce //
+    // Swords to Plowshares: "Exile target creature. Its controller gains
+    // life equal to its power."). Anaphoric subject binding to the
+    // exiled creature's controller.
+    ['exile target creature. its controller gains life equal to its power.'],
+    ['its controller gains 3 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

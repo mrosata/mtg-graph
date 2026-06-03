@@ -78,6 +78,16 @@ export const rule: Rule = {
     const putReturnWithCounter = t.match(
       /\b(?:put|return)(?:s)?\s+[^.]{0,80}?(?:to the battlefield|under (?:your|its owner'?s|their) control)[^.]{0,80}?\bwith\s+(?:a |an |\d+ |x |one |two |three )?[a-z][a-z\-']+\s+counters?\b/,
     );
-    return putReturnWithCounter ? { evidence: putReturnWithCounter[0] } : false;
+    if (putReturnWithCounter) return { evidence: putReturnWithCounter[0] };
+    // v0.35.0 — Batch 13: move-counter frame. Tester of the Tangential
+    // ("move X +1/+1 counters from this creature onto another target
+    // creature"). Both source-side removal and target-side addition imply
+    // counter modification — fits the broader counter_modified axis.
+    // The companion arm on effect.plus_one_counter handles the +1/+1
+    // specific addition.
+    const moveCounter = t.match(
+      /\bmove\s+(?:\d+|x|one|two|three|four|five)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
+    );
+    return moveCounter ? { evidence: moveCounter[0] } : false;
   },
 };

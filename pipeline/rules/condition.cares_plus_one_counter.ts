@@ -33,6 +33,10 @@ const PATTERNS = [
   // loyalty counters don't appear on "a creature you control" in a
   // damage trigger — the gate is +1/+1-territory in practice.
   /\bwhenever\s+a\s+(?:[\w\-]+\s+){0,3}?creature\s+you control\s+with\s+(?:a|an|one or more)\s+counters?\s+on\s+(?:it|them)\b/,
+  // v0.35.0 — Batch 29: "whenever one or more +1/+1 counters are put on"
+  // trigger frame (Pensive Professor). The trigger gates on +1/+1 counter
+  // placement directly — same cares-+1/+1 axis as the other trigger frames.
+  /\bwhenever\s+(?:a|an|\d+|one or more)\s+\+1\/\+1 counters? (?:are|is) put on\b/,
 ];
 
 // Looser phrasings that say "counter" without specifying "+1/+1". Only fire

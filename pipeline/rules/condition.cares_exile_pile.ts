@@ -40,7 +40,11 @@ const PATTERNS = [
   /\bcards? (?:(?:you own |owned by you |at random )+)?exiled with (?:__self__|it|this (?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker))\b/,
   // (3) Turn-scoped exile gating — "if a card was put into exile this turn",
   // "if a card was exiled this turn". The Nightmare-token frame from Ashiok.
-  /\bif a card was (?:put into exile|exiled) this turn\b/,
+  // v0.35.0 — Batch 24: also admit "one or more cards were put into exile
+  // this turn" (Ennis, Debate Moderator) and the present-perfect "cards
+  // have been put into exile" — same turn-scoped trigger semantic with a
+  // count quantifier / different verb conjugation.
+  /\bif (?:a card was|one or more cards were|cards have been) (?:put into exile|exiled) this turn\b/,
   // v0.14.1 — (4) Possessive: "the exiled cards' (colors|types|mana values|
   // names)". The exile pile is the scaling/branching resource for the
   // ability. Pit of Offerings.

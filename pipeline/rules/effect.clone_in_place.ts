@@ -28,7 +28,13 @@ export const tagDef: TagDef = {
 // rule still claims the bare "copy" verb form even though Standard cards rarely
 // use it on permanents (the modern templating is "becomes a copy"/"enters as a
 // copy"); when it does occur, it's an in-place clone effect, not a token.
-const COPY_DIRECT = /\bcopy (?:target |that |the )?(?:[\w\-]+ )?(?:creature|permanent|artifact|enchantment|planeswalker|land)\b/;
+//
+// v0.35.0 — Batch 3: negative lookahead `(?! spell)` after the type noun.
+// Choreographed Sparks ("copy target creature spell you control") was firing
+// here because the bare `creature` token matched without checking the next
+// token; "spell" disambiguates that this is stack-copy, not permanent-clone
+// (owned by effect.copy_spell).
+const COPY_DIRECT = /\bcopy (?:target |that |the )?(?:[\w\-]+ )?(?:creature|permanent|artifact|enchantment|planeswalker|land)(?! spell)\b/;
 // "X becomes a copy of …" — transforms an existing permanent into a copy.
 // We require "permanent|creature|artifact|enchantment|planeswalker|land|it|that"
 // as the thing being copied so we don't capture stray "becomes a copy" in

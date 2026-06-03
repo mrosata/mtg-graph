@@ -20,6 +20,12 @@ describe('condition.cares_hand_size', () => {
     ["where x is the number of cards in your hand"],
     // Threshold count.
     ['if there are three or more cards in your hand'],
+    // v0.35.0 — Batch 15: opponent-hand qualifier. Borrowed Knowledge
+    // scales draws on "cards in target opponent's hand".
+    ["draw cards equal to the number of cards in target opponent's hand."],
+    // v0.35.0 — Batch 15: relative comparison "an opponent has more cards
+    // in hand than you" (Joined Researchers).
+    ['at the beginning of each end step, if an opponent has more cards in hand than you, this creature becomes prepared.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

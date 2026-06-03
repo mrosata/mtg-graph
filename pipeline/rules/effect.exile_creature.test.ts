@@ -25,6 +25,10 @@ describe('effect.exile_creature', () => {
     // The opponent must exile one of their own creatures. Parallels the
     // effect.edict template "target opponent sacrifices a creature".
     ['target opponent exiles a creature they control and their graveyard.'],
+    // v0.35.0 — Batch 16: End of the Hunt. Forced-edict with "creature or
+    // planeswalker" disjunction — the creature branch should fire the
+    // exile-creature axis.
+    ['target opponent exiles a creature or planeswalker they control with the greatest mana value among creatures and planeswalkers they control.'],
     // 2026-06-02 audit batch — Mysterio, Master of Illusion: token-creator
     // with delayed "exile those tokens" clean-up. Antecedent is `create …
     // creature token` in the prior sentence; anaphor is `exile those tokens`.

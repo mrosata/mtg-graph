@@ -51,7 +51,10 @@ const PATTERNS = [
   // `opponents` + distributive `each` + plural verb `discard` (no s)
   // defeats the singular `target opponent discards` anchor. Same axis: each
   // opponent in the targeted set loses a card from hand.
-  /\b(?:any number of )?target opponents each discards?\b/,
+  // v0.35.0 — Batch 17: also admit `players` (singular `player` is
+  // targetable too — Ral Zarek, Guest Lecturer: "Any number of target
+  // players each discard a card").
+  /\b(?:any number of )?target (?:opponents|players) each discards?\b/,
   // Bound-pronoun distributive variant: "each of those opponents discards
   // a card" — refers back to the targeted set above and forces each
   // member to discard. Same disruption semantic.

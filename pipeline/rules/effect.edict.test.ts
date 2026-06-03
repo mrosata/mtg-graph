@@ -46,6 +46,13 @@ describe('effect.edict', () => {
     // opponent; same opponent-side semantic as `each opponent` / `target
     // opponent`. Coupled with FIX 2 (sacrifice_creature FP exclusion).
     ['flying\nat the beginning of each combat, any opponent may sacrifice a creature of their choice. if a player does, tap __self__ and put a +1/+1 counter on it.'],
+    // v0.35.0 — Batch 34: typed-permanent edicts. Lorehold Charm ("Each
+    // opponent sacrifices a nontoken artifact"). The object-noun
+    // alternation now admits artifact, enchantment, planeswalker, land
+    // alongside creature/permanent.
+    ['• each opponent sacrifices a nontoken artifact of their choice.'],
+    ['target opponent sacrifices an enchantment.'],
+    ['each opponent sacrifices a planeswalker.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

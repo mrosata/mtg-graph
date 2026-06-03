@@ -62,6 +62,10 @@ describe('condition.cares_artifacts', () => {
     ['flying as long as you control an artifact, this creature gets +1/+0.'],
     ['as long as you control an artifact, this creature gets +1/+0 and has deathtouch.'],
     ['this creature gets +1/+0 as long as you control another artifact. {2}{w}: search your library for a card named __self__, put it onto the battlefield tapped, then shuffle.'],
+    // v0.35.0 — Batch 4: Mouser Mark III. "Unless you control another artifact"
+    // is the negation-polarity form of the same conditional gate. The
+    // restriction still scales on whether you control an artifact.
+    ["this creature can't attack unless you control another artifact."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -14887,3 +14887,68 @@ Two reviewers (pragmatic A / skeptical B) produced 8 disagreements; 1 tiebreaker
 - **Implementer hit org usage limit mid-run.** Got through HIGH-3 through HIGH-18 + the HIGH-15 cross-cutting tutor sweep + HIGH-12 plural sweep. Coordinator picked up HIGH-19 (debuff_minus_n -0/-X) and HIGH-20 (return_from_graveyard_to_hand "you may"/"a") with TDD discipline. 4062 → 4064 tests after coordinator additions. Tree state remained consistent; verifier APPROVED without flagging the split.
 - **Full-diff verifier as a 50-file ship-list contract.** With ≥15 fix groups, spot-checking can't catch silent over-ship or under-ship. The verifier's per-item walk caught: (a) no DEFERRED items over-shipped (bending, blight/behold, Don & Leo flicker, Sanar reveal, HIGH-7 narrow + Mountain-or-Cave all correctly absent), (b) cross-cutting HIGH-15 / HIGH-12 sweeps fully applied across siblings, (c) no test rows silently flipped (test-file diffs purely additive). For ≥15 batch sizes, this verifier step is load-bearing.
 - **Coverage gaps deferred to new-rule sessions (12 items):** `effect.extra_turn`, `effect.proliferate`, `effect.has_foretell`, `effect.grants_<bending>` parametric, `condition.cast_from_exile`, `effect.grants_ward`, `effect.uncounterable`, `effect.prevent_card_draw`, `effect.return_from_exile_to_hand`, `trigger.beginning_of_main_phase`, `condition.cares_counters` (non +1/+1), `effect.grants_convoke` / `effect.grants_persist`. Plus `effect.blink` (Don & Leo seed) and `effect.fight` (one-sided fight axis, Rocky Rebuke / Assert Perfection / Champion of the Path). Each requires authoring a new rule file per CLAUDE.md TDD workflow.
+
+---
+
+## v0.35.0 — 407-card audit batch (2026-06-02, parallel mode, 3 agents)
+
+Audited 407 cards from `UNPROCESSED_CARDS.md` (Foot Ninjas → Zimone's Experiment) — finishing the worklist. 3 parallel audit agents (52 + 25 + 24 = 101 raw entries, 77 unique cards) → 1 synthesis agent → 2 parallel reviewers (pragmatic A / skeptical B) → 1 tiebreaker (11 disagreements resolved) → 1 implementer + coordinator follow-up (2 test-row flips coordinated post-verifier) → 1 full-diff verifier. **34 fix batches consensus → 30 shipped, 4 rejected, 1 cluster deferred.** Verifier APPROVE-WITH-FIXES; both flagged items resolved with the prescribed test-row moves. 4127 → 4132 pipeline tests pass. Full gate green.
+
+### Shipped (30 fix batches)
+
+**Convergent SHIP (both reviewers + tiebreaker):**
+- **Batch 1 — `effect.cheat_into_play`** — 3-lane broadening: hand→battlefield (Michelangelo, Improviser), reveal-until→battlefield (Raph & Mikey, Troublemakers), mill-then-put (Vastlands Scavenger via Batch 2 sibling).
+- **Batch 2 — `effect.reanimate`** — mill-then-anaphoric "put that card onto the battlefield" arm. Vastlands Scavenger.
+- **Batch 3 — `effect.clone_in_place`** (FP narrow) — exclude "copy target creature **spell**" via spell-disambiguating lookahead. Choreographed Sparks.
+- **Batch 4 — `condition.cares_artifacts`** — "can't attack unless you control another artifact" frame. Mouser Mark III.
+- **Batch 9 — `effect.has_prepared`** (FP narrow) — keyword + MFC-name OR self-signal text guard. Skycoach Waypoint, Biblioplex Tomekeeper.
+- **Batch 10 — `condition.cares_low_mana_value`** — X-scaled "mana value X or less" form. Mind into Matter.
+- **Batch 11 — `effect.bounce_land`** (FP narrow) — tighten filler to exclude "return each other card exiled with this land" frame. Northampton Farm.
+- **Batch 12a — `effect.has_mana_activated_ability`** — `\{[wubrgcxstq0-9]\}` → admit multi-digit mana symbols like `{10}`. Pizza Face, Survey Mechan.
+- **Batch 13 — `effect.stun_counter` / `effect.counter_modified`** — ETB-with frame "return target X with a +1/+1 counter".
+- **Batch 14 — `effect.play_extra_land`** — "put a land card from your hand onto the battlefield" frame. Michelangelo, Improviser; Lessons from Life; Embrace the Paradox.
+- **Batch 15 — `condition.cares_hand_size`** — admit "cards in target opponent's hand". Borrowed Knowledge.
+- **Batch 17 — `effect.targeted_discard`** — multi-target "any number of target players each discard" plural-subject frame. Ral Zarek.
+- **Batch 20 — `effect.bounce_artifact`** — disjunctive "artifact or creature" frame. Metalhead, Nobody.
+- **Batch 21 — `effect.is_manland`** — conditional self-animation frame.
+- **Batch 23 — `effect.grants_trample`** — conditional anthem with `with`-filler arm in `buildGrantRegex`.
+- **Batch 24 — `condition.cares_exile_pile`** — "if one or more cards were put into exile this turn". Ennis, Debate Moderator.
+- **Batch 28 — `effect.life_changed`** — broadening clean.
+- **Batch 29 — `condition.cares_plus_one_counter`** — "whenever one or more +1/+1 counters are put on" trigger frame. Pensive Professor.
+- **Batch 31 — `trigger.creature_leaves_battlefield`** — `[^.]{0,40}?` modifier filler.
+- **Batch 32 — `effect.grants_cast_from_graveyard`** — keyword-grant equivalent of "you may cast from your graveyard" templating.
+- **Batch 33 — `condition.cares_low_power`** — disjunction "power or toughness" naturally fires.
+
+**Tiebreaker SHIP:**
+- **Batch 7 — `effect.exile_from_graveyard`** — non-self cost-form arm `\bexile\s+(?:a|an|one|that)\s+...cards?\s+from\s+your\s+graveyard(?=\s*:)` + non-cost optional arm. Heated Argument, Lluwen, Postmortem Professor, Rubble Rouser. Coordinated test-row move (L75 negative → positive; numeric "two" stays excluded).
+- **Batch 16 — `effect.exile_creature` + `effect.exile_planeswalker`** — opponent-edict frame "target opponent exiles a creature they control" lives on the exile axis. End of the Hunt.
+- **Batch 19 — `effect.flicker`** — conditional-ransom may-clause broaden. Koya.
+- **Batch 22 — `effect.cant_block_until_eot`** — single-target damage antecedent binds "it" unambiguously. State restriction, not anaphoric grant.
+- **Batch 30 — `effect.cast_from_exile`** — broadening clean. Practiced Scrollsmith covered.
+- **Batch 34 — `effect.edict`** — opponent-typed-sacrifice frame "each opponent sacrifices a nontoken artifact" lives on the edict axis ONLY (sacrifice_artifact stays controller-side via NEGATIVE_EDICT). Lorehold Charm.
+
+**MODIFY (partial / tightened ships):**
+- **Batch 5 — `effect.deals_damage`** — surgical plural-verb admission on count-bearing arms only (Tokka & Rahzar "deal 3 damage"). Pattern 3 equal-to arm intentionally left singular-only.
+- **Batch 6 — `condition.cares_noncreature_spell`** — ship 2 lanes: (a) anthem-with-PP grant (Quandrix, the Proof) + (c) activation-gate (Burrog Barrage, Potioner). REJECT lanes (b) Miracle card-in-zone and (d) target-filter (Brush Off) — separate axes.
+- **Batch 8 — `effect.draws_or_discards`** — tighter `\d+[ˣ⁰¹²³⁴⁵⁶⁷⁸⁹]?` Unicode-superscript class on third-party count slot (Mathemagics 2ˣ) + pluralSubject arm (Ral Zarek). Follow-the-Lumarets impulse-draw lane deferred.
+- **Batch 26 — `effect.donate`** — tighten EXCHANGE_CONTROL to require `you control` anchor within the same clause: `/\bexchange control of [^.]{0,200}?\byou control\b/`. Trade the Helm still matches; Kitsune-shape two-opponent-symmetric swap excluded. Coordinated test-row move (L22 positive → Kitsune negative).
+
+### Rejected (4 — don't re-flag in future audits)
+
+- **Batch 12b — `effect.has_activated_ability` graveyard-cost activation** — REJECTED. v0.30 Group 8 intentionally strips graveyard-zone activations (Suspicious Shambler precedent at `effect.has_activated_ability.ts:71-79`). Stone Docent's `{W}, exile this card from your graveyard:` is the canonical case the strip targets. Tag scopes to abilities-on-battlefield; graveyard-only-functional cards are correctly excluded.
+- **Batch 18 — Increment/Cascade/Storm/Casualty/Paradigm reminder-body broadenings** — REJECTED. Audit consensus's "Increment reminder text is preserved" claim is **false** — verified against `pipeline/normalize.ts:1` (`stripReminderText` unconditionally removes `\([^)]*\)`). All reminder-body broadenings on `trigger.spell_cast`, `effect.plus_one_counter`, `effect.copy_spell`, `effect.cast_for_free`, `effect.sacrifice_creature`, `effect.cast_from_exile`, `effect.exile_from_library` are unreachable. Legitimate fix is the `effect.has_<kw>` family in Section 7.
+- **Batch 25 — `effect.grants_first_strike` (Hard-Won Jitte FP)** — REJECTED. Per `effect.grants_keyword.ts:247-260` design comment: "double strike is a superset of first strike by game rules." Hard-Won Jitte correctly fires BOTH `grants_double_strike` AND `grants_first_strike` (with `metadata.doubleStrike: true`). Intentional, not an FP.
+- **Batch 27 — `effect.grants_evasion` (Wingnut choice-list)** — REJECTED. Per user memory `project_v021_non_evasion_grants.md`: non-evasion self-conditional keyword grants intentionally stay on `effect.gains_keyword_self_conditional`. Negative lookbehinds at `effect.grants_evasion.ts:30/34/42` (`(?<!\b__self__ )`) deliberately strip self-subject grants regardless of choice-list shape. Wingnut's haste branch already fires via `effect.grants_haste`.
+
+### Deferred (Section 7 — coverage-gap cluster, separate session)
+
+**Elder Dragon + Strixhaven keyword-grant family (~47+ affected cards):** `effect.has_increment`, `effect.has_paradigm`, `effect.has_cascade`, `effect.has_storm`, `effect.has_casualty`, `effect.has_miracle`, `effect.has_grandeur`, `effect.has_affinity`. Needs coordinated authorship — shared template (read `card.keywords.includes(<Keyword>)`, mirror `effect.has_prepared.ts`), per-keyword files following v0.7 convention.
+
+**Smaller individual coverage gaps (each its own DEFER):** `effect.has_defender`, `effect.extra_combat`, `effect.uncounterable`, `trigger.beginning_of_main_phase`, `effect.cant_attack_conditional`, `condition.cares_x_in_cost_payoff`, non-+1/+1 `condition.cares_counters` (time/charge/loyalty/age), `condition.cast_from_graveyard` non-keyword license, `effect.stifle`.
+
+### Process notes
+
+- **Parallel audit reliability.** Agent 1 stalled on first dispatch (no progress watchdog at 600s; suspected silent reasoning batch); relaunch with explicit "WRITE EVERY ENTRY IMMEDIATELY" instruction completed in 37min. Agents 2 + 3 completed cleanly first time. The 3-agent uniqueness yield (52 vs 25 vs 24) was uneven but produced the expected ~80 unique flagged cards.
+- **Adversarial reviewers paid off.** A/B opposed framing surfaced 11 disagreements; tiebreaker resolved cleanly with 6 SHIP / 3 MODIFY / 1 REJECT (Wingnut, per memory). The reminder-text-stripped premise on Increment was caught by B's independent `normalize.ts` trace — A initially echoed the consensus's wrong claim and only verified after tiebreaker review. Both reviewers correctly REJECTED Stone Docent (intentional v0.30 narrowing) and Hard-Won Jitte (intentional double-strike superset).
+- **Full-diff verifier caught 2 silently-flagged-for-judgment items.** Both batches the implementer flagged (7 and 26) turned out to be SHIP-OVERRIDING-TEST per the tiebreaker's explicit intent: the existing test rows were over-broad collaterals from earlier broadenings (v0.6 Renew-suppression for Batch 7; v0.30 Trade the Helm collateral for Batch 26). The verifier's per-item walk + driving-card text grounded the override. Without this step, the test-row flips would have been silent regressions or unactioned flags.
+- **Worklist drained.** `UNPROCESSED_CARDS.md` → 0 lines. Per-card audit on Standard is complete (4547 / 4547 cards processed). Future per-card audits will need a fresh worklist from the next Standard set rotation; alternatively switch to deck-gap analysis for archetype-driven coverage probing.

@@ -9,6 +9,12 @@ describe('effect.play_extra_land', () => {
     ['play an additional land each turn'],
     ['you may play three additional lands on each of your turns'],
     ['play one additional land on your turn'],
+    // v0.35.0 — Batch 14: hand → play extra-land template (Lessons from
+    // Life, Embrace the Paradox, Michelangelo's combat trigger). The
+    // "put a land card from your hand onto the battlefield" frame is the
+    // canonical Exploration/Arboreal Grazer extra-land-drop.
+    ['draw three cards. you may put a land card from your hand onto the battlefield tapped.'],
+    ['you may put a land card from your hand onto the battlefield'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

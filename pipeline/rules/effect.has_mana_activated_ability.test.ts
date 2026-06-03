@@ -29,6 +29,13 @@ describe('effect.has_mana_activated_ability', () => {
     // Tap-paired-with-mana — first symbol is {T}, but the cost segment also
     // contains {1}, so the ability IS reducible by Training Grounds.
     ['{T}, {1}: Draw a card.'],
+    // v0.35.0 — Batch 12a: multi-digit generic mana `{10}` as the leading
+    // cost symbol (Pizza Face, Gastromancer). The prior single-digit class
+    // matched only `{1` from `{10}`, then the regex picked up `{T}` later
+    // in the same cost segment, which fails MANA_BEARING_SYMBOL. Admitting
+    // `\d+` in the leading-symbol alternation lets the match begin at `{10}`.
+    ['{10}, {T}, Sacrifice this creature: You gain 15 life.'],
+    ['{12}: Add {G}{G}{G}.'],
   ])('matches symbol-cost activations: %s', (oracleText) => {
     expect(rule.matchCard!(card({ oracleText }))).toBeTruthy();
   });

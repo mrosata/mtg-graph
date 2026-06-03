@@ -59,7 +59,13 @@ const POSITIVE_PATTERNS = [
   // 2026-06-01 audit batch — Songcrafter Mage: "target instant or sorcery
   // card in your graveyard gains harmonize". Harmonize is the FIN/TDM
   // graveyard-cast keyword; same license axis as Flashback.
-  /\bcards?\s+in\s+(?:your|a|an opponent's|target opponent's)\s+graveyards?\s+gains?\s+(?:flashback|jump-start|disturb|escape|unearth|embalm|eternalize|aftermath|mayhem|harmonize)\b/,
+  // v0.35.0 — Batch 32: `__self__` admitted in the keyword alternation.
+  // Cards literally named after a graveyard-cast keyword (Flashback the
+  // instant, Harmonize the sorcery) get the keyword in their grant clause
+  // re-written to `__self__` by `normalize.replaceSelfReferences`. The
+  // strong frame anchor ("card in your graveyard gains") keeps this safe
+  // — only the two cards literally named after these keywords match.
+  /\bcards?\s+in\s+(?:your|a|an opponent's|target opponent's)\s+graveyards?\s+gains?\s+(?:flashback|jump-start|disturb|escape|unearth|embalm|eternalize|aftermath|mayhem|harmonize|__self__)\b/,
 ];
 
 export const rule: Rule = {
