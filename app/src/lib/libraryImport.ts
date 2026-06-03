@@ -83,6 +83,7 @@ export function parseManaboxCsv(text: string): ParsedLibrary {
 }
 
 import type { Card } from '@shared/types';
+import type { OwnedPrinting } from './db';
 import { buildCardNameLookup, lookupByName } from './cardNameIndex';
 
 export type ImportRowSummary = {
@@ -92,7 +93,12 @@ export type ImportRowSummary = {
 };
 
 export type LibraryImportResult = {
+  // Aggregate count per oracleId. Used by all current UI consumers
+  // (deck badge, library badge, missing-cards summary).
   owned: Map<string, number>;
+  // Per-printing breakdown. Carries set + collectorNumber + mtgoId so a future
+  // library DEK export keeps the user's exact printings.
+  ownedDetail: Map<string, OwnedPrinting[]>;
   unknownNames: ImportRowSummary[];
   unknownSets: ImportRowSummary[];
   unparseableLines: string[];
@@ -108,6 +114,7 @@ export function resolveLibrary(
   for (const c of knownSetCodes) knownLower.add(c.toLowerCase());
 
   const owned = new Map<string, number>();
+  const ownedDetail = new Map<string, OwnedPrinting[]>();
   const unknownNames: ImportRowSummary[] = [];
   const unknownSets: ImportRowSummary[] = [];
 
@@ -115,6 +122,29 @@ export function resolveLibrary(
     const hit = lookupByName(lookup, row.name);
     if (hit) {
       owned.set(hit.oracleId, (owned.get(hit.oracleId) ?? 0) + row.quantity);
+
+      const card = cards.get(hit.oracleId);
+      const matched = card?.printingDetails?.find(
+        (d) => d.set.toLowerCase() === row.setCode.toLowerCase() &&
+               d.collectorNumber === row.collectorNumber,
+      );
+
+      const printing: OwnedPrinting = {
+        set: row.setCode,
+        collectorNumber: row.collectorNumber,
+        count: row.quantity,
+      };
+      if (matched?.mtgoId !== undefined) printing.mtgoId = matched.mtgoId;
+
+      const list = ownedDetail.get(hit.oracleId) ?? [];
+      const existing = list.find(
+        (p) => p.set.toLowerCase() === printing.set.toLowerCase() &&
+               p.collectorNumber === printing.collectorNumber,
+      );
+      if (existing) existing.count += row.quantity;
+      else list.push(printing);
+      ownedDetail.set(hit.oracleId, list);
+
       continue;
     }
     const summary: ImportRowSummary = {
@@ -127,5 +157,5 @@ export function resolveLibrary(
     }
   }
 
-  return { owned, unknownNames, unknownSets, unparseableLines: parsed.unparseableLines };
+  return { owned, ownedDetail, unknownNames, unknownSets, unparseableLines: parsed.unparseableLines };
 }

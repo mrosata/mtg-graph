@@ -10,9 +10,13 @@ export default function ImportSummary() {
 
   if (!result) return null;
 
-  const importedCount = result.resolved.reduce((s, e) => s + e.count, 0);
-  const totalParsed = importedCount + result.unknown.reduce((s, e) => s + e.count, 0);
-  const skippedCount = result.unknown.reduce((s, e) => s + e.count, 0);
+  const sumCounts = (entries: { count: number }[]) => entries.reduce((s, e) => s + e.count, 0);
+  const importedCount =
+    sumCounts(result.resolved) + sumCounts(result.sideboardResolved);
+  const totalParsed =
+    importedCount + sumCounts(result.unknown) + sumCounts(result.sideboardUnknown);
+  const skippedCount = sumCounts(result.unknown) + sumCounts(result.sideboardUnknown);
+  const allUnknown = [...result.unknown, ...result.sideboardUnknown];
 
   return (
     <div
@@ -31,22 +35,17 @@ export default function ImportSummary() {
           ×
         </button>
       </div>
-      {result.unknown.length > 0 && (
+      {allUnknown.length > 0 && (
         <details className="mt-2">
           <summary className="cursor-pointer text-vellum-mute">
             {`${skippedCount} cards skipped — not in Standard. mtg-graph currently only supports Standard.`}
           </summary>
           <ul className="mt-1 list-disc pl-5 font-mono text-xs tabular text-vellum-dim">
-            {result.unknown.map((e, i) => (
+            {allUnknown.map((e, i) => (
               <li key={i}>{`${e.count} ${e.name}`}</li>
             ))}
           </ul>
         </details>
-      )}
-      {result.sideboardCount > 0 && (
-        <p className="mt-2 text-xs text-vellum-dim">
-          {`${result.sideboardCount} sideboard cards skipped — sideboards aren't supported yet.`}
-        </p>
       )}
       {result.unparseableLines.length > 0 && (
         <details className="mt-2">

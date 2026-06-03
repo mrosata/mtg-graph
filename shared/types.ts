@@ -49,6 +49,19 @@ export type Card = {
   toughness: string | null;
   rarity: Rarity;
   imageUrl: string;
+  // MTGO Catalog ID for the first-seen printing. Null when the printing isn't
+  // on MTGO (some preview/promo/Alchemy variants). Used only as fallback metadata
+  // for DEK export; not referenced by the graph, rules, or any lookup.
+  mtgoId?: number | null;
+  // Per-printing identity for cards that exist in multiple Standard sets.
+  // Each entry mirrors one Scryfall printing of this oracle. Lets library
+  // imports preserve the user's exact printing (set + collectorNumber → mtgoId)
+  // so DEK round-trips keep the right CatID per copy.
+  printingDetails?: Array<{
+    set: string;
+    collectorNumber: string;
+    mtgoId?: number;
+  }>;
   tags: CardTag[];
 };
 

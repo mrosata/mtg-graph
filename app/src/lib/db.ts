@@ -3,7 +3,10 @@ import Dexie, { Table } from 'dexie';
 import type { Artifact } from '@shared/types';
 import type { ImportRowSummary } from './libraryImport';
 
-export type DeckCard = { oracleId: string; count: number; name?: string };
+// `mtgoId` is preserved from imports (DEK CatID) so it survives round-trip
+// through our app back to MTGO/Archidekt. Entries added in-app leave it undefined
+// and the exporter falls back to `Card.mtgoId` at write time.
+export type DeckCard = { oracleId: string; count: number; name?: string; mtgoId?: number };
 
 export type Deck = {
   id: string;
@@ -11,6 +14,13 @@ export type Deck = {
   format: 'standard';
   originalCards: DeckCard[];
   workingCards: DeckCard[];
+  // Sideboard mirrors maindeck shape. Most consumers (stats, colors, themes,
+  // graph traversal) ignore sideboard and operate on workingCards only.
+  // Legality, deck diff, and exporters read both. Optional in the type so
+  // pre-v5 fixtures continue to compile; the v5 migration backfills `[]`,
+  // and `deckStore` always sets both when creating new decks.
+  originalSideboardCards?: DeckCard[];
+  sideboardCards?: DeckCard[];
   createdAt: number;
   updatedAt: number;
 };
@@ -22,11 +32,25 @@ export type ArtifactCacheRow = {
   artifact: Artifact;
 };
 
+export type OwnedPrinting = {
+  set: string;
+  collectorNumber: string;
+  mtgoId?: number;
+  count: number;
+};
+
+export type OwnedEntry = {
+  total: number;
+  // Per-printing breakdown captured at import time. Undefined for entries
+  // migrated from the v3 schema (we only knew the aggregate total then).
+  printings?: OwnedPrinting[];
+};
+
 export type LibraryRow = {
   id: 'main';
   importedAt: number;
   sourceFilename: string;
-  owned: Record<string, number>;
+  owned: Record<string, OwnedEntry>;
   unknownNames: ImportRowSummary[];
   unknownSets: ImportRowSummary[];
   unparseableLines: string[];
@@ -71,6 +95,42 @@ export class MtgDb extends Dexie {
       library: 'id',
       prefs: 'id',
     });
+    this.version(4)
+      .stores({
+        decks: 'id, name, updatedAt',
+        artifactCache: '&ruleVersion',
+        library: 'id',
+        prefs: 'id',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('library')
+          .toCollection()
+          .modify((row: { owned?: Record<string, number | OwnedEntry> }) => {
+            if (!row.owned) return;
+            const next: Record<string, OwnedEntry> = {};
+            for (const [k, v] of Object.entries(row.owned)) {
+              next[k] = typeof v === 'number' ? { total: v } : v;
+            }
+            row.owned = next;
+          }),
+      );
+    this.version(5)
+      .stores({
+        decks: 'id, name, updatedAt',
+        artifactCache: '&ruleVersion',
+        library: 'id',
+        prefs: 'id',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('decks')
+          .toCollection()
+          .modify((d: { sideboardCards?: DeckCard[]; originalSideboardCards?: DeckCard[] }) => {
+            if (!d.sideboardCards) d.sideboardCards = [];
+            if (!d.originalSideboardCards) d.originalSideboardCards = [];
+          }),
+      );
   }
 }
 

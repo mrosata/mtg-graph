@@ -4,6 +4,7 @@ import LibraryImportSummary from './LibraryImportSummary';
 
 const baseResult = {
   owned: new Map([['a', 1], ['b', 2]]),
+  ownedDetail: new Map(),
   unknownNames: [
     { name: 'Frobulator', setCode: 'dmu', quantity: 1 },
   ],

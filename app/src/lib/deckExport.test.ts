@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { deckToArenaText } from './deckExport';
+import { deckToArenaText, deckToDekXml } from './deckExport';
+import { parseDekDeck } from './deckImport';
 import type { Card } from '@shared/types';
 import type { Deck } from './db';
 
@@ -54,5 +55,150 @@ describe('deckToArenaText', () => {
     const out = deckToArenaText(d, cards);
     expect(out).toContain('4 Lightning Bolt');
     expect(out).not.toContain('Counterspell');
+  });
+
+  it('appends a Sideboard section when sideboardCards has entries', () => {
+    const d: Deck = {
+      ...deck,
+      sideboardCards: [
+        { oracleId: 'b', count: 3 },
+      ],
+    };
+    const out = deckToArenaText(d, cards);
+    expect(out).toBe(
+      'About\nName My Deck\n\nDeck\n4 Lightning Bolt\n2 Counterspell\n\nSideboard\n3 Counterspell',
+    );
+  });
+
+  it('omits the Sideboard section when sideboardCards is empty or undefined', () => {
+    expect(deckToArenaText(deck, cards)).not.toContain('Sideboard');
+    expect(deckToArenaText({ ...deck, sideboardCards: [] }, cards)).not.toContain('Sideboard');
+  });
+
+  it('skips sideboard entries whose oracleId is not in the card index', () => {
+    const d: Deck = {
+      ...deck,
+      sideboardCards: [{ oracleId: 'missing', count: 1 }, { oracleId: 'b', count: 2 }],
+    };
+    const out = deckToArenaText(d, cards);
+    expect(out).toContain('Sideboard\n2 Counterspell');
+    expect(out).not.toContain('missing');
+  });
+});
+
+describe('deckToDekXml', () => {
+  it('emits a valid DEK with a CatID, Quantity, Sideboard, and Name attribute per row', () => {
+    const xml = deckToDekXml(deck, cards);
+    expect(xml).toContain('<?xml');
+    expect(xml).toContain('<Deck>');
+    expect(xml).toContain('Name="Lightning Bolt"');
+    expect(xml).toContain('Quantity="4"');
+    expect(xml).toContain('Sideboard="false"');
+  });
+
+  it('prefers the entry-level mtgoId (the CatID the user imported)', () => {
+    const d: Deck = {
+      ...deck,
+      workingCards: [{ oracleId: 'a', count: 4, mtgoId: 999999 }],
+    };
+    const cardsWithCanonical = new Map(cards);
+    cardsWithCanonical.set('a', { ...cards.get('a')!, mtgoId: 111111 });
+    const xml = deckToDekXml(d, cardsWithCanonical);
+    expect(xml).toContain('CatID="999999"');
+    expect(xml).not.toContain('CatID="111111"');
+  });
+
+  it('falls back to Card.mtgoId when the entry has no mtgoId override', () => {
+    const cardsWithCanonical = new Map(cards);
+    cardsWithCanonical.set('a', { ...cards.get('a')!, mtgoId: 111111 });
+    const xml = deckToDekXml(deck, cardsWithCanonical);
+    expect(xml).toContain('CatID="111111"');
+  });
+
+  it('falls back to CatID="0" when neither entry nor Card has an mtgoId', () => {
+    const xml = deckToDekXml(deck, cards);
+    expect(xml).toContain('CatID="0"');
+  });
+
+  it('skips entries whose oracleId is not in the card index', () => {
+    const d: Deck = {
+      ...deck,
+      workingCards: [...deck.workingCards, { oracleId: 'missing', count: 1 }],
+    };
+    const xml = deckToDekXml(d, cards);
+    expect(xml).not.toContain('missing');
+  });
+
+  it('reads workingCards, not originalCards', () => {
+    const d: Deck = {
+      ...deck,
+      originalCards: [{ oracleId: 'a', count: 4 }, { oracleId: 'b', count: 2 }],
+      workingCards: [{ oracleId: 'a', count: 4 }],
+    };
+    const xml = deckToDekXml(d, cards);
+    expect(xml).toContain('Name="Lightning Bolt"');
+    expect(xml).not.toContain('Counterspell');
+  });
+
+  it('escapes XML special chars in card names (apostrophes, ampersands)', () => {
+    const apostropheCards = new Map<string, Card>([
+      ['x', { ...cards.get('a')!, oracleId: 'x', name: "Gishath, Sun's Avatar" }],
+      ['y', { ...cards.get('a')!, oracleId: 'y', name: 'Raph & Mikey, Troublemakers' }],
+    ]);
+    const d: Deck = {
+      ...deck,
+      workingCards: [{ oracleId: 'x', count: 1 }, { oracleId: 'y', count: 1 }],
+    };
+    const xml = deckToDekXml(d, apostropheCards);
+    expect(xml).toContain('Sun&apos;s');
+    expect(xml).toContain('Raph &amp; Mikey');
+    // Round-trip back through DOMParser to confirm valid XML.
+    const reparsed = parseDekDeck(xml);
+    expect(reparsed.entries.map((e) => e.name)).toEqual([
+      "Gishath, Sun's Avatar",
+      'Raph & Mikey, Troublemakers',
+    ]);
+  });
+
+  it('round-trips CatIDs through parseDekDeck without loss', () => {
+    const d: Deck = {
+      ...deck,
+      workingCards: [
+        { oracleId: 'a', count: 4, mtgoId: 129247 },
+        { oracleId: 'b', count: 2, mtgoId: 129248 },
+      ],
+    };
+    const xml = deckToDekXml(d, cards);
+    const parsed = parseDekDeck(xml);
+    expect(parsed.entries).toEqual([
+      { count: 4, name: 'Lightning Bolt', mtgoId: 129247 },
+      { count: 2, name: 'Counterspell', mtgoId: 129248 },
+    ]);
+  });
+
+  it('emits sideboard rows with Sideboard="true" preserving the mtgoId fallback chain', () => {
+    const d: Deck = {
+      ...deck,
+      sideboardCards: [{ oracleId: 'b', count: 3, mtgoId: 129249 }],
+    };
+    const xml = deckToDekXml(d, cards);
+    expect(xml).toContain('Sideboard="true" Name="Counterspell"');
+    expect(xml).toMatch(/CatID="129249"\s+Quantity="3"\s+Sideboard="true"/);
+  });
+
+  it('round-trips main + sideboard through parseDekDeck without loss', () => {
+    const d: Deck = {
+      ...deck,
+      workingCards: [{ oracleId: 'a', count: 4, mtgoId: 129247 }],
+      sideboardCards: [{ oracleId: 'b', count: 3, mtgoId: 129249 }],
+    };
+    const xml = deckToDekXml(d, cards);
+    const parsed = parseDekDeck(xml);
+    expect(parsed.entries).toEqual([
+      { count: 4, name: 'Lightning Bolt', mtgoId: 129247 },
+    ]);
+    expect(parsed.sideboardEntries).toEqual([
+      { count: 3, name: 'Counterspell', mtgoId: 129249 },
+    ]);
   });
 });

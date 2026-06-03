@@ -7,6 +7,10 @@ import type { LibraryImportResult } from '../lib/libraryImport';
 function fakeResult(overrides: Partial<LibraryImportResult> = {}): LibraryImportResult {
   return {
     owned: new Map([['bolt-id', 4], ['mtn-id', 20]]),
+    ownedDetail: new Map([
+      ['bolt-id', [{ set: 'dmu', collectorNumber: '100', mtgoId: 12345, count: 4 }]],
+      ['mtn-id', [{ set: 'dmu', collectorNumber: '300', count: 20 }]],
+    ]),
     unknownNames: [],
     unknownSets: [],
     unparseableLines: [],
@@ -37,7 +41,7 @@ describe('libraryStore', () => {
     expect(s.meta?.sourceFilename).toBe('collection.csv');
 
     const row = await db.library.get('main');
-    expect(row?.owned['bolt-id']).toBe(4);
+    expect(row?.owned['bolt-id']?.total).toBe(4);
     expect((await db.prefs.get('main'))?.libraryEnabled).toBe(true);
   });
 
@@ -85,5 +89,55 @@ describe('libraryStore', () => {
 
     await useLibraryStore.getState().importLibrary(fakeResult(), 'b.csv');
     expect(useLibraryStore.getState().enabled).toBe(false);
+  });
+
+  it('importLibrary writes the per-printing shape into Dexie (owned[id].total + printings)', async () => {
+    await useLibraryStore.getState().importLibrary(fakeResult(), 'col.csv');
+
+    const row = await db.library.get('main');
+    expect(row?.owned['bolt-id']).toEqual({
+      total: 4,
+      printings: [{ set: 'dmu', collectorNumber: '100', mtgoId: 12345, count: 4 }],
+    });
+    expect(row?.owned['mtn-id']).toEqual({
+      total: 20,
+      printings: [{ set: 'dmu', collectorNumber: '300', count: 20 }],
+    });
+  });
+
+  it('exposes ownedDetail in state for per-printing consumers (DEK export)', async () => {
+    await useLibraryStore.getState().importLibrary(fakeResult(), 'col.csv');
+    const s = useLibraryStore.getState();
+    expect(s.ownedDetail?.get('bolt-id')).toEqual([
+      { set: 'dmu', collectorNumber: '100', mtgoId: 12345, count: 4 },
+    ]);
+  });
+
+  it('hydrate reconstructs both aggregate and ownedDetail from the stored row', async () => {
+    await useLibraryStore.getState().importLibrary(fakeResult(), 'col.csv');
+    useLibraryStore.setState({ owned: null, ownedDetail: null, enabled: false, meta: null });
+
+    await useLibraryStore.getState().hydrate();
+    const s = useLibraryStore.getState();
+    expect(s.owned?.get('bolt-id')).toBe(4);
+    expect(s.ownedDetail?.get('bolt-id')).toEqual([
+      { set: 'dmu', collectorNumber: '100', mtgoId: 12345, count: 4 },
+    ]);
+  });
+
+  it('hydrate tolerates v3-migrated rows with no printings field (legacy data)', async () => {
+    // Simulate a row that came from the v3 → v4 migration: total set but no printings.
+    await db.library.put({
+      id: 'main',
+      importedAt: 0, sourceFilename: 'old.csv',
+      owned: { 'bolt-id': { total: 4 } },
+      unknownNames: [], unknownSets: [], unparseableLines: [],
+    });
+    await db.prefs.put({ id: 'main', libraryEnabled: true });
+
+    await useLibraryStore.getState().hydrate();
+    const s = useLibraryStore.getState();
+    expect(s.owned?.get('bolt-id')).toBe(4);
+    expect(s.ownedDetail?.get('bolt-id')).toBeUndefined();
   });
 });

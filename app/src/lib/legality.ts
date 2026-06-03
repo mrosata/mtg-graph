@@ -19,6 +19,15 @@ export function deckLegality(deck: Deck, cards: Map<string, Card>): LegalityWarn
     });
   }
 
+  const sideboard = deck.sideboardCards ?? [];
+  const sideboardCount = sideboard.reduce((s, c) => s + c.count, 0);
+  if (sideboardCount > 15) {
+    warnings.push({
+      severity: 'warning',
+      message: `Sideboard contains ${sideboardCount} cards; max 15.`,
+    });
+  }
+
   for (const entry of deck.workingCards) {
     const card = cards.get(entry.oracleId);
     if (!card) {

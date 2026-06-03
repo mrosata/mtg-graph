@@ -9,14 +9,19 @@ function indexByOracleId(entries: DeckCard[]): Map<string, DeckCard> {
 // Assumes both card lists hold at most one entry per oracleId — an invariant the
 // deckStore enforces in addCard/removeCard. With that invariant, equal length
 // plus per-id count match is sufficient for equality.
-export function isDirty(deck: Deck): boolean {
-  if (deck.originalCards.length !== deck.workingCards.length) return true;
-  const orig = indexByOracleId(deck.originalCards);
-  for (const w of deck.workingCards) {
+function listDirty(original: DeckCard[], working: DeckCard[]): boolean {
+  if (original.length !== working.length) return true;
+  const orig = indexByOracleId(original);
+  for (const w of working) {
     const o = orig.get(w.oracleId);
     if (!o || o.count !== w.count) return true;
   }
   return false;
+}
+
+export function isDirty(deck: Deck): boolean {
+  if (listDirty(deck.originalCards, deck.workingCards)) return true;
+  return listDirty(deck.originalSideboardCards ?? [], deck.sideboardCards ?? []);
 }
 
 export function added(deck: Deck): DeckCard[] {

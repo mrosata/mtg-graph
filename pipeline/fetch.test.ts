@@ -30,6 +30,64 @@ describe('stripScryfallCard', () => {
     expect(card.toughness).toBeNull();
   });
 
+  it('emits a single-element printingDetails carrying set, collectorNumber, mtgoId', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000B1',
+      name: 'Has Details',
+      set: 'eoe', collector_number: '6',
+      cmc: 3, type_line: 'Enchantment',
+      oracle_text: '',
+      rarity: 'rare',
+      mtgo_id: 142625,
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printingDetails).toEqual([
+      { set: 'eoe', collectorNumber: '6', mtgoId: 142625 },
+    ]);
+  });
+
+  it('omits mtgoId on the printing detail when Scryfall has no mtgo_id', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000B2',
+      name: 'No Detail Id',
+      set: 'tle', collector_number: '162',
+      cmc: 3, type_line: 'Sorcery',
+      oracle_text: '',
+      rarity: 'common',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printingDetails).toEqual([
+      { set: 'tle', collectorNumber: '162' },
+    ]);
+  });
+
+  it('captures mtgo_id when Scryfall provides it', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000A1',
+      name: 'Has MTGO ID',
+      set: 'blb', collector_number: '1',
+      cmc: 2, type_line: 'Enchantment',
+      oracle_text: '',
+      rarity: 'rare',
+      mtgo_id: 129247,
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.mtgoId).toBe(129247);
+  });
+
+  it('sets mtgoId to null when Scryfall omits it (paper-only printings)', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000A2',
+      name: 'No MTGO ID',
+      set: 'tle', collector_number: '162',
+      cmc: 2, type_line: 'Sorcery',
+      oracle_text: '',
+      rarity: 'common',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.mtgoId).toBeNull();
+  });
+
   it('concatenates oracle text from card_faces when top-level oracle_text is empty', () => {
     const dfc = {
       oracle_id: '00000000-0000-0000-0000-00000000FACE',

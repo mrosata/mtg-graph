@@ -105,4 +105,32 @@ describe('ImportDeckModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('imports DEK XML and preserves CatID as mtgoId on DeckCards', async () => {
+    renderModal();
+    const dek = `<?xml version="1.0" encoding="utf-8"?>
+<Deck>
+  <Cards CatID="129247" Quantity="4" Sideboard="false" Name="Lightning Bolt" />
+  <Cards CatID="129248" Quantity="2" Sideboard="false" Name="Swamp" />
+</Deck>`;
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: dek } });
+    fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+    const deck = useDeckStore.getState().decks[0]!;
+    expect(deck.workingCards).toEqual([
+      { oracleId: 'bolt', count: 4, name: 'Lightning Bolt', mtgoId: 129247 },
+      { oracleId: 'swamp', count: 2, name: 'Swamp', mtgoId: 129248 },
+    ]);
+  });
+
+  it('shows a parse error when the file is malformed XML', async () => {
+    renderModal();
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: '<Deck><Cards CatID="1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+    expect(await screen.findByText(/invalid dek/i)).toBeInTheDocument();
+    expect(useDeckStore.getState().decks).toHaveLength(0);
+  });
 });

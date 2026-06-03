@@ -50,6 +50,36 @@ describe('isDirty', () => {
     const work = [{ oracleId: 'a', count: 4, name: 'New' }];
     expect(isDirty(makeDeck({ originalCards: orig, workingCards: work }))).toBe(false);
   });
+
+  it('is true when sideboard changes even if main is unchanged', () => {
+    const main = [{ oracleId: 'a', count: 4 }];
+    expect(isDirty(makeDeck({
+      originalCards: main, workingCards: main,
+      originalSideboardCards: [], sideboardCards: [{ oracleId: 'b', count: 2 }],
+    }))).toBe(true);
+  });
+
+  it('is true when a sideboard entry changes count', () => {
+    const sb = [{ oracleId: 'a', count: 2 }];
+    const sbWork = [{ oracleId: 'a', count: 3 }];
+    expect(isDirty(makeDeck({
+      originalSideboardCards: sb, sideboardCards: sbWork,
+    }))).toBe(true);
+  });
+
+  it('is false when neither main nor sideboard have changed', () => {
+    const main = [{ oracleId: 'a', count: 4 }];
+    const sb = [{ oracleId: 'b', count: 2 }];
+    expect(isDirty(makeDeck({
+      originalCards: main, workingCards: main,
+      originalSideboardCards: sb, sideboardCards: sb,
+    }))).toBe(false);
+  });
+
+  it('treats missing sideboard fields (pre-v5 shape) as empty, not dirty', () => {
+    // No sideboard fields at all → both default to [] → not dirty.
+    expect(isDirty(makeDeck())).toBe(false);
+  });
 });
 
 describe('added', () => {

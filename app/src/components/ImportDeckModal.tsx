@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDeckStore } from '../stores/deckStore';
 import { useGraphStore } from '../stores/graphStore';
 import { useImportSummaryStore } from '../stores/importSummaryStore';
-import { parseArenaDeck, resolveImport } from '../lib/deckImport';
+import { parseDeck, resolveImport } from '../lib/deckImport';
 
 type Props = { onClose: () => void };
 
@@ -25,10 +25,16 @@ export default function ImportDeckModal({ onClose }: Props) {
   }, [onClose]);
 
   const handleImport = async () => {
-    const parsed = parseArenaDeck(text);
+    let parsed;
+    try {
+      parsed = parseDeck(text);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to parse deck.');
+      return;
+    }
     const result = resolveImport(parsed, cards);
     if (parsed.entries.length === 0) {
-      setError('No cards found. Paste an Arena-format decklist.');
+      setError('No cards found. Paste an Arena-format decklist or a .dek file.');
       return;
     }
     if (result.resolved.length === 0) {
@@ -37,10 +43,10 @@ export default function ImportDeckModal({ onClose }: Props) {
       );
       return;
     }
-    await importDeck(parsed.name, result.resolved);
+    await importDeck(parsed.name, result.resolved, result.sideboardResolved);
     if (
       result.unknown.length > 0 ||
-      result.sideboardCount > 0 ||
+      result.sideboardUnknown.length > 0 ||
       result.unparseableLines.length > 0
     ) {
       setSummary(result);
@@ -77,7 +83,7 @@ export default function ImportDeckModal({ onClose }: Props) {
             Import deck
           </h3>
           <p className="mt-1 text-xs text-vellum-dim">
-            Paste an MTG Arena-format decklist, or load it from a .txt file.
+            Paste an MTG Arena-format decklist, or load a .txt or .dek file.
           </p>
           <textarea
             value={text}
@@ -97,7 +103,7 @@ export default function ImportDeckModal({ onClose }: Props) {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".txt,text/plain"
+              accept=".txt,text/plain,.dek,application/xml,text/xml"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];

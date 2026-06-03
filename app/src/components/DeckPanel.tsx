@@ -10,7 +10,7 @@ import DeckPanelCollapsed from './DeckPanelCollapsed';
 import HoverCardPreview from './HoverCardPreview';
 import CardListRow, { CountControls } from './CardListRow';
 import NotInLibraryBadge from './NotInLibraryBadge';
-import { deckToArenaText } from '../lib/deckExport';
+import { deckToArenaText, deckToDekXml } from '../lib/deckExport';
 import { useToastStore } from '../stores/toastStore';
 import { added, removed, isDirty } from '../lib/deckDiff';
 import { TOUR_IDS } from '../wizard/selectors';
@@ -203,6 +203,21 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
               >
                 Export
               </button>
+              <button
+                onClick={async () => {
+                  const xml = deckToDekXml(deck, cards);
+                  try {
+                    await navigator.clipboard.writeText(xml);
+                    showToast(`Copied "${deck.name}" as .dek`);
+                  } catch {
+                    showToast('Copy failed. Select the text and copy manually.');
+                  }
+                }}
+                title="Copy as Archidekt/MTGO .dek XML"
+                className="focus-brass text-xs text-brass transition-colors hover:text-brass-hi"
+              >
+                .dek
+              </button>
             </div>
           </div>
           <button
@@ -318,6 +333,36 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
               </ul>
             </div>
           ) : null}
+          {(deck.sideboardCards ?? []).length > 0 && (
+            <div data-testid="sideboard-section">
+              <h3 className="eyebrow">
+                Sideboard{' '}
+                <span className="font-mono tabular text-vellum-dim">
+                  ({(deck.sideboardCards ?? []).reduce((s, c) => s + c.count, 0)})
+                </span>
+              </h3>
+              <ul className="mt-1 space-y-0.5">
+                {(deck.sideboardCards ?? []).map((entry) => {
+                  const card = cards.get(entry.oracleId);
+                  const name = card?.name ?? entry.name ?? `Unknown card (oracleId: ${entry.oracleId.slice(0, 8)})`;
+                  return (
+                    <li
+                      key={entry.oracleId}
+                      data-testid="sideboard-row"
+                      className="flex items-center gap-2 px-1 py-0.5 text-sm"
+                    >
+                      <CountControls
+                        count={entry.count}
+                        onAdd={(qty) => addCard(entry.oracleId, qty, card?.name, 'sideboard')}
+                        onRemove={(qty) => removeCard(entry.oracleId, qty, 'sideboard')}
+                      />
+                      <span className="truncate text-vellum-dim" title={entry.oracleId}>{name}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
           {removedEntries.length > 0 && (
             <div>
               <h3 className="eyebrow">Removed cards</h3>

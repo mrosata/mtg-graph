@@ -211,3 +211,96 @@ describe('resolveLibrary', () => {
     expect(r.unparseableLines).toEqual(['garbage']);
   });
 });
+
+describe('resolveLibrary — ownedDetail (per-printing for DEK export)', () => {
+  // Mirror the simple makeCard helper above but also populate printingDetails.
+  function makeCardWithPrintings(
+    oracleId: string,
+    name: string,
+    prints: Array<{ set: string; cn: string; mtgoId?: number }>,
+  ): Card {
+    return {
+      oracleId, name, set: prints[0]!.set, printings: prints.map((p) => p.set),
+      collectorNumber: prints[0]!.cn,
+      manaCost: null, cmc: 0, colors: [], colorIdentity: [],
+      typeLine: '', types: [], subtypes: [], supertypes: [],
+      oracleText: '', keywords: [], power: null, toughness: null,
+      rarity: 'common', imageUrl: '',
+      printingDetails: prints.map((p) => {
+        const d: { set: string; collectorNumber: string; mtgoId?: number } =
+          { set: p.set, collectorNumber: p.cn };
+        if (p.mtgoId !== undefined) d.mtgoId = p.mtgoId;
+        return d;
+      }),
+      tags: [],
+    };
+  }
+
+  const CARDS_RICH = new Map<string, Card>([
+    ['bl', makeCardWithPrintings('bl', 'Banishing Light', [
+      { set: 'blb', cn: '1',   mtgoId: 129247 },
+      { set: 'eoe', cn: '6',   mtgoId: 142625 },
+      { set: 'fdn', cn: '138', mtgoId: 133302 },
+    ])],
+    ['bolt', makeCardWithPrintings('bolt', 'Lightning Bolt', [
+      { set: 'dmu', cn: '100' }, // paper-only, no MTGO ID
+    ])],
+  ]);
+  const KNOWN = new Set(['blb', 'eoe', 'fdn', 'dmu']);
+
+  it('looks up mtgoId from Card.printingDetails when set + collectorNumber match', () => {
+    const parsed = { rows: [
+      { name: 'Banishing Light', setCode: 'eoe', collectorNumber: '6', quantity: 2 },
+    ], unparseableLines: [] };
+    const r = resolveLibrary(parsed, CARDS_RICH, KNOWN);
+    expect(r.ownedDetail.get('bl')).toEqual([
+      { set: 'eoe', collectorNumber: '6', mtgoId: 142625, count: 2 },
+    ]);
+  });
+
+  it('keeps separate printings for the same oracle across different sets', () => {
+    const parsed = { rows: [
+      { name: 'Banishing Light', setCode: 'blb', collectorNumber: '1', quantity: 1 },
+      { name: 'Banishing Light', setCode: 'eoe', collectorNumber: '6', quantity: 2 },
+    ], unparseableLines: [] };
+    const r = resolveLibrary(parsed, CARDS_RICH, KNOWN);
+    expect(r.owned.get('bl')).toBe(3); // aggregate still works
+    expect(r.ownedDetail.get('bl')).toEqual([
+      { set: 'blb', collectorNumber: '1', mtgoId: 129247, count: 1 },
+      { set: 'eoe', collectorNumber: '6', mtgoId: 142625, count: 2 },
+    ]);
+  });
+
+  it('merges same-printing rows by summing count', () => {
+    const parsed = { rows: [
+      { name: 'Banishing Light', setCode: 'eoe', collectorNumber: '6', quantity: 1 },
+      { name: 'Banishing Light', setCode: 'eoe', collectorNumber: '6', quantity: 2 },
+    ], unparseableLines: [] };
+    const r = resolveLibrary(parsed, CARDS_RICH, KNOWN);
+    expect(r.ownedDetail.get('bl')).toEqual([
+      { set: 'eoe', collectorNumber: '6', mtgoId: 142625, count: 3 },
+    ]);
+  });
+
+  it('still records the printing when mtgoId is unknown (paper-only)', () => {
+    const parsed = { rows: [
+      { name: 'Lightning Bolt', setCode: 'dmu', collectorNumber: '100', quantity: 4 },
+    ], unparseableLines: [] };
+    const r = resolveLibrary(parsed, CARDS_RICH, KNOWN);
+    expect(r.ownedDetail.get('bolt')).toEqual([
+      { set: 'dmu', collectorNumber: '100', count: 4 },
+    ]);
+  });
+
+  it('preserves the user-supplied set/cn even when the artifact has no matching printingDetails entry', () => {
+    // User imported a card from a set we don't have indexed (e.g., MH3 reprint).
+    // Match by name still works; mtgoId stays undefined.
+    const parsed = { rows: [
+      { name: 'Lightning Bolt', setCode: 'mh3', collectorNumber: '50', quantity: 2 },
+    ], unparseableLines: [] };
+    const r = resolveLibrary(parsed, CARDS_RICH, KNOWN);
+    expect(r.ownedDetail.get('bolt')).toEqual([
+      { set: 'mh3', collectorNumber: '50', count: 2 },
+    ]);
+  });
+});

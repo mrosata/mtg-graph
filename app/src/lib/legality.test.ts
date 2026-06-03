@@ -59,4 +59,31 @@ describe('deckLegality', () => {
     ]);
     expect(deckLegality(d, cards)).toEqual([]);
   });
+
+  it('warns when sideboard exceeds 15 cards', () => {
+    const d: Deck = {
+      ...deck([{ oracleId: 'lb', count: 4 }]),
+      sideboardCards: [{ oracleId: 'cs', count: 16 }],
+    };
+    const w = deckLegality(d, cards);
+    expect(w.some((x) => /Sideboard contains 16 cards/.test(x.message))).toBe(true);
+  });
+
+  it('does not warn for a 15-card sideboard', () => {
+    const d: Deck = {
+      ...deck([
+        { oracleId: 'lb', count: 4 },
+        { oracleId: 'cs', count: 4 },
+        { oracleId: 'plains', count: 52 },
+      ]),
+      sideboardCards: [{ oracleId: 'cs', count: 15 }],
+    };
+    expect(deckLegality(d, cards).some((x) => /Sideboard/.test(x.message))).toBe(false);
+  });
+
+  it('tolerates an undefined sideboard (pre-v5 deck shape)', () => {
+    const d = deck([{ oracleId: 'lb', count: 4 }, { oracleId: 'plains', count: 56 }]);
+    // Explicitly leave sideboardCards undefined — no crash, no false warning.
+    expect(deckLegality(d, cards).some((x) => /Sideboard/.test(x.message))).toBe(false);
+  });
 });

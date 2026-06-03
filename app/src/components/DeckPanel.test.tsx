@@ -248,6 +248,112 @@ describe('DeckPanel — dirty state, Save, Discard', () => {
   });
 });
 
+describe('DeckPanel — sideboard section', () => {
+  it('does not render the Sideboard section when sideboardCards is empty', () => {
+    useDeckStore.setState({
+      activeDeckId: 'd1',
+      decks: [{
+        id: 'd1', name: 'D', format: 'standard',
+        originalCards: [{ oracleId: 'bolt', count: 4 }],
+        workingCards: [{ oracleId: 'bolt', count: 4 }],
+        originalSideboardCards: [], sideboardCards: [],
+        createdAt: 0, updatedAt: 0,
+      }],
+    });
+    render(<DeckPanel />);
+    expect(screen.queryByTestId('sideboard-section')).not.toBeInTheDocument();
+  });
+
+  it('renders the Sideboard section with the total count and one row per entry', () => {
+    useDeckStore.setState({
+      activeDeckId: 'd1',
+      decks: [{
+        id: 'd1', name: 'D', format: 'standard',
+        originalCards: [{ oracleId: 'bolt', count: 4 }],
+        workingCards: [{ oracleId: 'bolt', count: 4 }],
+        originalSideboardCards: [], sideboardCards: [
+          { oracleId: 'bolt', count: 2 },
+          { oracleId: 'bear', count: 3 },
+        ],
+        createdAt: 0, updatedAt: 0,
+      }],
+    });
+    render(<DeckPanel />);
+    expect(screen.getByTestId('sideboard-section')).toBeInTheDocument();
+    expect(screen.getByText('Sideboard')).toBeInTheDocument();
+    expect(screen.getByText('(5)')).toBeInTheDocument();
+    expect(screen.getAllByTestId('sideboard-row')).toHaveLength(2);
+  });
+
+  it('increments sideboard count when the + control on a sideboard row is clicked', async () => {
+    useDeckStore.setState({
+      activeDeckId: 'd1',
+      decks: [{
+        id: 'd1', name: 'D', format: 'standard',
+        originalCards: [{ oracleId: 'bolt', count: 4 }],
+        workingCards: [{ oracleId: 'bolt', count: 4 }],
+        originalSideboardCards: [], sideboardCards: [{ oracleId: 'bear', count: 2 }],
+        createdAt: 0, updatedAt: 0,
+      }],
+    });
+    render(<DeckPanel />);
+    const row = screen.getAllByTestId('sideboard-row')[0]!;
+    // CountControls reuses generic labels across main + SB rows; scope to the SB row.
+    const addBtn = row.querySelector('button[aria-label="Add one copy"]') as HTMLElement;
+    expect(addBtn).not.toBeNull();
+    fireEvent.click(addBtn);
+    await waitFor(() => {
+      expect(useDeckStore.getState().decks[0]!.sideboardCards).toEqual([
+        { oracleId: 'bear', count: 3, name: 'Grizzly Bears' },
+      ]);
+    });
+    expect(useDeckStore.getState().decks[0]!.workingCards).toEqual([
+      { oracleId: 'bolt', count: 4 },
+    ]);
+  });
+
+  it('falls back to entry.name for cards not in the loaded artifact', () => {
+    useDeckStore.setState({
+      activeDeckId: 'd1',
+      decks: [{
+        id: 'd1', name: 'D', format: 'standard',
+        originalCards: [{ oracleId: 'bolt', count: 4 }],
+        workingCards: [{ oracleId: 'bolt', count: 4 }],
+        originalSideboardCards: [], sideboardCards: [
+          { oracleId: 'aaaaaaaa-bbbb-cccc', count: 1, name: 'Rotated Side' },
+        ],
+        createdAt: 0, updatedAt: 0,
+      }],
+    });
+    render(<DeckPanel />);
+    expect(screen.getByText('Rotated Side')).toBeInTheDocument();
+  });
+});
+
+describe('DeckPanel — DEK export', () => {
+  it('copies DEK XML to the clipboard when the .dek button is clicked', async () => {
+    useDeckStore.setState({
+      activeDeckId: 'd1',
+      decks: [{
+        id: 'd1', name: 'Burn', format: 'standard',
+        originalCards: [{ oracleId: 'bolt', count: 4, mtgoId: 129247 }],
+        workingCards: [{ oracleId: 'bolt', count: 4, mtgoId: 129247 }],
+        createdAt: 0, updatedAt: 0,
+      }],
+    });
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    render(<DeckPanel />);
+    fireEvent.click(screen.getByRole('button', { name: /^\.dek$/i }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const xml = writeText.mock.calls[0]![0];
+    expect(xml).toContain('<?xml');
+    expect(xml).toContain('CatID="129247"');
+    expect(xml).toContain('Name="Lightning Bolt"');
+  });
+});
+
 describe('DeckPanel — added accent + Removed cards tray', () => {
   it('does not render the "Removed cards" section when nothing was removed', () => {
     useDeckStore.setState({

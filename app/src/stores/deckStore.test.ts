@@ -165,6 +165,78 @@ describe('importDeck', () => {
     const deck = useDeckStore.getState().decks.find((d) => d.id === id)!;
     expect(deck.name).toBe('Imported deck 2');
   });
+
+  it("addCard(target: 'sideboard') appends to sideboardCards, not workingCards", async () => {
+    await useDeckStore.getState().createDeck('SB Add');
+    await useDeckStore.getState().addCard('a', 2, 'Lightning Bolt', 'sideboard');
+    const deck = useDeckStore.getState().decks[0]!;
+    expect(deck.sideboardCards).toEqual([{ oracleId: 'a', count: 2, name: 'Lightning Bolt' }]);
+    expect(deck.workingCards).toEqual([]);
+  });
+
+  it("addCard(target: 'sideboard') on an existing sideboard entry sums counts", async () => {
+    await useDeckStore.getState().createDeck('SB Sum');
+    await useDeckStore.getState().addCard('a', 1, 'Lightning Bolt', 'sideboard');
+    await useDeckStore.getState().addCard('a', 2, 'Lightning Bolt', 'sideboard');
+    const deck = useDeckStore.getState().decks[0]!;
+    expect(deck.sideboardCards).toEqual([{ oracleId: 'a', count: 3, name: 'Lightning Bolt' }]);
+  });
+
+  it("removeCard(target: 'sideboard') decrements sideboardCards and prunes zero-count rows", async () => {
+    await useDeckStore.getState().createDeck('SB Remove');
+    await useDeckStore.getState().addCard('a', 3, 'Lightning Bolt', 'sideboard');
+    await useDeckStore.getState().removeCard('a', 2, 'sideboard');
+    expect(useDeckStore.getState().decks[0]!.sideboardCards)
+      .toEqual([{ oracleId: 'a', count: 1, name: 'Lightning Bolt' }]);
+    await useDeckStore.getState().removeCard('a', 1, 'sideboard');
+    expect(useDeckStore.getState().decks[0]!.sideboardCards).toEqual([]);
+  });
+
+  it("addCard and removeCard default to target='main' (backwards compat)", async () => {
+    await useDeckStore.getState().createDeck('Default Main');
+    await useDeckStore.getState().addCard('a', 4, 'Lightning Bolt');
+    expect(useDeckStore.getState().decks[0]!.workingCards).toEqual([
+      { oracleId: 'a', count: 4, name: 'Lightning Bolt' },
+    ]);
+    expect(useDeckStore.getState().decks[0]!.sideboardCards).toEqual([]);
+  });
+
+  it('persists sideboard resolved entries into Deck.sideboardCards and originalSideboardCards', async () => {
+    const id = await useDeckStore.getState().importDeck(
+      'With SB',
+      [{ oracleId: 'a', count: 4, name: 'Lightning Bolt' }],
+      [{ oracleId: 'b', count: 2, name: 'Naturalize', mtgoId: 129249 }],
+    );
+    const deck = useDeckStore.getState().decks.find((d) => d.id === id)!;
+    expect(deck.sideboardCards).toEqual([
+      { oracleId: 'b', count: 2, name: 'Naturalize', mtgoId: 129249 },
+    ]);
+    expect(deck.originalSideboardCards).toEqual(deck.sideboardCards);
+  });
+
+  it('defaults sideboard to empty array when not provided (backwards-compat call sites)', async () => {
+    const id = await useDeckStore.getState().importDeck('Main only', [
+      { oracleId: 'a', count: 4, name: 'Lightning Bolt' },
+    ]);
+    const deck = useDeckStore.getState().decks.find((d) => d.id === id)!;
+    expect(deck.sideboardCards).toEqual([]);
+    expect(deck.originalSideboardCards).toEqual([]);
+  });
+
+  it('persists mtgoId from resolved entries into DeckCards (DEK round-trip)', async () => {
+    const id = await useDeckStore.getState().importDeck('Dek import', [
+      { oracleId: 'a', count: 4, name: 'Lightning Bolt', mtgoId: 129247 },
+      { oracleId: 'b', count: 2, name: 'Counterspell' }, // no mtgoId
+    ]);
+    const deck = useDeckStore.getState().decks.find((d) => d.id === id)!;
+    expect(deck.workingCards[0]).toEqual({
+      oracleId: 'a', count: 4, name: 'Lightning Bolt', mtgoId: 129247,
+    });
+    expect(deck.workingCards[1]).toEqual({
+      oracleId: 'b', count: 2, name: 'Counterspell',
+    });
+    expect(deck.originalCards).toEqual(deck.workingCards);
+  });
 });
 
 describe('saveDeck', () => {
@@ -200,6 +272,18 @@ describe('saveDeck', () => {
     expect(after.originalCards).toEqual([{ oracleId: 'a', count: 4, name: 'Lightning Bolt' }]);
     expect(after.workingCards).toEqual([{ oracleId: 'a', count: 5, name: 'Lightning Bolt' }]);
   });
+
+  it('snapshots sideboardCards into originalSideboardCards so dirty clears after save', async () => {
+    const id = await useDeckStore.getState().createDeck('S');
+    await useDeckStore.getState().addCard('b', 2, 'Naturalize', 'sideboard');
+    const before = useDeckStore.getState().decks[0]!;
+    expect(isDirty(before)).toBe(true);
+
+    await useDeckStore.getState().saveDeck(id);
+    const after = useDeckStore.getState().decks[0]!;
+    expect(after.originalSideboardCards).toEqual(after.sideboardCards);
+    expect(isDirty(after)).toBe(false);
+  });
 });
 
 describe('addCard / removeCard no longer bump updatedAt', () => {
@@ -226,6 +310,22 @@ describe('discardChanges', () => {
 
     const after = useDeckStore.getState().decks[0]!;
     expect(after.workingCards).toEqual(after.originalCards);
+    expect(isDirty(after)).toBe(false);
+  });
+
+  it('reverts sideboardCards to originalSideboardCards', async () => {
+    const id = await useDeckStore.getState().createDeck('D');
+    await useDeckStore.getState().addCard('a', 2, 'Naturalize', 'sideboard');
+    await useDeckStore.getState().saveDeck(id);
+    // Now make sideboard-only changes after save.
+    await useDeckStore.getState().addCard('b', 3, 'Veil', 'sideboard');
+    await useDeckStore.getState().removeCard('a', 1, 'sideboard');
+
+    await useDeckStore.getState().discardChanges(id);
+
+    const after = useDeckStore.getState().decks[0]!;
+    expect(after.sideboardCards).toEqual(after.originalSideboardCards);
+    expect(after.sideboardCards).toEqual([{ oracleId: 'a', count: 2, name: 'Naturalize' }]);
     expect(isDirty(after)).toBe(false);
   });
 

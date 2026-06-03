@@ -8,7 +8,8 @@ function makeResult(overrides: Partial<ImportResult> = {}): ImportResult {
   return {
     resolved: [{ oracleId: 'a', count: 4, name: 'Lightning Bolt' }],
     unknown: [],
-    sideboardCount: 0,
+    sideboardResolved: [],
+    sideboardUnknown: [],
     unparseableLines: [],
     ...overrides,
   };
@@ -46,10 +47,25 @@ describe('ImportSummary', () => {
     expect(screen.getByText('2 Snapcaster Mage')).toBeInTheDocument();
   });
 
-  it('renders the sideboard message when sideboardCount > 0', () => {
-    useImportSummaryStore.getState().set(makeResult({ sideboardCount: 15 }));
+  it('rolls sideboard counts (resolved + unknown) into the M-of-N header', () => {
+    useImportSummaryStore.getState().set(makeResult({
+      resolved: [{ oracleId: 'a', count: 60, name: 'Lightning Bolt' }],
+      sideboardResolved: [{ oracleId: 'a', count: 10, name: 'Lightning Bolt' }],
+      sideboardUnknown: [{ count: 5, name: 'Tarmogoyf' }],
+    }));
     render(<ImportSummary />);
-    expect(screen.getByText(/15 sideboard cards skipped/)).toBeInTheDocument();
+    expect(screen.getByText('Imported 70 of 75 cards.')).toBeInTheDocument();
+  });
+
+  it('lists sideboard unknowns alongside main-deck unknowns in the skipped details', () => {
+    useImportSummaryStore.getState().set(makeResult({
+      unknown: [{ count: 4, name: 'Tarmogoyf' }],
+      sideboardUnknown: [{ count: 2, name: 'Force of Will' }],
+    }));
+    render(<ImportSummary />);
+    expect(screen.getByText(/6 cards skipped — not in Standard/)).toBeInTheDocument();
+    expect(screen.getByText('4 Tarmogoyf')).toBeInTheDocument();
+    expect(screen.getByText('2 Force of Will')).toBeInTheDocument();
   });
 
   it('renders the unparseable-lines details', () => {
@@ -62,15 +78,16 @@ describe('ImportSummary', () => {
     expect(screen.getByText('foo bar baz')).toBeInTheDocument();
   });
 
-  it('omits sideboard and unparseable sections when their counts are zero', () => {
+  it('omits the unparseable section when there are no unparseable lines', () => {
     useImportSummaryStore.getState().set(makeResult());
     render(<ImportSummary />);
-    expect(screen.queryByText(/sideboard cards skipped/)).not.toBeInTheDocument();
     expect(screen.queryByText(/unparseable lines skipped/)).not.toBeInTheDocument();
   });
 
   it('dismiss button clears the store', () => {
-    useImportSummaryStore.getState().set(makeResult({ sideboardCount: 3 }));
+    useImportSummaryStore.getState().set(makeResult({
+      sideboardUnknown: [{ count: 3, name: 'Force of Will' }],
+    }));
     render(<ImportSummary />);
     fireEvent.click(screen.getByRole('button', { name: /dismiss import summary/i }));
     expect(useImportSummaryStore.getState().result).toBeNull();

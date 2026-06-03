@@ -24,17 +24,28 @@ function writeActiveDeckId(id: string | null): void {
   }
 }
 
+export type DeckTarget = 'main' | 'sideboard';
+
 type DeckState = {
   decks: Deck[];
   activeDeckId: string | null;
   load: () => Promise<void>;
   createDeck: (name: string) => Promise<string>;
-  importDeck: (name: string | null, resolved: ResolvedEntry[]) => Promise<string>;
+  importDeck: (
+    name: string | null,
+    resolved: ResolvedEntry[],
+    sideboard?: ResolvedEntry[],
+  ) => Promise<string>;
   setActiveDeck: (id: string | null) => void;
   renameDeck: (id: string, name: string) => Promise<void>;
   deleteDeck: (id: string) => Promise<void>;
-  addCard: (oracleId: string, qty: number, name?: string) => Promise<void>;
-  removeCard: (oracleId: string, qty: number) => Promise<void>;
+  addCard: (
+    oracleId: string,
+    qty: number,
+    name?: string,
+    target?: DeckTarget,
+  ) => Promise<void>;
+  removeCard: (oracleId: string, qty: number, target?: DeckTarget) => Promise<void>;
   saveDeck: (id: string) => Promise<void>;
   discardChanges: (id: string) => Promise<void>;
   restoreRemoved: (oracleId: string) => Promise<void>;
@@ -68,7 +79,9 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     const now = Date.now();
     const deck: Deck = {
       id: newId(), name, format: 'standard',
-      originalCards: [], workingCards: [], createdAt: now, updatedAt: now,
+      originalCards: [], workingCards: [],
+      originalSideboardCards: [], sideboardCards: [],
+      createdAt: now, updatedAt: now,
     };
     await persist(deck);
     writeActiveDeckId(deck.id);
@@ -76,13 +89,20 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     return deck.id;
   },
 
-  importDeck: async (name, resolved) => {
+  importDeck: async (name, resolved, sideboard = []) => {
     const now = Date.now();
     const finalName = name ?? `Imported deck ${get().decks.length + 1}`;
+    const toDeckCard = (e: ResolvedEntry) => {
+      const dc: DeckCard = { oracleId: e.oracleId, count: e.count, name: e.name };
+      if (e.mtgoId !== undefined) dc.mtgoId = e.mtgoId;
+      return dc;
+    };
     const deck: Deck = {
       id: newId(), name: finalName, format: 'standard',
-      originalCards: resolved.map((e) => ({ oracleId: e.oracleId, count: e.count, name: e.name })),
-      workingCards: resolved.map((e) => ({ oracleId: e.oracleId, count: e.count, name: e.name })),
+      originalCards: resolved.map(toDeckCard),
+      workingCards: resolved.map(toDeckCard),
+      originalSideboardCards: sideboard.map(toDeckCard),
+      sideboardCards: sideboard.map(toDeckCard),
       createdAt: now, updatedAt: now,
     };
     await persist(deck);
@@ -115,33 +135,35 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     });
   },
 
-  addCard: async (oracleId, qty, name) => {
+  addCard: async (oracleId, qty, name, target = 'main') => {
     const id = get().activeDeckId;
     if (!id) throw new Error('No active deck');
     const decks = get().decks.map((d) => {
       if (d.id !== id) return d;
-      const existing = d.workingCards.find((c) => c.oracleId === oracleId);
-      const workingCards: DeckCard[] = existing
-        ? d.workingCards.map((c) =>
+      const source = target === 'main' ? d.workingCards : (d.sideboardCards ?? []);
+      const existing = source.find((c) => c.oracleId === oracleId);
+      const next: DeckCard[] = existing
+        ? source.map((c) =>
             c.oracleId === oracleId ? { ...c, count: c.count + qty, name: c.name ?? name } : c,
           )
-        : [...d.workingCards, name ? { oracleId, count: qty, name } : { oracleId, count: qty }];
-      return { ...d, workingCards };
+        : [...source, name ? { oracleId, count: qty, name } : { oracleId, count: qty }];
+      return target === 'main' ? { ...d, workingCards: next } : { ...d, sideboardCards: next };
     });
     const updated = decks.find((d) => d.id === id);
     if (updated) await persist(updated);
     set({ decks });
   },
 
-  removeCard: async (oracleId, qty) => {
+  removeCard: async (oracleId, qty, target = 'main') => {
     const id = get().activeDeckId;
     if (!id) throw new Error('No active deck');
     const decks = get().decks.map((d) => {
       if (d.id !== id) return d;
-      const workingCards = d.workingCards
+      const source = target === 'main' ? d.workingCards : (d.sideboardCards ?? []);
+      const next = source
         .map((c) => (c.oracleId === oracleId ? { ...c, count: c.count - qty } : c))
         .filter((c) => c.count > 0);
-      return { ...d, workingCards };
+      return target === 'main' ? { ...d, workingCards: next } : { ...d, sideboardCards: next };
     });
     const updated = decks.find((d) => d.id === id);
     if (updated) await persist(updated);
@@ -154,6 +176,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       return {
         ...d,
         originalCards: d.workingCards.map((c) => ({ ...c })),
+        originalSideboardCards: (d.sideboardCards ?? []).map((c) => ({ ...c })),
         updatedAt: Date.now(),
       };
     });
@@ -168,6 +191,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       return {
         ...d,
         workingCards: d.originalCards.map((c) => ({ ...c })),
+        sideboardCards: (d.originalSideboardCards ?? []).map((c) => ({ ...c })),
       };
     });
     const updated = decks.find((d) => d.id === id);

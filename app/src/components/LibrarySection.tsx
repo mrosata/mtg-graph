@@ -96,7 +96,8 @@ export default function LibrarySection() {
             <div className="mt-3">
               <LibraryImportSummary
                 result={{
-                  owned, unknownNames: meta.unknownNames, unknownSets: meta.unknownSets,
+                  owned, ownedDetail: new Map(),
+                  unknownNames: meta.unknownNames, unknownSets: meta.unknownSets,
                   unparseableLines: meta.unparseableLines,
                 }}
               />
