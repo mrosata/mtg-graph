@@ -5,6 +5,7 @@ import { useGraphStore } from '../stores/graphStore';
 import { useToastStore } from '../stores/toastStore';
 import ConfirmModal from '../components/ConfirmModal';
 import ImportDeckModal from '../components/ImportDeckModal';
+import MtgaImportModal from '../components/MtgaImportModal';
 import Toast from '../components/Toast';
 import ManaCost from '../components/ManaCost';
 import { deckColors } from '../lib/deckColors';
@@ -83,6 +84,7 @@ export default function DecksPage() {
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [mtgaModalOpen, setMtgaModalOpen] = useState(false);
 
   const handleCreate = async () => {
     await createDeck(`Untitled Deck ${decks.length + 1}`);
@@ -139,6 +141,13 @@ export default function DecksPage() {
               <path d="M3 12v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1" />
             </svg>
             Import
+          </button>
+          <button
+            type="button"
+            onClick={() => setMtgaModalOpen(true)}
+            className="focus-brass inline-flex items-center gap-1.5 rounded-full border border-ink-line-2 bg-ink-raised px-3.5 py-1.5 text-xs font-medium text-vellum-mute transition-colors hover:border-brass/60 hover:text-brass-hi"
+          >
+            Import MTGA decks
           </button>
           <button
             onClick={handleCreate}
@@ -275,6 +284,7 @@ export default function DecksPage() {
         />
       )}
       {importOpen && <ImportDeckModal onClose={() => setImportOpen(false)} />}
+      {mtgaModalOpen && <MtgaImportModal onClose={() => setMtgaModalOpen(false)} />}
       <Toast />
     </div>
   );
