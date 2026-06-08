@@ -1,0 +1,25 @@
+[UnityCrossThreadLogger]<== PlayerInventory.GetPlayerCardsV3(7)
+{
+  "87018": 16,
+  "87016": 12,
+  "87010": 8,
+  "94938": 4,
+  "86864": 2
+}
+
+[UnityCrossThreadLogger]<== Deck.GetDeckListsV3(8)
+[
+  {
+    "id": "e2e-deck-1",
+    "name": "Burn",
+    "format": "Standard",
+    "mainDeck": [
+      {"id": 94938, "quantity": 4},
+      {"id": 87016, "quantity": 12}
+    ],
+    "sideboard": [
+      {"id": 86864, "quantity": 2}
+    ],
+    "companion": null
+  }
+]
