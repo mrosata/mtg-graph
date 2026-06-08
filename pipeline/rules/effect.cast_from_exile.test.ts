@@ -51,6 +51,12 @@ describe('effect.cast_from_exile', () => {
     // templates outside an exile context.
     ["exile target instant or sorcery card from an opponent's graveyard. you may cast it this turn, and mana of any type can be spent to cast that spell."],
     ['when this creature enters, exile target noncreature, nonland card from your graveyard. until the end of your next turn, you may cast that card.'],
+    // v0.38.0 — Batch 12b: anaphoric "from among them" form. Abstract
+    // Performance: "exile the top four cards of your library. ... you may
+    // cast a spell from among them without paying its mana cost." The
+    // arm is gated on a preceding `exile` clause within ~200 chars
+    // (mirrors PATTERN_2 / PATTERN_PLAY_ANAPHOR backward-window guard).
+    ['exile the top four cards of your library in a face-down pile, then exile the top four cards of your library in a face-up pile. an opponent chooses one of those piles. put that pile into your graveyard. look at the cards in the other pile. you may cast a spell from among them without paying its mana cost. put the rest into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -79,6 +85,9 @@ describe('effect.cast_from_exile', () => {
     // Bare "you may play them" with no exile anaphor is generic/ambiguous.
     ['return target creature card from your graveyard to your hand. you may play them this turn.'],
     ['you may play them this turn.'],
+    // v0.38.0 — Batch 12b: bare "from among them" without backward exile
+    // context must NOT fire. Mirrors PATTERN_2's anaphor guard.
+    ['return target creature card from your graveyard. you may cast a spell from among them.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

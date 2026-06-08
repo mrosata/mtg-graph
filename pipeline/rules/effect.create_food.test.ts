@@ -9,6 +9,9 @@ describe('effect.create_food', () => {
     ['create x food tokens'],
     ['create three food tokens'],
     ['create your choice of a blood token, a clue token, or a food token'],
+    // v0.38.0 — Batch 5: multi-subtype token-list template. Academy
+    // Manufactor: "create a clue, food, or treasure token".
+    ['if you would create a clue, food, or treasure token, instead create one of each.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

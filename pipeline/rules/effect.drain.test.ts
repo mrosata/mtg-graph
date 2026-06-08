@@ -26,6 +26,11 @@ describe('effect.drain', () => {
     // "choose target opponent/player" clause.
     ['choose target opponent. create two 1/1 colorless thopter artifact creature tokens with flying. then the chosen player loses x life and you gain x life, where x is the number of artifacts you control.'],
     ['the chosen player loses 3 life and you gain 3 life'],
+    // v0.38.0 — Batch 1: defending/attacking player subject. Agate-Blade
+    // Assassin: "whenever __self__ attacks, defending player loses 1 life
+    // and you gain 1 life".
+    ['whenever __self__ attacks, defending player loses 1 life and you gain 1 life.'],
+    ['attacking player loses 2 life and you gain 2 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

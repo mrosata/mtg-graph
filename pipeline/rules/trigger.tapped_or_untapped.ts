@@ -22,7 +22,7 @@ export const rule: Rule = {
     // v0.32 — Group 11 — Cryoshatter: "When enchanted creature becomes
     // tapped or is dealt damage" uses single-shot "when" rather than
     // "whenever". Broaden both arms to `when(?:ever)?` — same trigger axis.
-    const passive = /when(?:ever)? (?:[^.]*?) (?:becomes tapped|becomes untapped|is tapped|is untapped)/;
+    const passive = /when(?:ever)? (?:[^.]*?) (?:becomes tapped|becomes untapped|is tapped|is untapped|enters tapped|enters untapped)/;
     const active = /when(?:ever)? you (?:tap|untap) (?:one or more |an? )?(?:untapped |tapped )?[\w\s'-]+(?:,|\.)/;
     const m = t.match(passive) ?? t.match(active);
     return m ? { evidence: m[0] } : false;

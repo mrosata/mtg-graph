@@ -17,6 +17,11 @@ describe('trigger.tapped_or_untapped', () => {
     // tapped or is dealt damage, destroy it." Single-shot "when" anchor is
     // still the tapped/untapped trigger axis; broaden whenever → when(?:ever)?.
     ['enchant creature enchanted creature gets -5/-0. when enchanted creature becomes tapped or is dealt damage, destroy it.'],
+    // v0.38.0 — Batch 10: passive verb alternation extended with
+    // `enters tapped|enters untapped`. Amulet of Vigor: "whenever a
+    // permanent you control enters tapped, untap it".
+    ['whenever a permanent you control enters tapped, untap it'],
+    ['whenever a creature enters untapped, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

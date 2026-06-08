@@ -44,7 +44,7 @@ const PATTERNS = [
   // Target-side addition implies +1/+1 placement on the destination — fits
   // the plus_one_counter axis. The source-side removal also fits
   // effect.counter_modified.
-  /\bmove\s+(?:\d+|x|one|two|three|four|five)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
+  /\bmove\s+(?:\d+|x|one|two|three|four|five|any number of)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
 ];
 
 export const rule: Rule = {

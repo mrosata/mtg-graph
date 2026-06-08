@@ -46,6 +46,12 @@ describe('effect.targeted_discard', () => {
     // followed by "they discard a card / that card" — bound-pronoun antecedent
     // form that the existing "target opponent reveals their hand" gate misses.
     ['menace when this creature enters, choose target opponent. if they lost life this turn, they reveal their hand, you choose a nonland card from it, and they discard that card. otherwise, they discard a card.'],
+    // v0.38.0 — Batch 12d: Thoughtseize-shape exile. Aggressive Negotiations:
+    // "target opponent reveals their hand. you choose a nonland card from
+    // it and exile that card". The disruption verb is `exile` instead of
+    // `discard`, but the hand-attack semantic is identical (opponent's
+    // hand loses a card to a chosen pick).
+    ['target opponent reveals their hand. you choose a nonland card from it and exile that card. put a +1/+1 counter on up to one target creature you control.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

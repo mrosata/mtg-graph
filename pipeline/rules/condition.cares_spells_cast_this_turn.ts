@@ -44,6 +44,12 @@ const PATTERNS = [
   // each turn costs ...". Ordinal-scaling cost reduction is the same count
   // axis without a `whenever` verb.
   /\bthe (?:second|third|fourth|fifth) [\w\s,'-]{0,40}?spell you cast each turn\b/,
+  // v0.38.0 — Batch 11: reverse-ordinal arm. Alania, Divergent Storm:
+  // "if it's the first instant spell, the first sorcery spell, or the
+  // first __self__ spell other than __self__ you've cast this turn".
+  // The ordinal sits on the spell as a description of which-spell-this-is,
+  // rather than as a count threshold.
+  /\bif it'?s the (?:first|second|third|fourth|fifth) [\w\s,'\-]{0,80}?spells?[\w\s,'\-]{0,40}?you'?ve cast (?:each|this) turn\b/,
 ];
 
 export const rule: Rule = {

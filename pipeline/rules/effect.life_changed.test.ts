@@ -113,6 +113,11 @@ describe('effect.life_changed', () => {
     // exiled creature's controller.
     ['exile target creature. its controller gains life equal to its power.'],
     ['its controller gains 3 life'],
+    // v0.38.0 — Batch 1: defending/attacking player subject.
+    // Alpharael, Stonechosen FRACTIONAL: "defending player loses half their
+    // life, rounded up".
+    ['defending player loses half their life, rounded up'],
+    ['attacking player loses 3 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -65,6 +65,10 @@ describe('effect.counter_modified', () => {
     // removal and target-side addition imply counter modification.
     ['when you do, move x +1/+1 counters from this creature onto another target creature.'],
     ['move two +1/+1 counters from target creature onto another target creature.'],
+    // v0.38.0 — Batch 6: move-counter arm admits `any number of`.
+    // Aetherborn Marauder: "move any number of +1/+1 counters from other
+    // permanents you control onto this creature".
+    ['when this creature enters, move any number of +1/+1 counters from other permanents you control onto this creature.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

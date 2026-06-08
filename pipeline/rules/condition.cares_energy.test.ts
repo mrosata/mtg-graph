@@ -13,6 +13,11 @@ describe('condition.cares_energy', () => {
     ['{t}, pay {e}{e}: tap target creature.'],
     // Saheeli, Radiant Creator
     ['at the beginning of combat on your turn, you may pay {e}{e}{e}.'],
+    // v0.38.0 — Batch 6: extended word list for high-amount pays.
+    // Aetherflux Conduit: "pay fifty {e}".
+    ['pay fifty {e}: draw seven cards'],
+    ['pay twenty {e}: draw a card'],
+    ['pay hundred {e}'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

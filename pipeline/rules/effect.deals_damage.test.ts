@@ -33,6 +33,13 @@ describe('effect.deals_damage', () => {
     ['this room deals damage equal to the number of cards in your hand to target creature an opponent controls'],
     ['this creature deals x damage to each creature and planeswalker'],
     ['this creature deals damage equal to its power to any other target'],
+    // v0.38.0 — Batch 2: extend SELF to include the same superset as
+    // trigger.self_etb (class, case, aura, battle, spacecraft, planet).
+    // Advanced Reconstruction: "this class deals 2 damage to each opponent".
+    ['whenever one or more cards leave your graveyard, this class deals 2 damage to each opponent.'],
+    ['this case deals 1 damage to any target'],
+    ['this aura deals 3 damage to target creature'],
+    ['this battle deals 2 damage to each opponent'],
     // v0.23 — subjunctive "may have <SELF> deal N damage" (Requiem Monolith,
     // Kederekt Parasite).
     ["that creature's controller may have this artifact deal 1 damage to it."],

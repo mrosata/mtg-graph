@@ -8,6 +8,11 @@ describe('effect.scry', () => {
     ['then scry 3'],
     ['scry 1, then draw a card'],
     ['when this creature enters, scry 2'],
+    // v0.38.0 — Batch 6: variable count slot. Alibou, Ancient Witness:
+    // "and you scry x, where x is the number of tapped artifacts you control".
+    ['and you scry x'],
+    ['scry x'],
+    ['scry that many'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

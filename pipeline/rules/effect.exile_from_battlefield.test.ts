@@ -13,6 +13,11 @@ describe('effect.exile_from_battlefield (parent, universal-only)', () => {
     // as a "type-restricting" qualifier; now accepted.
     ['exile target nonland permanent'],
     ['exile target nonland permanent an opponent controls until this enchantment leaves the battlefield'],
+    // v0.38.0 — Batch 9: admit `other` modifier between count slot and
+    // determiner. Aang's Iceberg: "exile up to one other target nonland
+    // permanent".
+    ['exile up to one other target nonland permanent until this enchantment leaves the battlefield'],
+    ['exile another target permanent'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

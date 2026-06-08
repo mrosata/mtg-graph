@@ -15,6 +15,12 @@ describe('effect.grants_protection', () => {
     ['you gain protection from each of your opponents'],
     // "have protection from <X>" — anthem-style.
     ['creatures you control have protection from black'],
+    // v0.38.0 — Batch 7: chain through conjunction. Akroma's Will:
+    // "creatures you control gain lifelink, indestructible, and protection
+    // from each color". Mirrors grants_evasion.ts:34's Group 11c.
+    ['creatures you control gain lifelink, indestructible, and protection from each color until end of turn'],
+    ['target creature gains flying, vigilance, and protection from creatures'],
+    ['target creature gains first strike and protection from green'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -25,7 +25,7 @@ export const tagDef: TagDef = {
 // loses X life and you gain X life"). Anaphor after a prior choice
 // clause. Existing paired-clause check ("you gain") keeps single-half
 // false positives bounded.
-const SUBJECT = "(?:target opponent|target player|each opponent|each player|that player|that opponent|an opponent|opponents?|the chosen player|the chosen opponent)";
+const SUBJECT = "(?:target opponent|target player|each opponent|each player|that player|that opponent|an opponent|opponents?|the chosen player|the chosen opponent|defending player|attacking player)";
 const AMOUNT = "(?:\\d+|x|that much|that many)";
 
 const PATTERNS = [

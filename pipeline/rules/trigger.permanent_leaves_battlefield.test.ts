@@ -7,6 +7,11 @@ describe('trigger.permanent_leaves_battlefield (parent, universal-only)', () => 
     ['whenever a permanent you control leaves the battlefield'],
     ['when another permanent leaves the battlefield'],
     ['whenever a nontoken permanent leaves the battlefield'],
+    // v0.38.0 — Batch 3: short-form "is put into a graveyard" (without "from
+    // the battlefield"). Aetherworks Marvel: "whenever a permanent you
+    // control is put into a graveyard". Universal-permanent scope only;
+    // typed sibling rules stay strict.
+    ['whenever a permanent you control is put into a graveyard'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -64,6 +64,12 @@ const PATTERNS = [
   // antecedent gate (within 200 chars) binds "they" to the chosen
   // opponent without admitting bare "they discard".
   /\bchoose target opponent\b[\s\S]{0,200}?\bthey discards?\s+(?:a card|that card|the chosen card)\b/,
+  // v0.38.0 — Batch 12d: Thoughtseize-shape exile. Aggressive Negotiations:
+  // "target opponent reveals their hand. you choose a nonland card from
+  // it and exile that card". Same hand-attack semantic as discard — the
+  // chosen card leaves the opponent's hand. Spanned by the same 200-char
+  // antecedent gate as the existing reveal-then-discard arms.
+  /\btarget opponent reveals their hand\b[\s\S]{0,200}?\byou choose [^.]*?\bexile that card\b/,
 ];
 
 export const rule: Rule = {

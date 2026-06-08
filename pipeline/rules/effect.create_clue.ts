@@ -26,6 +26,9 @@ const PATTERNS = [
   // Pilfered Proof): "those tokens plus a Clue token are created instead".
   // The verb is "are created", not "create".
   /\bclue\s+tokens?\s+(?:are|is)\s+created\b/,
+  // v0.38.0 — Batch 5: multi-subtype token-list template. Academy
+  // Manufactor: "create a clue, food, or treasure token".
+  /\bcreates?\s+[^.]{0,60}?\bclue(?:,\s+\w+){0,3}(?:,?\s+(?:or|and)\s+\w+)?\s+tokens?\b/,
 ];
 
 export const rule: Rule = {

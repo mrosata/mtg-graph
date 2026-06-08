@@ -47,8 +47,8 @@ export const rule: Rule = {
     // creature. Its controller gains life equal to its power." The anaphoric
     // "its controller" subject binds to the exiled creature's controller —
     // canonical Swords to Plowshares frame.
-    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they|its controller|its owner)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
-    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they|its controller|its owner)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) life equal to /;
+    const QUANT = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they|its controller|its owner|defending player|attacking player)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) (?:[\d,]+|x) life/;
+    const VARIABLE = /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|target player|target opponent|each opponent|each player|that player|that opponent|they|its controller|its owner|defending player|attacking player)(?:\s+who\s+(?:doesn't|does|did|didn't))?\s+(?:each\s+)?(?:may\s+)?)?(?:gains?|loses?) life equal to /;
     // v0.15 — "pay N life" cost frame (Bonecache Overseer: "Pay 1 life" as
     // activation cost). Paying life is functionally life loss for the
     // controller. Allows X / digit / comma-amount.
@@ -63,11 +63,11 @@ export const rule: Rule = {
     // 2026-06-01 audit batch — Cecil, Dark Knight: "you lose that much life"
     // (anaphoric on a prior damage-amount). Self-target life loss is a
     // life-change effect.
-    const THAT_MUCH = /(?:(?:^|[.,:\n—] ?)(?:then |and )?)(?:target opponent|each opponent|each player|target player|that player|they|you)\s+loses?\s+that much life\b/;
+    const THAT_MUCH = /(?:(?:^|[.,:\n—] ?)(?:then |and )?)(?:target opponent|each opponent|each player|target player|that player|they|you|defending player|attacking player)\s+loses?\s+that much life\b/;
     // v0.21.0 — Grievous Wound: fractional / catch-all life loss ("they lose
     // half their life, rounded up"). The amount is "half/all/x [of] their
     // life" — semantically still life_changed.
-    const FRACTIONAL = /(?:target opponent|each opponent|each player|target player|that player|they|enchanted player|you)\s+loses?\s+(?:half|all|x)\s+(?:of\s+)?their\s+life\b/;
+    const FRACTIONAL = /(?:target opponent|each opponent|each player|target player|that player|they|enchanted player|you|defending player|attacking player)\s+loses?\s+(?:half|all|x)\s+(?:of\s+)?their\s+life\b/;
     // v0.21.0 — Leyline of Hope: replacement-effect lifegain upgrade ("you
     // gain that much life plus N instead"). Functionally a life-change.
     const REPLACEMENT_GAIN = /\byou gain that much life plus\s+\d+\s+instead\b/;
@@ -85,15 +85,15 @@ export const rule: Rule = {
     // Gempalm Polluter, Ob Nixilis the Fallen — "have target player lose 1
     // life"). Mirrors the causative arm in effect.draws_or_discards. Required
     // `life` terminator prevents FP on "have X lose N cards" style frames.
-    const CAUSATIVE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them)\s+(?:gains?|loses?)\s+(?:[\d,]+|x)\s+life\b/;
+    const CAUSATIVE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them|defending player|attacking player)\s+(?:gains?|loses?)\s+(?:[\d,]+|x)\s+life\b/;
     // Variable causative — "have target player lose life equal to <X>"
     // (Gempalm Polluter).
-    const CAUSATIVE_VARIABLE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them)\s+(?:gains?|loses?) life equal to /;
+    const CAUSATIVE_VARIABLE = /\b(?:you may )?have (?:target opponent|target player|each opponent|each player|that player|that opponent|them|defending player|attacking player)\s+(?:gains?|loses?) life equal to /;
     // v0.32 — Group 10 — The Endstone: "your life total becomes half your
     // starting life total, rounded up". Direct life-total assignment is a
     // life-change effect (the player ends up at a new life total, regardless
     // of whether the text uses the gain/lose verb).
-    const BECOMES = /\b(?:your|target player's|each opponent's|that player's|each player's|target opponent's)\s+life total becomes\b/;
+    const BECOMES = /\b(?:your|target player's|each opponent's|that player's|each player's|target opponent's|defending player's|attacking player's)\s+life total becomes\b/;
     const m =
       t.match(QUANT) ??
       t.match(VARIABLE) ??

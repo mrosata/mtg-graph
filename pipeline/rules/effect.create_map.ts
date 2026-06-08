@@ -18,6 +18,9 @@ export const tagDef: TagDef = {
 const PATTERNS = [
   /\bcreates?\s+(?:a|an|\d+|x|one|two|three|four|five)\s+(?:tapped\s+)?map\s+tokens?\b/,
   /\bcreates?\s+[^.]{0,80}?\bmap\s+tokens?\b/,
+  // v0.38.0 — Batch 5: multi-subtype token-list template (sibling-rule
+  // consistency). Mirrors Academy Manufactor frame.
+  /\bcreates?\s+[^.]{0,60}?\bmap(?:,\s+\w+){0,3}(?:,?\s+(?:or|and)\s+\w+)?\s+tokens?\b/,
 ];
 
 export const rule: Rule = {

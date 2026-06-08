@@ -89,7 +89,16 @@ const REVEAL_UNTIL_PUT =
 const HAND_PUT =
   /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?(?:\s+and\/or\s+(?:a |an )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|land)\s+cards?)?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
 
-const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, REVEAL_UNTIL_PUT, EXILED_PUT, HAND_PUT];
+// v0.38.0 — Batch 12c: multi-zone search with mandatory `library` disjunct.
+// Agency Outfitter: "search your graveyard, hand and/or library for a card
+// named X and/or a card named Y and put them onto the battlefield". The
+// mandatory library disjunct distinguishes from pure graveyard reanimation
+// (which has its own tag); the presence of library makes this a
+// tutor-into-play frame.
+const MULTI_ZONE_SEARCH_PUT =
+  /\bsearch your (?:graveyard|hand)(?:,\s+(?:graveyard|hand|library))*(?:\s+and\/or\s+library)\b[\s\S]{0,200}?\bput (?:it|them|that card|those cards) onto the battlefield\b/;
+
+const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, REVEAL_UNTIL_PUT, EXILED_PUT, HAND_PUT, MULTI_ZONE_SEARCH_PUT];
 
 // Post-match filter: any of these substrings inside the matched span
 // indicate this is effect.cloak territory (face-down creation), not

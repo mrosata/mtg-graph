@@ -37,6 +37,11 @@ describe('condition.cares_spells_cast_this_turn', () => {
     // more spells this turn" — same threshold gate but with "as long as"
     // anchor instead of "if".
     ["vigilance this creature gets +2/+0 as long as you've cast two or more spells this turn."],
+    // v0.38.0 — Batch 11: reverse-ordinal arm. Alania, Divergent Storm:
+    // "if it's the first instant spell, the first sorcery spell, or the
+    // first __self__ spell other than __self__ you've cast this turn".
+    ["whenever you cast a spell, if it's the first instant spell, the first sorcery spell, or the first otter spell other than __self__ you've cast this turn, you may have target opponent draw a card."],
+    ["if it's the second instant spell you've cast this turn"],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

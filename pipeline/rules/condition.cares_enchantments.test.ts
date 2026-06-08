@@ -24,6 +24,17 @@ describe('condition.cares_enchantments', () => {
     ['this creature is an enchantment creature'],         // typeline-like text
     ['create a treasure token'],                          // unrelated
     ['draw a card'],
+    // v0.38.0 — Batch 4: anti-selector lookbehinds on the bare PATTERN 3
+    // arm, mirroring cares_artifacts.ts precedent. Adagia, Windswept
+    // Bastion: "create a token that's a copy of target artifact or
+    // enchantment you control" — copy-selector, not enchantment-payoff.
+    ["create a token that's a copy of target artifact or enchantment you control, except it's legendary"],
+    ['copy of an enchantment you control'],
+    ['copy of enchantment you control'],
+    ['choose an enchantment you control'],
+    ['choose enchantment you control'],
+    ['target enchantment you control'],
+    ['enchant enchantment you control'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

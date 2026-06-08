@@ -53,6 +53,11 @@ describe('effect.untap', () => {
     ['creatures target player controls get +3/+3 until end of turn. untap them.'],
     // HIGH-4e (Broadcast Takeover): "gain control of ... untap them" antecedent.
     ['gain control of all artifacts your opponents control until end of turn. untap them. they gain haste until end of turn.'],
+    // v0.38.0 — Batch 10: ENTERS_TAPPED_PRONOUN scoped arm. Amulet of
+    // Vigor: "whenever a permanent you control enters tapped, untap it".
+    // Scoped to a "when[ever] X enters tapped, untap (it|them)" preamble.
+    ['whenever a permanent you control enters tapped, untap it.'],
+    ['when a creature you control enters tapped, untap them'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

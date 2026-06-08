@@ -29,7 +29,7 @@ const PATTERNS = [
   // or more creature tokens would be created under your control" triples the
   // tokens. Anker on "tokens would be created" — gating filler accepts noun
   // adjectives (creature, treasure, food, ...) plus quantifier prefix.
-  /\bif (?:a|one or more) [\w\s]+? tokens? would be created\b/,
+  /\bif (?:a|one or more)\s+[\w\s]*?tokens? would be created\b/,
   // v0.14.9 — "sacrifice N tokens" activation-cost frame (Izoni, Center of
   // the Web). Tokens used as a paid resource is a token-payoff signal.
   // v0.15 — type-adjective slot admitted between count and "tokens"

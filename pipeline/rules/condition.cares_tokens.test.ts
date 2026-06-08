@@ -36,6 +36,10 @@ describe('condition.cares_tokens', () => {
     // Quantifier variants.
     ['as long as you control two tokens, draw a card'],
     ['whenever you control a creature token, gain 1 life'],
+    // v0.38.0 — Batch 6: PATTERN 5 filler `[\w\s]+?` → `[\w\s]*?`.
+    // Adrix and Nev, Twincasters: "if one or more tokens would be created".
+    // No adjective between "one or more" and "tokens" — the +? required one.
+    ['if one or more tokens would be created under your control'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

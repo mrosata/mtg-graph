@@ -10,7 +10,7 @@ export const tagDef: TagDef = {
   pairsWith: [],
 };
 
-const PATTERN = /\bscry \d+\b/;
+const PATTERN = /\bscry (?:\d+|x|that many)\b/;
 
 export const rule: Rule = {
   id: 'effect.scry',

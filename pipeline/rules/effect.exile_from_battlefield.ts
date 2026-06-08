@@ -24,7 +24,7 @@ export const tagDef: TagDef = {
 // nonartifact, etc.) are real single-type exclusions and stay excluded
 // so the typed children fire alone.
 const PATTERN =
-  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+\s+){0,5}?permanents?(?! cards?)\b/;
+  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:other\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+\s+){0,5}?permanents?(?! cards?)\b/;
 
 export const rule: Rule = {
   id: 'effect.exile_from_battlefield',

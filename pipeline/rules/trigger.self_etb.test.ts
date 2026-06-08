@@ -60,6 +60,11 @@ describe('trigger.self_etb', () => {
     // Planet ETB trigger fire self_etb.
     ['when this spacecraft enters, put a +1/+1 counter on each creature you control. station 8+ | flying, trample'],
     ['when this planet enters, draw a card'],
+    // v0.38.0 — Batch 8: plural verb conjugation for multi-named legendaries.
+    // Aang and Katara: "whenever __self__ enter or attack" — the SELF token
+    // stands for a "X and Y" plural-noun subject.
+    ['whenever __self__ enter or attack, create x 1/1 white ally creature tokens.'],
+    ['when __self__ enter, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

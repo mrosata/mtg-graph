@@ -17,6 +17,10 @@ describe('effect.create_clue', () => {
     // — the verb is "are created" rather than "create", but the produced
     // token IS a clue.
     ['if one or more tokens would be created under your control, those tokens plus a clue token are created instead'],
+    // v0.38.0 — Batch 5: multi-subtype token-list template. Academy
+    // Manufactor: "if you would create a clue, food, or treasure token,
+    // instead create one of each".
+    ['if you would create a clue, food, or treasure token, instead create one of each.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

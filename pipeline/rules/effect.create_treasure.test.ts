@@ -8,6 +8,9 @@ describe('effect.create_treasure', () => {
     ['create a tapped treasure token'],
     ['create x treasure tokens'],
     ['create three treasure tokens'],
+    // v0.38.0 — Batch 5: multi-subtype token-list template. Academy
+    // Manufactor: "create a clue, food, or treasure token".
+    ['if you would create a clue, food, or treasure token, instead create one of each.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

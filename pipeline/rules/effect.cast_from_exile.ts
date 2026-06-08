@@ -55,6 +55,13 @@ const PATTERN_2 = /\b(?:you may )?cast (?:a |an )?spells? this way\b/;
 const PATTERN_PLAY_ANAPHOR =
   /\b(?:you may )?play (?:it|them|those cards)(?:\s+(?:this turn|until end of turn|until the end of your next turn))?\b/;
 
+// v0.38.0 — Batch 12b: anaphoric "from among them|those cards" form.
+// Abstract Performance: "exile the top four cards of your library. ... you
+// may cast a spell from among them without paying its mana cost". The
+// arm is gated on a preceding `exile` clause within ~200 chars (mirrors
+// PATTERN_2 / PATTERN_PLAY_ANAPHOR backward-window guard).
+const PATTERN_FROM_AMONG_THEM = /\bcast (?:[\w\-'/]+\s+){0,12}?from among (?:them|those cards)\b/;
+
 const PATTERNS = [
   // (1) Theft / opponent's exiled cards remain available
   /\bfor as long as (?:they|it) remains? exiled\b/,
@@ -122,6 +129,17 @@ export const rule: Rule = {
       const before = t.substring(Math.max(0, mPlay.index - 200), mPlay.index);
       if (/\b(?:exile|exiles|exiled|exiling|from exile)\b/.test(before)) {
         return { evidence: mPlay[0] };
+      }
+    }
+    // v0.38.0 — Batch 12b: "cast ... from among them|those cards" anaphor
+    // with the same 200-char backward exile-window guard. Abstract
+    // Performance: "exile the top four cards ... cast a spell from among
+    // them".
+    const mAmong = t.match(PATTERN_FROM_AMONG_THEM);
+    if (mAmong && mAmong.index !== undefined) {
+      const before = t.substring(Math.max(0, mAmong.index - 200), mAmong.index);
+      if (/\b(?:exile|exiles|exiled|exiling|from exile)\b/.test(before)) {
+        return { evidence: mAmong[0] };
       }
     }
     return false;

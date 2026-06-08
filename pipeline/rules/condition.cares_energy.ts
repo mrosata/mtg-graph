@@ -17,7 +17,7 @@ export const tagDef: TagDef = {
 // `pay {E}`, `pay {E}{E}`, `pay N {E}`. Energy spend is almost always an
 // activation cost; we also admit body uses where the player chooses to pay.
 const PATTERN =
-  /\bpay (?:(?:an additional\s+)?(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|x|\d+)\s+)?\{e\}/;
+  /\bpay (?:(?:an additional\s+)?(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|twenty-five|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|x|\d+)\s+)?\{e\}/;
 
 export const rule: Rule = {
   id: 'condition.cares_energy',

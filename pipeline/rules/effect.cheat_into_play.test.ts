@@ -54,6 +54,12 @@ describe('effect.cheat_into_play', () => {
     // v0.35.0 — Batch 1: REVEAL_UNTIL_PUT admit anaphoric "put that card".
     // Raph & Mikey, Troublemakers — reveal-until + put-that-card pattern.
     ['trample, haste whenever __self__ attack, reveal cards from the top of your library until you reveal a creature card. put that card onto the battlefield tapped and attacking and the rest on the bottom of your library in a random order.'],
+    // v0.38.0 — Batch 12c: multi-zone search (mandatory `library` disjunct).
+    // Agency Outfitter: "search your graveyard, hand and/or library for a
+    // card named X and/or a card named Y and put them onto the battlefield".
+    // The library disjunct makes this a tutor-into-play (vs. pure
+    // graveyard reanimation which already has its own tag).
+    ['when this creature enters, you may search your graveyard, hand and/or library for a card named magnifying glass and/or a card named thinking cap and put them onto the battlefield.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -81,6 +81,14 @@ const CHAINED_GAIN_CONTROL = /\bgain control of [^.]{0,60}?,\s*untap (?:it|that 
 // Bare "untap it" without antecedent stays unmatched.
 const SELF_TRIGGER_PRONOUN = /\bwhenever this creature (?:attacks|blocks|attacks or blocks|becomes tapped|becomes blocked|deals (?:combat )?damage)[^.]{0,80}?,\s*untap it\b/;
 
+// v0.38.0 — Batch 10: ENTERS_TAPPED_PRONOUN. Amulet of Vigor: "whenever a
+// permanent you control enters tapped, untap it". Scoped: requires a
+// "when[ever] ... enters tapped" preamble within ~80 chars before the
+// "untap (it|them)" target. Distinct from PRONOUN_PATTERN because the
+// antecedent is an ETB-tapped trigger, not a "target X" / "X you control"
+// noun phrase.
+const ENTERS_TAPPED_PRONOUN = /\bwhen(?:ever)?\s+[^.]{0,80}?enters tapped[^.]{0,40}?,\s*untap (?:it|them)\b/;
+
 // v0.14.1 — Vigilance-style static rider: "Untap this creature during (each
 // other player's )?untap step." Per AGREED PLAN, this static modifier on
 // combat untap is out of scope for effect.untap (Thousand Moons Infantry).
@@ -110,7 +118,8 @@ export const rule: Rule = {
         after.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
         after.match(CHAINED_GAIN_CONTROL) ??
         after.match(GAIN_CONTROL_PRONOUN) ??
-        after.match(SELF_TRIGGER_PRONOUN);
+        after.match(SELF_TRIGGER_PRONOUN) ??
+        after.match(ENTERS_TAPPED_PRONOUN);
       return m ? { evidence: m[0] } : false;
     }
     const m =
@@ -121,7 +130,8 @@ export const rule: Rule = {
       t.match(TRIBAL_LIST_PRONOUN_PATTERN) ??
       t.match(CHAINED_GAIN_CONTROL) ??
       t.match(GAIN_CONTROL_PRONOUN) ??
-      t.match(SELF_TRIGGER_PRONOUN);
+      t.match(SELF_TRIGGER_PRONOUN) ??
+      t.match(ENTERS_TAPPED_PRONOUN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['untap'], proximity: ['creature', 'permanent', 'target', 'all'], window: 6 },

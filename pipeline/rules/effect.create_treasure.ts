@@ -16,6 +16,9 @@ export const tagDef: TagDef = {
 const PATTERNS = [
   /\bcreates?\s+(?:a|an|\d+|x|one|two|three|four|five)\s+(?:tapped\s+)?treasure\s+tokens?\b/,
   /\bcreates?\s+[^.]{0,80}?\btreasure\s+tokens?\b/,
+  // v0.38.0 — Batch 5: multi-subtype token-list template. Academy
+  // Manufactor: "create a clue, food, or treasure token".
+  /\bcreates?\s+[^.]{0,60}?\btreasure(?:,\s+\w+){0,3}(?:,?\s+(?:or|and)\s+\w+)?\s+tokens?\b/,
 ];
 
 export const rule: Rule = {

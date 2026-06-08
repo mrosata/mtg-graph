@@ -15,7 +15,7 @@ export const tagDef: TagDef = {
 // oracle templating ("this creature deals 1 damage to any target") and
 // Rooms ("this Room deals damage equal to...") both use these. Other rules
 // like trigger.self_etb already accept the same shape.
-const SELF = '(?:__self__|this (?:room|creature|artifact|enchantment|land|permanent|saga|vehicle|equipment|planeswalker))';
+const SELF = '(?:__self__|this (?:room|creature|artifact|enchantment|land|permanent|saga|vehicle|equipment|planeswalker|class|case|aura|battle|spacecraft|planet))';
 
 // Three damage-action shapes:
 //   1. literal amount: "X deals 2 damage"

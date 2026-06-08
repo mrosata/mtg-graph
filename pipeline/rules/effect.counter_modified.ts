@@ -86,7 +86,7 @@ export const rule: Rule = {
     // The companion arm on effect.plus_one_counter handles the +1/+1
     // specific addition.
     const moveCounter = t.match(
-      /\bmove\s+(?:\d+|x|one|two|three|four|five)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
+      /\bmove\s+(?:\d+|x|one|two|three|four|five|any number of)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
     );
     return moveCounter ? { evidence: moveCounter[0] } : false;
   },
