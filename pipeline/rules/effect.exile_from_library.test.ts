@@ -58,6 +58,11 @@ describe('effect.exile_from_library', () => {
     ['each opponent exiles cards from the top of their library until they have exiled cards with total mana value 5 or greater this way.'],
     // HIGH-5b (End-Blaze Epiphany): "exile a number of cards from the top of your library" — NUM expanded to admit "a number of".
     ['exile a number of cards from the top of your library equal to its power'],
+    // v0.39.0 — 200-card audit Ship 12b — Arvinox, the Mind Flail. "Exile
+    // the bottom card of each opponent's library face down" — bottom-of-
+    // library exile. Frame A only admits "top"; add "bottom" alternation.
+    ["exile the bottom card of each opponent's library face down."],
+    ['exile the bottom two cards of your library'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

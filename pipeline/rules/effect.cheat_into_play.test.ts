@@ -89,6 +89,15 @@ describe('effect.cheat_into_play', () => {
     ['you may put a card from your hand onto the battlefield'],
     // Tutor-to-hand (Hoarding Dragon style) is NOT cheat-into-play.
     ['when this creature dies, search your library for an artifact card, reveal it, put it into your hand, then shuffle.'],
+    // v0.39.0 — 200-card audit Ship 9: Archdruid's Charm. The disjunctive
+    // search "creature or land card ... if it's a land card, put it onto
+    // the battlefield" only cheats LANDS, not creatures — this isn't
+    // cheat_into_play for the creature axis. SEARCH_PUT must reject the
+    // disjunctive `<permanent-type> or land` (and the mirror) so the rule
+    // doesn't fire on land-only conditional puts.
+    ['search your library for a creature or land card, reveal it. if it is a land card, put it onto the battlefield. otherwise put it into your hand.'],
+    ['search your library for an artifact or land card, reveal it. if it is a land card, put it onto the battlefield.'],
+    ['search your library for a land or creature card, put it onto the battlefield tapped.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

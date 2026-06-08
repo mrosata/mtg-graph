@@ -29,6 +29,10 @@ describe('effect.cost_reduction', () => {
     ['this spell costs {b} less to cast for each creature you control.'],
     // Hybrid mana reduction (rare but exists).
     ['this spell costs {w/b} less to cast.'],
+    // v0.39.0 — Avatar Aang back face: "cost {W}{U}{B}{R}{G} less to cast"
+    // — colored mana sequence in the cost slot. The single-symbol slot
+    // doesn't admit a sequence; the slot must accept a SEQUENCE of symbols.
+    ['spells you cast cost {w}{u}{b}{r}{g} less to cast.'],
     // v0.30 — Group 12 — Memory Guardian / Voyage Home: Affinity for
     // <type> is a printed cost-reducer keyword. The reminder text "(This
     // spell costs {1} less ... for each X)" is reminder-stripped before

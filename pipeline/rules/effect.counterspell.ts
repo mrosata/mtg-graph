@@ -35,11 +35,16 @@ const PATTERN =
 const PATTERN_COMPOSITE_LIST =
   /\bcounters?\s+target\s+[\w\-]+\s+ability\s*,\s+[^.]{0,80}?or\s+(?:[\w\-]+\s+){0,3}?spells?\b/;
 
+// v0.39.0 — Aven Interrupter: "exile target spell" / "exile target spell
+// an opponent controls" is a counter-via-exile. The spell never resolves,
+// so the end result is functionally the same as a counterspell.
+const PATTERN_EXILE_SPELL = /\bexile target spell(?:\s+an\s+opponent\s+controls)?\b/;
+
 export const rule: Rule = {
   id: 'effect.counterspell',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(PATTERN_COMPOSITE_LIST);
+    const m = t.match(PATTERN) ?? t.match(PATTERN_COMPOSITE_LIST) ?? t.match(PATTERN_EXILE_SPELL);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['counter'], proximity: ['spell', 'ability'], window: 6 },

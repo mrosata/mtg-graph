@@ -85,6 +85,10 @@ export const THEME_TRIBES = [
   // Sliver family that recurs in Standard reprints). "Affinity for slivers"
   // + "slivers you control have <kw>" payoff frames.
   'sliver',
+  // v0.39.0 — 200-card audit Ship 1 — Turtle tribal payoff family
+  // (Ainok Tracker partner, plus the recurring Turtle creatures in current
+  // Standard reprints). "Turtles you control" + tribal-care payoffs.
+  'turtle',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];

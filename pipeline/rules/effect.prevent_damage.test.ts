@@ -24,6 +24,12 @@ describe('effect.prevent_damage', () => {
     // admitted `(?:combat\s+)?` only; admit `(?:non)?combat` so the
     // `noncombat` modifier also matches.
     ['defender\nyou have hexproof.\nprevent all noncombat damage that would be dealt to other creatures you control.'],
+    // v0.39.0 — Anti-Venom (200-card audit Ship 5): passive-voice
+    // "if damage would be dealt to you, prevent that damage". The
+    // REPLACEMENT_PATTERN requires `would deal` (active); broaden to
+    // admit `would be dealt` (passive).
+    ['if damage would be dealt to you, prevent that damage.'],
+    ['if combat damage would be dealt to you this turn, prevent that damage.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

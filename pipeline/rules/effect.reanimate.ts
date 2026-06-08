@@ -114,6 +114,22 @@ const PATTERNS = [
   // to the just-milled cards (now in graveyard); same semantic as the
   // existing "from among the milled cards" arm with a pronoun anaphor.
   /\bmill\s+\S+\s+cards?\.\s*then\s+put\s+(?:a |an |one |any number of )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|card)s?\s+from among them onto the battlefield\b/,
+  // v0.39.0 — 200-card audit Ship 11 (Batch 1). Animate Dead Aura template:
+  // "enchant creature card in a graveyard ... return enchanted creature card
+  // to the battlefield". The Aura targets a graveyard card directly; the
+  // "enchanted creature card" anaphor binds to the just-enchanted graveyard
+  // creature. Bounded filler so the two halves stay within a tight window.
+  /\benchant creature card in a graveyard\b[\s\S]{0,400}?return enchanted creature card to the battlefield/i,
+  // v0.39.0 — 200-card audit Ship 11 (Batch 1). Avatar Destiny mill-then-
+  // return: "mill cards equal to its power. return ... up to one creature
+  // card milled this way to the battlefield". The "milled this way" anaphor
+  // binds back to a prior mill clause in the same effect.
+  /\bmill[^.]{0,80}?cards?\b[\s\S]{0,200}?\bcards?\s+milled this way to the battlefield\b/,
+  // v0.39.0 — 200-card audit Ship 11 (Batch 1). Athreos, Shroud-Veiled —
+  // dies-or-exile bridge: "dies or is put into exile, return that card to
+  // the battlefield". Extends the existing dies-bridge anaphoric arm to
+  // admit "is put into exile" alongside "dies" before the comma.
+  /\b(?:dies\s+or\s+is\s+put\s+into\s+exile),\s+return (?:it|that creature|that card|them) to the battlefield/,
 ];
 
 export const rule: Rule = {

@@ -29,7 +29,12 @@ const PATTERN = /\bprevents?\s+(?:all|the next \d+)\s+(?:(?:non)?combat\s+)?dama
 // that damage". Replacement-effect form. The `would deal damage` antecedent
 // anchors it to a damage-prevention semantic; bare "prevent that damage"
 // without the antecedent could appear in other contexts.
-const REPLACEMENT_PATTERN = /\bwould\s+deal[^.]{0,80}?\bdamage\b[^.]{0,40}?,\s*prevent that damage\b/;
+// v0.39.0 — 200-card audit Ship 5: Anti-Venom uses the passive voice
+// "if damage would be dealt to you, prevent that damage". In active form
+// `damage` follows `would deal`; in passive form `damage` precedes
+// `would be dealt`. Admit both voices with two alternative arms.
+const REPLACEMENT_PATTERN =
+  /\b(?:would\s+deal[^.]{0,80}?\bdamage\b|\bdamage\b[^.]{0,80}?\bwould\s+be\s+dealt\b)[^.]{0,60}?,\s*prevent that damage\b/;
 
 export const rule: Rule = {
   id: 'effect.prevent_damage',

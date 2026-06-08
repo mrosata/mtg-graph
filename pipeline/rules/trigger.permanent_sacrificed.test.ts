@@ -25,6 +25,11 @@ describe('trigger.permanent_sacrificed', () => {
     ['whenever you sacrifice two or more creatures, draw a card'],
     // Generic permanent plural.
     ['whenever you sacrifice one or more permanents, this creature gets +1/+1'],
+    // v0.39.0 — 200-card audit Ship 12c — Ashling, the Limitless. Typed-sac
+    // noun "nontoken <CreatureType>" (Elemental here). Cautious broadening:
+    // only admit "nontoken <CreatureType>" patterns, not arbitrary nouns.
+    ["whenever you sacrifice a nontoken elemental, create a token that's a copy of it."],
+    ['whenever you sacrifice a nontoken creature, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

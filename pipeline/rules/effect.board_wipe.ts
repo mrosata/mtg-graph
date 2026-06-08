@@ -37,8 +37,15 @@ const PATTERN_ANAPHORIC_THOSE =
 // [and planeswalker]". Same axis as destroy/exile-all-creatures (sweeps the
 // whole battlefield) but with damage as the verb. Ill-Timed Explosion,
 // Pyroclasm, Anger of the Gods, Sweltering Suns, Brotherhood's End.
+// v0.39.0 — 200-card audit Ship 7: exclude one-sided variants — possessive
+// tails like "creature you don't control" / "creature target player controls"
+// / "creature an opponent controls" / "creature your opponents control" /
+// "creature that player controls" / "creature each opponent controls" are
+// one-sided damage, already captured by `effect.deals_damage`. Add a negative
+// lookahead immediately after the (creature|permanent) anchor. Artistic
+// Process, Ashling's Command, Iroh's Demonstration, Village Pillagers.
 const PATTERN_DAMAGE_SWEEP =
-  /\bdeals\s+(?:\d+|x)\s+damage\s+to\s+each\s+(?:nontoken\s+|nonland\s+)?(?:creature|permanent)(?:\s+and\s+(?:planeswalker|player))?\b/;
+  /\bdeals\s+(?:\d+|x)\s+damage\s+to\s+each\s+(?:nontoken\s+|nonland\s+)?(?:creature|permanent)(?!\s+(?:you don't control|target player controls|an opponent controls|your opponents control|that player controls|each opponent controls))(?:\s+and\s+(?:planeswalker|player))?\b/;
 
 // v0.30 Group 20 — mass -N/-N debuff frame: "all (other )?creatures get
 // -N/-N until end of turn" (Shefet Archfiend). Functionally a wipe (any

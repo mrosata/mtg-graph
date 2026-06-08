@@ -32,8 +32,14 @@ export const tagDef: TagDef = {
 // trailing arm requires a gate "(if|tapped|,|\.|$)" right after
 // battlefield to keep "put it onto the battlefield" tightly bounded;
 // `[\s\S]{0,200}?` non-greedy stays as small as possible.
+// v0.39.0 — 200-card audit Ship 9: Archdruid's Charm. Disjunctive
+// "<permanent-type> or land card" → "if it's a land card, put it onto
+// the battlefield" only cheats LANDS, not the leading permanent type.
+// Add `(?:a|an)\s+(?:creature|artifact|enchantment|planeswalker)\s+or\s+land\s+cards?\b`
+// AND its mirror `(?:a|an)\s+land\s+or\s+(?:creature|artifact|enchantment|planeswalker)\s+cards?\b`
+// to the negative lookahead.
 const SEARCH_PUT =
-  /\bsearch your library for (?!(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) basic\b|(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) (?:plains|island|swamp|mountain|forest|cave|desert|gate|town|sphere|locus|lair) cards?\b|(?:a|an|any|up to (?:a|an|one|two|three|\d+)) land cards?\b)[\s\S]{0,200}?\bput (?:it|them|that card|those cards) onto the battlefield\b/;
+  /\bsearch your library for (?!(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) basic\b|(?:up to )?(?:a|an|one|two|three|four|five|\d+|that many|as many as) (?:plains|island|swamp|mountain|forest|cave|desert|gate|town|sphere|locus|lair) cards?\b|(?:a|an|any|up to (?:a|an|one|two|three|\d+)) land cards?\b|(?:a|an)\s+(?:creature|artifact|enchantment|planeswalker)\s+or\s+land\s+cards?\b|(?:a|an)\s+land\s+or\s+(?:creature|artifact|enchantment|planeswalker)\s+cards?\b)[\s\S]{0,200}?\bput (?:it|them|that card|those cards) onto the battlefield\b/;
 
 // Pattern B: look at top + put onto battlefield. [\s\S]{0,300} allows
 // spanning sentence boundaries (Break Out is 3 sentences). Face-down /

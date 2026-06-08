@@ -41,6 +41,12 @@ describe('trigger.spell_cast', () => {
     // next cast" anchor schedules the next-cast event as a triggered ability.
     [' i — chain — exile the top card of your library. during any turn you put a lore counter on this saga, you may play that card. ii, iii — gestalt mode — when you next cast a creature spell this turn, it gains haste until end of turn.'],
     [' i — surveil 1. ii — double — when you next cast an instant or sorcery spell this turn, copy it. you may choose new targets for the copy. iii — triple — when you next cast an instant or sorcery spell this turn, copy it twice. you may choose new targets for the copies.'],
+    // v0.39.0 — April O'Neil (200-card audit Ship 6): 3-way comma-list
+    // qualifier "an artifact, instant, or sorcery spell". The existing
+    // qualifier slot admits a single token or an "or"-pair, not a 3-item
+    // Oxford-list. Widen to admit comma-separated lists.
+    ['whenever a player casts an artifact, instant, or sorcery spell, draw a card'],
+    ['whenever you cast an artifact, instant, or sorcery spell, scry 1'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -40,8 +40,13 @@ export const rule: Rule = {
     // spell" delayed trigger (Summon: Brynhildr / Summon: G.F. Cerberus).
     // The Final Fantasy "Summon: <X>" sagas schedule a one-shot trigger that
     // fires the next time a spell of the named type is cast.
+    // v0.39.0 — 200-card audit Ship 6: April O'Neil's 3-way comma-list
+    // qualifier "an artifact, instant, or sorcery spell". The single-token
+    // and "or"-pair qualifier slots couldn't handle Oxford-comma 3-item
+    // lists. The new alternative qualifier is `[\w-]+(?:,\s*[\w-]+)*(?:,?\s+or\s+[\w-]+)?`
+    // which admits 1..N comma items optionally ending in "or <item>".
     const re =
-      /whenever (?:you cast|an opponent casts|a player casts) (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b|whenever you play a land or cast (?:a|an|your) (?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b|when (?:you|an opponent|a player) next cast(?:s)? (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?: or [\w-]+)? )?(?:[\w-]+(?: or [\w-]+)? )?spell\b/;
+      /whenever (?:you cast|an opponent casts|a player casts) (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?:,\s*[\w-]+)*(?:,?\s+or\s+[\w-]+)?\s+)?(?:[\w-]+(?: or [\w-]+)? )?spell\b|whenever you play a land or cast (?:a|an|your) (?:[\w-]+(?:,\s*[\w-]+)*(?:,?\s+or\s+[\w-]+)?\s+)?(?:[\w-]+(?: or [\w-]+)? )?spell\b|when (?:you|an opponent|a player) next cast(?:s)? (?:a |an |(?:your|the) (?:first|second|third|fourth|fifth|next) )?(?:[\w-]+(?:,\s*[\w-]+)*(?:,?\s+or\s+[\w-]+)?\s+)?(?:[\w-]+(?: or [\w-]+)? )?spell\b/;
     const m = t.match(re);
     return m ? { evidence: m[0] } : false;
   },

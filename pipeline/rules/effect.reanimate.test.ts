@@ -65,6 +65,20 @@ describe('effect.reanimate', () => {
     // immediately-prior "mill N cards" antecedent — same semantic as the
     // existing "from among the milled cards" arm but with a pronoun anaphor.
     ['deathtouch this creature enters prepared. mill seven cards. then put a creature card from among them onto the battlefield.'],
+    // v0.39.0 — 200-card audit Ship 11 (Batch 1). Animate Dead: Aura
+    // template "enchant creature card in a graveyard ... return enchanted
+    // creature card to the battlefield" — the Aura targets a graveyard
+    // creature, then returns it. The "enchanted creature card" anaphor
+    // binds to the just-targeted graveyard card.
+    ["enchant creature card in a graveyard when this aura enters, if it's on the battlefield, it loses   and gains   return enchanted creature card to the battlefield under your control and attach this aura to it. when this aura leaves the battlefield, that creature's controller sacrifices it. enchanted creature gets -1/-0."],
+    // Avatar Destiny: mill-then-return anaphor — "return ... up to one
+    // creature card milled this way to the battlefield". "Milled this way"
+    // binds to a prior mill clause in the same effect.
+    ["enchant creature you control enchanted creature gets +1/+1 for each creature card in your graveyard and is an avatar in addition to its other types. when enchanted creature dies, mill cards equal to its power. return this card to its owner's hand and up to one creature card milled this way to the battlefield under your control."],
+    // Athreos, Shroud-Veiled: dies-OR-exile bridge — "dies or is put into
+    // exile, return that card to the battlefield". The existing dies-arm
+    // only accepts "dies,"; broaden to admit "dies or is put into exile,".
+    ['indestructible as long as your devotion to white and black is less than seven, __self__ isn\'t a creature. at the beginning of your end step, put a coin counter on another target creature. whenever a creature with a coin counter on it dies or is put into exile, return that card to the battlefield under your control.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

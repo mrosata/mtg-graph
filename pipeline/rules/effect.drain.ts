@@ -38,6 +38,12 @@ const PATTERNS = [
   // Forward split-sentence drain: "Each opponent loses N life. You gain life equal to..."
   // Exsanguinate, Crackling Doom (subset), various X-drain spells.
   new RegExp(`\\b${SUBJECT}\\s+loses?\\s+${AMOUNT}\\s+life\\.\\s+you\\s+gain\\s+(?:${AMOUNT}\\s+life|life\\s+equal\\s+to\\s+(?:the\\s+life\\s+lost|that\\s+much))\\b`),
+  // v0.39.0 — 200-card audit Ship 12f — Ark of Hunger. "Deals N damage to
+  // each opponent and you gain N life" — damage acts as life loss, paired
+  // with lifegain; same drain semantic with a different verb. The subject
+  // slot allows the source actor (this card / __self__ / common pronouns)
+  // and the damage target is constrained to opponent-side subjects.
+  new RegExp(`\\bdeals\\s+${AMOUNT}\\s+damage\\s+to\\s+${SUBJECT}\\s+and\\s+you\\s+gain\\s+${AMOUNT}\\s+life\\b`),
 ];
 
 export const rule: Rule = {

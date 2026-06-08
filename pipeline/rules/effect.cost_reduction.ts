@@ -22,15 +22,19 @@ export const tagDef: TagDef = {
 // only admitted numeric/X. Colored cost reduction is a distinct design class
 // (Beseech the Mirror-adjacent designs) and structurally the same as numeric.
 const COST_SLOT = '\\{(?:[\\dx]+|[wubrg]|[wubrg]\\/[wubrg]|[\\dx]\\/[wubrg]|2\\/[wubrg])\\}';
+// v0.39.0 — Avatar Aang back face: "cost {W}{U}{B}{R}{G} less to cast"
+// — the cost slot can be a SEQUENCE of mana symbols rather than a single
+// symbol. Wrap with `+` quantifier wherever a cost expression occurs.
+const COST_SEQ = `(?:${COST_SLOT})+`;
 
 const PATTERNS = [
   // Standard cost line: "cost(s) {N} less to cast/activate".
-  new RegExp(`\\bcosts?\\s+${COST_SLOT}\\s+less\\b`),
+  new RegExp(`\\bcosts?\\s+${COST_SEQ}\\s+less\\b`),
   // "cost(s) up to {N} less" — bounded reducers (Training Grounds template).
-  new RegExp(`\\bcosts?\\s+up to\\s+${COST_SLOT}\\s+less\\b`),
+  new RegExp(`\\bcosts?\\s+up to\\s+${COST_SEQ}\\s+less\\b`),
   // v0.14.7 — passive-voice "(this|that) cost is reduced by {N}" template
   // (Fugitive Codebreaker, scaling Disguise/Cloak/keyword reducers).
-  new RegExp(`\\b(?:this|that)\\s+cost\\s+is\\s+reduced\\s+by\\s+${COST_SLOT}`),
+  new RegExp(`\\b(?:this|that)\\s+cost\\s+is\\s+reduced\\s+by\\s+${COST_SEQ}`),
   // v0.30 Group 12 — Affinity for <X> is a printed keyword cost-reducer
   // (Memory Guardian, Voyage Home). Reminder text is stripped, leaving the
   // bare keyword. Subtype slot accepts the canonical Affinity targets

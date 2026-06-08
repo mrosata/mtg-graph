@@ -33,11 +33,20 @@ export const tagDef: TagDef = {
 // or "sacrifice X: do Y" (cost).
 const PATTERN = /\b(?:when|whenever) you sacrifice (?:a |an |another |one or more |two or more |three or more |\d+ |x )?(?:permanents?|creatures?|artifacts?|enchantments?|lands?|tokens?|foods?|treasures?|clues?|bloods?|maps?|powerstones?|incubators?|roles?)\b/;
 
+// v0.39.0 — 200-card audit Ship 12c — Ashling, the Limitless. "Whenever
+// you sacrifice a nontoken elemental" — typed-sac with the "nontoken"
+// prefix and a CreatureType noun. Cautious broadening: only admit
+// "nontoken <CreatureType>" patterns to avoid arbitrary noun absorption.
+// The noun slot here is permissive (any \w+) BUT the "nontoken" qualifier
+// constrains the templating to genuine typed-sac aristocrats.
+const PATTERN_NONTOKEN_TYPED =
+  /\b(?:when|whenever) you sacrifice (?:a |an |another )?nontoken\s+[\w-]+\b/;
+
 export const rule: Rule = {
   id: 'trigger.permanent_sacrificed',
   axis: 'trigger',
   match: (t) => {
-    const m = t.match(PATTERN);
+    const m = t.match(PATTERN) ?? t.match(PATTERN_NONTOKEN_TYPED);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['sacrifice'], proximity: ['whenever', 'you'], window: 6 },

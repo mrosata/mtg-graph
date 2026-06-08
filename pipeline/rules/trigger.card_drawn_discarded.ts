@@ -31,9 +31,14 @@ export const rule: Rule = {
     // v0.15 — plural "one or more players" subject added (Hostile
     // Investigator: "Whenever one or more players discard one or more cards,
     // investigate"). Global discard/draw observer across all players.
+    // v0.39.0 — 200-card audit Ship 12e — Archfiend of Ifnir. "Whenever
+    // you cycle or discard another card" — `cycle` is a discard-as-cost
+    // keyword that pays a discard but isn't literally `discard`. Admit
+    // `cycles?` in the verb slot alongside `draws?`/`discards?`. Also
+    // admit `another` determiner alongside `a`.
     const m = t.match(
       new RegExp(
-        `whenever (?:you|an opponent|a player|one or more players) (?:draws?|discards?|draw|discard) (?:a (?:${TYPE} )?card|one or more (?:${TYPE} )?cards?|(?:your|their) (?:first|second|third|fourth|fifth) card)|when (?:you|an opponent|a player) (?:draws?|discards?) a (?:${TYPE} )?card this way`,
+        `whenever (?:you|an opponent|a player|one or more players) (?:draws?|discards?|cycles?|draw|discard|cycle|cycle or discard|cycles? or discards?) (?:(?:a|another) (?:${TYPE} )?card|one or more (?:${TYPE} )?cards?|(?:your|their) (?:first|second|third|fourth|fifth) card)|when (?:you|an opponent|a player) (?:draws?|discards?|cycles?) (?:a|another) (?:${TYPE} )?card this way`,
       ),
     );
     return m ? { evidence: m[0] } : false;

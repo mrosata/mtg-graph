@@ -41,6 +41,12 @@ describe('trigger.landfall', () => {
     ['if you control five or more lands, draw a card'],
     // Unrelated.
     ['draw a card'],
+    // v0.39.0 — 200-card audit Ship 8: Archaeomancer's Map. "Whenever a
+    // land an opponent controls enters" is opponent-controlled — the
+    // controller's payoff axis is not landfall on your side. Filter out
+    // the opponent-subject qualifier.
+    ['whenever a land an opponent controls enters, you may search your library for a plains card'],
+    ['whenever a land your opponents control enters, draw a card'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

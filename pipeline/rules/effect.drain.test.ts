@@ -31,6 +31,13 @@ describe('effect.drain', () => {
     // and you gain 1 life".
     ['whenever __self__ attacks, defending player loses 1 life and you gain 1 life.'],
     ['attacking player loses 2 life and you gain 2 life'],
+    // v0.39.0 — 200-card audit Ship 12f — Ark of Hunger. "Deals N damage
+    // to each opponent and you gain N life" — the damage half acts as
+    // life loss (combat / non-combat damage), and the paired lifegain
+    // closes the drain. Distinct verb (`deals damage` rather than `loses
+    // life`) but same drain semantic for graph purposes.
+    ['this artifact deals 1 damage to each opponent and you gain 1 life.'],
+    ['__self__ deals 3 damage to each opponent and you gain 3 life'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

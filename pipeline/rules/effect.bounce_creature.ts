@@ -63,6 +63,18 @@ const PATTERN_BROAD =
 const PATTERN_DELAYED_BLINKBACK =
   /\breturn (?:it|them)\s+to (?:your|its owner's|their owners')\s+hands?\s+at the beginning of (?:the next|the next player's|your|each)?\s*end step\b/;
 
+// v0.39.0 — 200-card audit Ship 12d — Arthur, Marigold Knight: antecedent-
+// gated "Return that creature to its owner's hand" where "that creature"
+// binds to a just-prior "onto the battlefield" clause. The end-of-combat
+// or end-step delayed trigger bounces the cheated-in creature — same axis
+// as PATTERN_DELAYED_BLINKBACK but anchored on "that creature" anaphor
+// rather than `it`. The "onto the battlefield" antecedent is what
+// distinguishes this from arbitrary "return that creature" tails. Filler
+// admits sentence boundaries because the antecedent and the bounce often
+// sit in different sentences (Arthur has a "put the rest" interlude).
+const PATTERN_DELAYED_THAT_CREATURE =
+  /\bonto\s+the\s+battlefield[\s\S]{0,250}?\breturn\s+that\s+creature\s+to\s+(?:its\s+owner'?s|your)\s+hand\b/;
+
 // v0.20 — "those creatures" anaphoric bounce (Run Away Together: "Choose two
 // target creatures controlled by different players. Return those creatures
 // to their owners' hands."). The antecedent is established in a preceding
@@ -102,6 +114,7 @@ export const rule: Rule = {
       t.match(PATTERN_RETURN_OWN) ??
       t.match(PATTERN_BROAD) ??
       t.match(PATTERN_DELAYED_BLINKBACK) ??
+      t.match(PATTERN_DELAYED_THAT_CREATURE) ??
       t.match(PATTERN_RETURN_THOSE) ??
       t.match(PATTERN_RETURN_SELF) ??
       t.match(PATTERN_SELF_ANAPHORIC_IT);

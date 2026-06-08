@@ -75,6 +75,11 @@ describe('effect.exile_from_graveyard', () => {
     // ("you may exile a card from your graveyard. if you do, …"). No colon
     // terminator — this is a payoff-conditional, not an activation cost.
     ['__self__ deals 6 damage to target creature. you may exile a card from your graveyard. if you do, __self__ also deals 2 damage to that creature\'s controller.'],
+    // v0.39.0 — 200-card audit Ship 12a — Augusta, Order Returned. "Each
+    // player exiles a card from their graveyard" uses `their` as the
+    // graveyard-source possessive — forced symmetric exile-from-graveyard
+    // on all players. Add `their` to FOREIGN_OR_GENERIC's source slot.
+    ['whenever __self__ attacks, each player exiles a card from their graveyard.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

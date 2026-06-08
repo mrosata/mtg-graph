@@ -24,8 +24,13 @@ export const rule: Rule = {
     // though it didn't have defender" is a static permission inside a
     // triggered ability body, not a trigger on attacking. Add `can` to the
     // negative-lookbehind alternation so the modal is excluded.
+    // v0.39.0 — 200-card audit Ship 13. Evidence-window tightening: filler
+    // shrunk from `[^.]*?` to `[^,.]{0,80}?` so the captured evidence
+    // doesn't spill across adjacent commas / ETB clauses (Angelic Sell-Sword's
+    // token-body trigger). The rule still fires on the inner trigger; only
+    // the evidence display is cleaner. No graph impact.
     const m = t.match(
-      /whenever (?:[^.]*?)(?<!(?:can't|cannot|can|won't|doesn't|may not|will not|do not|would not) )(?:attacks?\b|blocks?\b|becomes blocked\b)/,
+      /whenever (?:[^,.]{0,80}?)(?<!(?:can't|cannot|can|won't|doesn't|may not|will not|do not|would not) )(?:attacks?\b|blocks?\b|becomes blocked\b)/,
     );
     return m ? { evidence: m[0] } : false;
   },

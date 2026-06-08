@@ -30,6 +30,12 @@ describe('trigger.card_drawn_discarded', () => {
     // event across all players — a global observer.
     ['whenever one or more players discard one or more cards, investigate'],
     ['whenever one or more players draw one or more cards, you gain 1 life'],
+    // v0.39.0 — 200-card audit Ship 12e — Archfiend of Ifnir. "Whenever you
+    // cycle or discard another card" — cycle is a discard-as-cost keyword
+    // that pays a discard but isn't literally `discard`. The trigger is
+    // observed on either verb.
+    ['whenever you cycle or discard another card, put a -1/-1 counter on each creature your opponents control'],
+    ['whenever you cycle a card, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -29,7 +29,12 @@ export const tagDef: TagDef = {
 // cost {2} more to cast." used to FP because the greedy filler walked past
 // two periods to reach `from graveyards` in an unrelated tax clause; the
 // card actually touches the stack, not any graveyard.
-const FOREIGN_OR_GENERIC = /exile [^.]+? from (?:a |a single |an opponent's |target opponent's |target player's )?graveyard(?!s*\s*[:—])|exile [^.]+? from graveyards/;
+// v0.39.0 — 200-card audit Ship 12a — Augusta, Order Returned: "each
+// player exiles a card from their graveyard" uses `their` as the source
+// possessive and `exiles` (third-person singular) as the verb form (forced
+// edict on the player). Add `their ` to the source slot AND admit
+// `exiles?` so the edict form fires alongside the imperative form.
+const FOREIGN_OR_GENERIC = /exiles? [^.]+? from (?:a |a single |an opponent's |target opponent's |target player's |their )?graveyard(?!s*\s*[:—])|exiles? [^.]+? from graveyards/;
 const OWN_TARGETED = /exile (?:up to [\w-]+ |any number of )?target [^.]+? from your graveyard/;
 // "Exile one or more X cards from your graveyard" — variable-scope exile that
 // scales a subsequent effect by cards exiled. Excludes cost forms (colon/em-dash

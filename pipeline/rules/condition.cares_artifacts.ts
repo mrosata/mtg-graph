@@ -90,6 +90,12 @@ const PATTERNS = [
   // ("This creature can't attack unless you control another artifact") uses
   // the negation-polarity form of the same conditional gate.
   /\b(?:if|as long as|while|unless) you control (?:an?|another|one or more) artifacts?\b/,
+  // v0.39.0 — Avalanche of Sector 7 (200-card audit Ship 4): opponent-side
+  // artifact counts as a payoff axis. "Number of artifacts your opponents
+  // control" / "each opponent controls" — the count of opponent artifacts
+  // drives a damage or scaling effect.
+  /\bnumber of artifacts? (?:your opponents?|each opponent) controls?\b/,
+  /\bartifacts? your opponents control\b/,
 ];
 
 export const rule: Rule = {

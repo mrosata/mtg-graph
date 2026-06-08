@@ -5,7 +5,8 @@ describe('condition.cares_tribe parametric', () => {
   it('exports a rule per tribe', () => {
     // 2026-06-01 audit Group 10 — added `insect` tribe (Aatchik, Emerald Radian).
     // v0.32 — Group 12 — added `sliver` tribe (Thrumming Hivepool).
-    expect(rules.length).toBe(39);
+    // v0.39.0 — 200-card audit Ship 1 — added `turtle` tribe.
+    expect(rules.length).toBe(40);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -25,10 +26,12 @@ describe('condition.cares_tribe parametric', () => {
     // v0.32 — Group 12 — sliver tribe (Thrumming Hivepool: "slivers you
     // control have double strike and haste").
     expect(ids.has('condition.cares_tribe.sliver')).toBe(true);
+    // v0.39.0 — turtle tribe.
+    expect(ids.has('condition.cares_tribe.turtle')).toBe(true);
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(39);
+    expect(tagDefs.length).toBe(40);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');
@@ -208,6 +211,32 @@ describe('condition.cares_tribe parametric', () => {
     // exists with a leading ability-word that we ship. Skipped sanity — the
     // cares_subtype test covers a real subtype-formula case. Kept here so
     // future ability-word triggers don't accidentally over-strip.
+  });
+
+  // v0.39.0 — 200-card audit Ship 10. Aura/Equipment type-grant frames:
+  // "(enchanted|equipped) creature ... is a <Tribe> in addition to its other
+  // types" — Angelic Destiny, Astrologian's Planisphere, Avatar Destiny, and
+  // ~22 more grant the named tribal type to the subject creature, which is
+  // a tribal payoff. The new typeGrantRe arm fires BEFORE the becomesTribe
+  // strip so the type-grant clause matches positively; Skyknight Squire and
+  // Possessed Goat anchor on "it" (self-subject), so the strip still rejects
+  // them.
+  it('angel matches "enchanted creature is an angel in addition to its other types" (Aura type-grant)', () => {
+    const a = rules.find((r) => r.id === 'condition.cares_tribe.angel')!;
+    // Angelic Destiny verbatim normalized text.
+    expect(
+      a.match("enchant creature enchanted creature gets +4/+4, has flying and first strike, and is an angel in addition to its other types. when enchanted creature dies, return this card to its owner's hand."),
+    ).toBeTruthy();
+    expect(
+      a.match('enchanted creature is an angel in addition to its other types and gets +2/+2.'),
+    ).toBeTruthy();
+  });
+
+  it('wizard matches "equipped creature is a wizard in addition to its other types" (Equipment type-grant)', () => {
+    const w = rules.find((r) => r.id === 'condition.cares_tribe.wizard')!;
+    expect(
+      w.match('equipped creature gets +1/+1 and is a wizard in addition to its other types.'),
+    ).toBeTruthy();
   });
 
   it('spirit / cat / dog / angel / demon FP-resistant on substrings', () => {

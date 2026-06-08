@@ -55,6 +55,19 @@ describe('effect.board_wipe', () => {
     // narrow subset, not a wipe. Specific "whose controller was dealt combat
     // damage" tail must suppress the wipe interpretation.
     ['{x}: destroy each nonland permanent with mana value x whose controller was dealt combat damage by this creature this turn'],
+    // v0.39.0 — 200-card audit Ship 7: one-sided damage-sweep variants are
+    // NOT board wipes (they're targeted-damage effects already captured by
+    // `effect.deals_damage`). Possessive tails (`you don't control` / `target
+    // player controls` / `an opponent controls` / `your opponents control` /
+    // `that player controls` / `each opponent controls`) disambiguate
+    // one-sided-sweep from bare "each creature". Artistic Process, Ashling's
+    // Command, Iroh's Demonstration, Village Pillagers.
+    ["this spell deals 2 damage to each creature you don't control"],
+    ['this creature deals 3 damage to each creature target player controls'],
+    ['this spell deals 4 damage to each creature an opponent controls'],
+    ['this spell deals 2 damage to each creature your opponents control'],
+    ['this spell deals 2 damage to each creature that player controls'],
+    ['this spell deals 2 damage to each creature each opponent controls'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

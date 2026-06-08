@@ -53,6 +53,12 @@ describe('effect.bounce_creature', () => {
     ["return up to one other target nonland permanent to its owner's hand"],
     // Cactuar — self-anaphoric "return it" with "this creature" antecedent.
     ["at the beginning of your end step, if this creature didn't enter the battlefield this turn, return it to its owner's hand."],
+    // v0.39.0 — 200-card audit Ship 12d — Arthur, Marigold Knight. "Put a
+    // creature card from among them onto the battlefield ... return that
+    // creature to its owner's hand at end of combat." The "onto the
+    // battlefield" antecedent binds "that creature" to the just-cheated-in
+    // creature; the end-of-combat hand return is a delayed-trigger bounce.
+    ["haste whenever __self__ and at least one other creature attack, look at the top six cards of your library. you may put a creature card from among them onto the battlefield tapped and attacking. put the rest on the bottom of your library in a random order. return that creature to its owner's hand at end of combat."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

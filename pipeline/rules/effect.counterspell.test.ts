@@ -15,6 +15,10 @@ describe('effect.counterspell', () => {
     // HIGH-12 (Glen Elendra's Answer): plural "counter all spells your opponents control".
     ['counter all spells your opponents control and all abilities your opponents control'],
     ['counter target spells your opponents control'],
+    // v0.39.0 — Aven Interrupter: "exile target spell" counters via exile.
+    // The end-result (spell never resolves) is the same as a counter.
+    ['exile target spell.'],
+    ['exile target spell an opponent controls.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

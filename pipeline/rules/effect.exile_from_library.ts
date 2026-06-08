@@ -29,7 +29,9 @@ export const rule: Rule = {
     const re = new RegExp(
       // Frame A: "exile the top [N] cards? of <library>" — direct exile.
       // Number is optional ("exile the top card of your library").
-      `\\bexile the top (?:${NUM} )?cards? of ${LIBRARY_OWNER} library\\b`
+      // v0.39.0 — 200-card audit Ship 12b — Arvinox, the Mind Flail:
+      // "bottom" alternation alongside "top" (bottom-of-library exile).
+      `\\bexile the (?:top|bottom) (?:${NUM} )?cards? of ${LIBRARY_OWNER} library\\b`
       // Frame B: "<player> exiles the top [N] cards? of <library>" — opponent-
       // performs-it templating (Ashiok −7, Memory Plunder, etc.).
       + `|\\b(?:target (?:player|opponent)|each opponent|each player) exiles the top (?:${NUM} )?cards? of ${LIBRARY_OWNER} library\\b`

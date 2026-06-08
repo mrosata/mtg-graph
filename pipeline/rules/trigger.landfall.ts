@@ -12,7 +12,7 @@ export const tagDef: TagDef = {
   tagId: 'trigger.landfall',
   axis: 'trigger',
   label: 'Triggers on land entering the battlefield',
-  description: 'Has an ability that triggers when a land (yours or any) enters the battlefield — the landfall axis.',
+  description: 'Has an ability that triggers when a land enters the battlefield (yours or neutral subject) — the landfall axis.',
   pairsWith: [
     'condition.cares_lands',
     'effect.ramp_nonland',
@@ -29,8 +29,12 @@ export const tagDef: TagDef = {
 //      them belong on the landfall axis.
 const PATTERNS = [
   /\blandfall\s*—/,
-  /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+lands?(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
-  /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+(?:plains|islands?|swamps?|mountains?|forests?|gates?|caves?|spheres?|deserts?|towns?|locus|locuses|lairs?)(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
+  // v0.39.0 — 200-card audit Ship 8: Archaeomancer's Map. "Whenever a land
+  // an opponent controls enters" is opponent-controlled, not yours. Add a
+  // negative lookahead on the opponent-control qualifiers so the trigger
+  // is scoped to "yours or neutral subject" only.
+  /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+lands?(?!\s+(?:an\s+opponent\s+controls|your\s+opponents\s+control))(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
+  /\bwhen(?:ever)?\s+(?:a|an|another|one or more)\s+(?:plains|islands?|swamps?|mountains?|forests?|gates?|caves?|spheres?|deserts?|towns?|locus|locuses|lairs?)(?!\s+(?:an\s+opponent\s+controls|your\s+opponents\s+control))(?:\s+[\w\-']+){0,4}?\s+enters?\b/,
   // v0.32 — Group 9 — The Endstone: "Whenever you play a land or cast a
   // spell". The "play a land" anchor is the landfall axis even when phrased
   // with "play" rather than "enters". Also matches the bare "when you play a

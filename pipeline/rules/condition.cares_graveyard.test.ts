@@ -34,7 +34,13 @@ describe('condition.cares_graveyard', () => {
     ['if there are ten or more cards in your graveyard, draw a card'],
     ['whenever a creature card is put into a graveyard from anywhere, scry 1'],
     ['this creature\'s power equals the number of creature cards in all graveyards'],
-    ['cards in your graveyard'],
+    // v0.39.0 — 200-card audit Ship 11 (Batch 2): Pattern 3 narrowed.
+    // The bare phrase "cards in your graveyard" without a payoff-frame
+    // antecedent (for-each, number-of, threshold) was previously matched
+    // by Pattern 3 but is now a producer/zone phrase — see negatives.
+    // The patterns 1, 2, 4 still cover legitimate payoff frames:
+    // "for each card in your graveyard", "the number of cards in your
+    // graveyard", "if there are five or more cards in your graveyard".
     // v0.14.7 — Regression (Flotsam // Jetsam): graveyard as a casting
     // source. Casting from a graveyard is a graveyard-cares reference —
     // the card uses graveyard contents as the resource for an effect.
@@ -77,6 +83,20 @@ describe('condition.cares_graveyard', () => {
     // graveyard cards are the object of the effect, not what the card scales
     // upon.
     ['you may shuffle up to four target cards from your graveyard into your library.'],
+    // v0.39.0 — 200-card audit Ship 11 (Batch 2): Pattern 3 narrowing.
+    // Previously a positive (the broad Pattern 3 fired); now a negative
+    // — the bare phrase doesn't establish a payoff-frame antecedent
+    // (for-each, number-of, threshold). Genuine payoffs go via Patterns
+    // 1, 2, or 4. FLIP: previously positive → now negative per the
+    // 200-card audit tiebreaker.
+    ['cards in your graveyard'],
+    // Animate Dead enchant clause — "enchant creature card in a graveyard"
+    // is a producer-frame target qualifier, not a graveyard-scaling payoff.
+    ["enchant creature card in a graveyard when this aura enters, if it's on the battlefield, it loses   and gains   return enchanted creature card to the battlefield under your control"],
+    // Archmage's Newt — "target instant or sorcery card in your graveyard
+    // gains flashback" — the "target ... card in your graveyard" is a
+    // producer-frame target (an enabling effect, not a graveyard-care payoff).
+    ['whenever this creature deals combat damage to a player, target instant or sorcery card in your graveyard gains flashback until end of turn.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

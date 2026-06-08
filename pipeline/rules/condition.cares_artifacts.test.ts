@@ -66,6 +66,12 @@ describe('condition.cares_artifacts', () => {
     // is the negation-polarity form of the same conditional gate. The
     // restriction still scales on whether you control an artifact.
     ["this creature can't attack unless you control another artifact."],
+    // v0.39.0 — Avalanche of Sector 7: "number of artifacts your opponents
+    // control" — opponent-side count payoff is still an artifact-care signal.
+    ['this spell deals damage equal to the number of artifacts your opponents control.'],
+    ['the number of artifacts each opponent controls'],
+    ['for each artifact your opponents control, draw a card'],
+    ['artifacts your opponents control have ward 1'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

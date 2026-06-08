@@ -54,13 +54,36 @@ function becomesTribePattern(tribe: string): RegExp {
   );
 }
 
+// v0.39.0 — 200-card audit Ship 10. Aura/Equipment type-grant frame:
+// "(enchanted|equipped) creature [... 0-200 chars ...] is a <Tribe> [...]
+// in addition to its other types" — Angelic Destiny, Astrologian's
+// Planisphere, Avatar Destiny, and ~22 more Aura/Equipment cards. The
+// becomesTribePattern strip would remove this clause and the rule would
+// miss; firing a positive arm BEFORE the strip captures these as tribal
+// payoffs. Skyknight Squire ("it has flying and is a knight in addition")
+// and Possessed Goat ("it becomes a black demon") anchor on the
+// SELF-subject pronoun "it" — the typeGrantRe explicitly requires
+// "(enchanted|equipped) creature" so those still hit the strip and stay
+// negative.
+function typeGrantPattern(tribe: string): RegExp {
+  return new RegExp(
+    `\\b(?:enchanted|equipped)\\s+creature\\b[^.]{0,200}?\\bis\\s+an?\\s+(?:[\\w\\-/]+\\s+){0,4}?${tribePattern(tribe)}\\b[^.]{0,40}?\\s+in addition to`,
+    'i',
+  );
+}
+
 function makeRule(tribe: string): Rule {
   const re = new RegExp(`\\b${tribePattern(tribe)}\\b`);
   const becomesTribe = becomesTribePattern(tribe);
+  const typeGrantRe = typeGrantPattern(tribe);
   return {
     id: `condition.cares_tribe.${tribe}`,
     axis: 'condition',
     match: (raw) => {
+      // Fire BEFORE the strip — Aura/Equipment type-grants on
+      // "(enchanted|equipped) creature" subject are tribal payoffs.
+      const tgMatch = raw.match(typeGrantRe);
+      if (tgMatch) return { evidence: tgMatch[0] };
       const t = raw
         .replace(ABILITY_WORD_HEADER, (match) => (match.startsWith('.') ? '. ' : ''))
         .replace(TOKEN_CREATE, '')
