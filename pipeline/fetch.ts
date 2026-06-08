@@ -77,17 +77,12 @@ export function stripScryfallCard(raw: ScryfallCard): Card {
     rarity: normalizeRarity(raw.rarity),
     imageUrl: image,
     mtgoId: raw.mtgo_id ?? null,
-    printingDetails: [
-      (() => {
-        const d: { set: string; collectorNumber: string; mtgoId?: number; arenaId?: number } = {
-          set: raw.set,
-          collectorNumber: raw.collector_number,
-        };
-        if (raw.mtgo_id != null) d.mtgoId = raw.mtgo_id;
-        if (raw.arena_id != null) d.arenaId = raw.arena_id;
-        return d;
-      })(),
-    ],
+    printingDetails: [{
+      set: raw.set,
+      collectorNumber: raw.collector_number,
+      ...(raw.mtgo_id != null && { mtgoId: raw.mtgo_id }),
+      ...(raw.arena_id != null && { arenaId: raw.arena_id }),
+    }],
     tags: [],
   };
 }
