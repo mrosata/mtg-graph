@@ -1,0 +1,10 @@
+[UnityCrossThreadLogger]<== PlayerInventory.GetPlayerCardsV3(7)
+{
+  "70001": 1
+}
+
+[UnityCrossThreadLogger]<== PlayerInventory.GetPlayerCardsV3(7)
+{
+  "70001": 4,
+  "70002": 4
+}
