@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import type { ImportRowSummary, LibraryImportResult } from '../lib/libraryImport';
+import type { MtgaCollectionSummary } from '../lib/mtgaResolve';
 
-type Props = { result: LibraryImportResult };
+type Props = {
+  result: LibraryImportResult;
+  mtgaSummary?: MtgaCollectionSummary;
+};
 
 function Group({
   title, rows, initialOpen,
@@ -32,7 +36,7 @@ function Group({
   );
 }
 
-export default function LibraryImportSummary({ result }: Props) {
+export default function LibraryImportSummary({ result, mtgaSummary }: Props) {
   const cardCount = result.owned.size;
   let copyCount = 0;
   for (const n of result.owned.values()) copyCount += n;
@@ -42,17 +46,26 @@ export default function LibraryImportSummary({ result }: Props) {
       <p className="text-sm tabular text-brass-hi">
         {`Imported ${cardCount.toLocaleString()} cards (${copyCount.toLocaleString()} copies)`}
       </p>
-      <Group title="Unknown names" rows={result.unknownNames} initialOpen />
-      <Group title="Unknown sets" rows={result.unknownSets} initialOpen={false} />
-      <Group
-        title="Unparseable rows"
-        rows={result.unparseableLines.map((line) => ({
-          name: line.length > 60 ? line.slice(0, 60) + '…' : line,
-          setCode: '',
-          quantity: 1,
-        }))}
-        initialOpen={false}
-      />
+      {mtgaSummary && mtgaSummary.outOfPoolCount > 0 && (
+        <p className="mt-1 text-xs text-vellum-dim">
+          {`${mtgaSummary.outOfPoolCount.toLocaleString()} cards in your collection aren't in our Standard pool.`}
+        </p>
+      )}
+      {!mtgaSummary && (
+        <>
+          <Group title="Unknown names" rows={result.unknownNames} initialOpen />
+          <Group title="Unknown sets" rows={result.unknownSets} initialOpen={false} />
+          <Group
+            title="Unparseable rows"
+            rows={result.unparseableLines.map((line) => ({
+              name: line.length > 60 ? line.slice(0, 60) + '…' : line,
+              setCode: '',
+              quantity: 1,
+            }))}
+            initialOpen={false}
+          />
+        </>
+      )}
     </div>
   );
 }
