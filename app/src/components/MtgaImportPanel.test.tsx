@@ -110,3 +110,40 @@ describe('MtgaImportPanel (full mode)', () => {
     );
   });
 });
+
+describe('MtgaImportPanel (decks-only mode)', () => {
+  beforeEach(() => {
+    importLibrary.mockClear();
+    importDeck.mockClear();
+  });
+
+  it('decks-only path: shows checklist, imports selected decks, does NOT import library', async () => {
+    const onClose = vi.fn();
+    render(<MtgaImportPanel mode="decks-only" onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText(/Choose Player\.log/i), {
+      target: { files: [fileFrom(healthy)] },
+    });
+    await waitFor(() => screen.getByText('Mono-Red Aggro'));
+
+    fireEvent.click(screen.getByLabelText('Mono-Red Aggro'));
+    fireEvent.click(screen.getByRole('button', { name: /Import 1 deck/i }));
+
+    await waitFor(() => expect(importDeck).toHaveBeenCalledTimes(1));
+    expect(importLibrary).not.toHaveBeenCalled();
+  });
+
+  it('cross-section banner: opting in also calls importLibrary', async () => {
+    render(<MtgaImportPanel mode="decks-only" onClose={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText(/Choose Player\.log/i), {
+      target: { files: [fileFrom(healthy)] },
+    });
+    await waitFor(() => screen.getByText('Mono-Red Aggro'));
+
+    fireEvent.click(screen.getByLabelText(/also contains your collection/i));
+    fireEvent.click(screen.getByLabelText('Mono-Red Aggro'));
+    fireEvent.click(screen.getByRole('button', { name: /Import library \+ 1 deck/i }));
+
+    await waitFor(() => expect(importLibrary).toHaveBeenCalled());
+    expect(importDeck).toHaveBeenCalledTimes(1);
+  });
+});
