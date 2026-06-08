@@ -106,17 +106,24 @@ function parseTypeLine(typeLine: string): {
   return { types, subtypes, supertypes };
 }
 
+// Scryfall requires a User-Agent and Accept header on every request; missing
+// either yields 400 Bad Request. See https://scryfall.com/docs/api.
+const SCRYFALL_HEADERS = {
+  'User-Agent': 'mtg-graph/0.14 (https://github.com/mrosata/mtg-graph)',
+  Accept: 'application/json',
+};
+
 async function fetchWithBackoff(url: string): Promise<Response> {
   let backoff = 1000;
   for (let attempt = 0; attempt < 5; attempt++) {
-    const resp = await fetch(url);
+    const resp = await fetch(url, { headers: SCRYFALL_HEADERS });
     if (resp.status !== 429) return resp;
     const retryAfter = Number(resp.headers.get('Retry-After'));
     const wait = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : backoff;
     await new Promise((r) => setTimeout(r, wait));
     backoff *= 2;
   }
-  return fetch(url);
+  return fetch(url, { headers: SCRYFALL_HEADERS });
 }
 
 export type FetchOptions = {
