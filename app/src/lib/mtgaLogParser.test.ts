@@ -21,14 +21,15 @@ describe('parseMtgaLogText', () => {
 
   it('returns null for the missing event when only collection is present', () => {
     const r = parseMtgaLogText(collectionOnly);
-    expect(r.collection).not.toBeNull();
+    expect(r.collection).toEqual({ '70001': 4, '70002': 2, '70003': 1 });
     expect(r.decks).toBeNull();
   });
 
   it('returns null for the missing event when only decks are present', () => {
     const r = parseMtgaLogText(decksOnly);
     expect(r.collection).toBeNull();
-    expect(r.decks).not.toBeNull();
+    expect(r.decks).toHaveLength(2);
+    expect(r.decks?.[0]?.name).toBe('Mono-Red Aggro');
   });
 
   it('returns both null on a log with no matching events', () => {
