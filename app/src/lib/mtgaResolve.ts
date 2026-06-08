@@ -2,6 +2,7 @@ import type { Card } from '@shared/types';
 import type { OwnedPrinting } from './db';
 import type { LibraryImportResult } from './libraryImport';
 import { buildArenaIdIndex, type ArenaIdEntry } from './arenaIdIndex';
+import type { MtgaRawDeck } from './mtgaLogParser';
 
 export type MtgaCollectionSummary = {
   totalCardsOwned: number;
@@ -64,4 +65,59 @@ export function resolveMtgaCollectionWithIndex(
     unresolvedArenaIds,
   };
   return { result, mtgaSummary };
+}
+
+export type ParsedMtgaDeck = {
+  mtgaId: string;
+  mtgaName: string;
+  mtgaFormat: string;
+  mainboard: { oracleId: string; count: number }[];
+  sideboard: { oracleId: string; count: number }[];
+  companion: { oracleId: string } | null;
+  unresolvedMain: number;
+  unresolvedSide: number;
+  inPoolPercent: number;
+};
+
+export function resolveMtgaDecks(
+  rawDecks: MtgaRawDeck[],
+  cards: Map<string, Card>,
+): ParsedMtgaDeck[] {
+  const index = buildArenaIdIndex(cards);
+  return rawDecks.map((d) => resolveOneDeck(d, index));
+}
+
+function resolveOneDeck(d: MtgaRawDeck, index: Map<number, ArenaIdEntry>): ParsedMtgaDeck {
+  const mainboard: { oracleId: string; count: number }[] = [];
+  const sideboard: { oracleId: string; count: number }[] = [];
+  let resolved = 0;
+  let totalCards = 0;
+  let unresolvedMain = 0;
+  let unresolvedSide = 0;
+
+  for (const e of d.mainDeck) {
+    totalCards += e.quantity;
+    const hit = index.get(e.id);
+    if (hit) { mainboard.push({ oracleId: hit.oracleId, count: e.quantity }); resolved += e.quantity; }
+    else unresolvedMain += e.quantity;
+  }
+  for (const e of d.sideboard) {
+    totalCards += e.quantity;
+    const hit = index.get(e.id);
+    if (hit) { sideboard.push({ oracleId: hit.oracleId, count: e.quantity }); resolved += e.quantity; }
+    else unresolvedSide += e.quantity;
+  }
+
+  let companion: { oracleId: string } | null = null;
+  if (d.companion) {
+    const hit = index.get(d.companion.id);
+    if (hit) companion = { oracleId: hit.oracleId };
+  }
+
+  return {
+    mtgaId: d.id, mtgaName: d.name, mtgaFormat: d.format,
+    mainboard, sideboard, companion,
+    unresolvedMain, unresolvedSide,
+    inPoolPercent: totalCards === 0 ? 0 : Math.round((resolved / totalCards) * 100),
+  };
 }

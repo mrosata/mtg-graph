@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Card } from '@shared/types';
-import { resolveMtgaCollection } from './mtgaResolve';
+import { resolveMtgaCollection, resolveMtgaDecks } from './mtgaResolve';
+import type { MtgaRawDeck } from './mtgaLogParser';
 
 function mkCard(oracleId: string, printings: Array<{ set: string; cn: string; arenaId: number }>): Card {
   return {
@@ -78,5 +79,65 @@ describe('resolveMtgaCollection', () => {
     expect(result.unknownNames).toEqual([]);
     expect(result.unknownSets).toEqual([]);
     expect(result.unparseableLines).toEqual([]);
+  });
+});
+
+function mkRawDeck(over: Partial<MtgaRawDeck>): MtgaRawDeck {
+  return {
+    id: over.id ?? 'deck-x',
+    name: over.name ?? 'Test',
+    format: over.format ?? 'Standard',
+    mainDeck: over.mainDeck ?? [],
+    sideboard: over.sideboard ?? [],
+    companion: over.companion ?? null,
+  };
+}
+
+describe('resolveMtgaDecks', () => {
+  it('resolves cards and computes in-pool percent', () => {
+    const decks = resolveMtgaDecks(
+      [mkRawDeck({
+        mainDeck: [{ id: 70001, quantity: 4 }, { id: 99999, quantity: 2 }],
+        sideboard: [{ id: 70002, quantity: 1 }],
+      })],
+      sampleCards(),
+    );
+    expect(decks).toHaveLength(1);
+    const d = decks[0]!;
+    expect(d.mainboard).toEqual([{ oracleId: 'oid-a', count: 4 }]);
+    expect(d.sideboard).toEqual([{ oracleId: 'oid-b', count: 1 }]);
+    expect(d.unresolvedMain).toBe(2);
+    expect(d.unresolvedSide).toBe(0);
+    // 5 of 7 cards resolved.
+    expect(d.inPoolPercent).toBe(Math.round((5 / 7) * 100));
+  });
+
+  it('resolves the companion when its arena_id is in pool', () => {
+    const decks = resolveMtgaDecks(
+      [mkRawDeck({ mainDeck: [{ id: 70001, quantity: 4 }], companion: { id: 70002 } })],
+      sampleCards(),
+    );
+    expect(decks[0]!.companion).toEqual({ oracleId: 'oid-b' });
+  });
+
+  it('drops the companion when its arena_id is unresolved', () => {
+    const decks = resolveMtgaDecks(
+      [mkRawDeck({ mainDeck: [{ id: 70001, quantity: 4 }], companion: { id: 88888 } })],
+      sampleCards(),
+    );
+    expect(decks[0]!.companion).toBeNull();
+  });
+
+  it('reports zero inPoolPercent on an empty deck (and avoids divide by zero)', () => {
+    const decks = resolveMtgaDecks([mkRawDeck({})], sampleCards());
+    expect(decks[0]!.inPoolPercent).toBe(0);
+  });
+
+  it('preserves the MTGA name / format / id fields verbatim', () => {
+    const decks = resolveMtgaDecks(
+      [mkRawDeck({ id: 'abc', name: 'My Brew', format: 'Historic' })],
+      sampleCards(),
+    );
+    expect(decks[0]).toMatchObject({ mtgaId: 'abc', mtgaName: 'My Brew', mtgaFormat: 'Historic' });
   });
 });
