@@ -26,7 +26,7 @@ export function resolveMtgaCollectionWithIndex(
   const ownedDetail = new Map<string, OwnedPrinting[]>();
   let totalCardsOwned = 0;
   let resolvedCardsOwned = 0;
-  const unresolved: Array<{ arenaId: number; count: number }> = [];
+  const unresolvedArenaIds: number[] = [];
 
   for (const [arenaIdStr, countRaw] of Object.entries(raw)) {
     const count = Number(countRaw);
@@ -36,7 +36,7 @@ export function resolveMtgaCollectionWithIndex(
     const arenaId = Number(arenaIdStr);
     const entry = index.get(arenaId);
     if (!entry) {
-      unresolved.push({ arenaId, count });
+      unresolvedArenaIds.push(arenaId);
       continue;
     }
 
@@ -57,12 +57,11 @@ export function resolveMtgaCollectionWithIndex(
     owned, ownedDetail,
     unknownNames: [], unknownSets: [], unparseableLines: [],
   };
-  unresolved.sort((a, b) => b.count - a.count);
   const mtgaSummary: MtgaCollectionSummary = {
     totalCardsOwned,
     resolvedCardsOwned,
     outOfPoolCount: totalCardsOwned - resolvedCardsOwned,
-    unresolvedArenaIds: unresolved.map((u) => u.arenaId),
+    unresolvedArenaIds,
   };
   return { result, mtgaSummary };
 }

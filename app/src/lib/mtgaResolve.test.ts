@@ -60,7 +60,10 @@ describe('resolveMtgaCollection', () => {
     expect(result.owned.get('oid-a')).toBe(4);
     expect(result.owned.size).toBe(1);
     expect(mtgaSummary.outOfPoolCount).toBe(8);
-    expect(mtgaSummary.unresolvedArenaIds).toEqual([99999, 88888]);
+    expect(mtgaSummary.unresolvedArenaIds).toHaveLength(2);
+    expect(mtgaSummary.unresolvedArenaIds).toEqual(
+      expect.arrayContaining([99999, 88888]),
+    );
   });
 
   it('skips zero-count entries', () => {
