@@ -99,3 +99,42 @@ function readJsonValue(text: string, start: number): { value: unknown; end: numb
   }
   return { value: null, end: text.length };
 }
+
+export type ProgressCallback = (bytesRead: number, totalBytes: number) => void;
+
+async function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  // Real browsers expose Blob.arrayBuffer(); jsdom currently does not, so fall
+  // back to FileReader, which jsdom does implement.
+  if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
+  return await new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+export async function parseMtgaLogFile(
+  file: File,
+  onProgress?: ProgressCallback,
+  opts: { chunkSize?: number } = {},
+): Promise<MtgaLogContents> {
+  const chunkSize = opts.chunkSize ?? 1 << 20; // 1 MiB
+  const decoder = new TextDecoder('utf-8');
+
+  let buffered = '';
+  let bytesRead = 0;
+  const total = file.size;
+
+  for (let offset = 0; offset < total; offset += chunkSize) {
+    const slice = file.slice(offset, Math.min(offset + chunkSize, total));
+    const ab = await blobToArrayBuffer(slice);
+    bytesRead += ab.byteLength;
+    buffered += decoder.decode(ab, { stream: offset + chunkSize < total });
+    onProgress?.(bytesRead, total);
+  }
+  // Flush the decoder.
+  buffered += decoder.decode();
+
+  return parseMtgaLogText(buffered);
+}

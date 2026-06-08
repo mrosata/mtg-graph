@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseMtgaLogText } from './mtgaLogParser';
+import { parseMtgaLogText, parseMtgaLogFile } from './mtgaLogParser';
 
 import healthy from '../../tests/fixtures/mtga/healthy.log?raw';
 import collectionOnly from '../../tests/fixtures/mtga/collection-only.log?raw';
@@ -52,5 +52,36 @@ describe('parseMtgaLogText', () => {
     // A request-form marker carries no payload; treat as ignored.
     const txt = '[UnityCrossThreadLogger]==> PlayerInventory.GetPlayerCardsV3(7, "")\n{"id":7,"request":""}\n';
     expect(parseMtgaLogText(txt).collection).toBeNull();
+  });
+});
+
+function fileFrom(text: string): File {
+  return new File([text], 'Player.log', { type: 'text/plain' });
+}
+
+describe('parseMtgaLogFile', () => {
+  it('streams a small log and returns the same result as parseMtgaLogText', async () => {
+    const file = fileFrom(healthy);
+    const result = await parseMtgaLogFile(file);
+    expect(result).toEqual(parseMtgaLogText(healthy));
+  });
+
+  it('reports progress as bytes are consumed', async () => {
+    const file = fileFrom(healthy);
+    const progress: number[] = [];
+    await parseMtgaLogFile(file, (bytesRead, total) => {
+      progress.push(bytesRead);
+      expect(total).toBe(file.size);
+    });
+    expect(progress.length).toBeGreaterThan(0);
+    expect(progress[progress.length - 1]).toBe(file.size);
+  });
+
+  it('recovers when an event payload spans the chunk boundary', async () => {
+    const file = fileFrom(healthy);
+    // Force a tiny chunk size so the JSON definitely splits.
+    const result = await parseMtgaLogFile(file, undefined, { chunkSize: 16 });
+    expect(result.collection).toEqual({ '70001': 4, '70002': 2, '70003': 1 });
+    expect(result.decks).toHaveLength(2);
   });
 });
