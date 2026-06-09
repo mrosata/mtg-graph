@@ -15,6 +15,12 @@ export function mergeCardsAcrossSets(cards: Card[]): Card[] {
     for (const p of c.printings) {
       if (!existing.printings.includes(p)) existing.printings.push(p);
     }
+    // Fill in printedName/flavorName from a later printing if the first-seen
+    // lacked one. UB crossover: `spm` ships the Marvel-flavor name as `name`
+    // with no `printed_name`; the same oracleId in `om1` carries the
+    // Magic-flavor `printed_name` we need for Arena import resolution.
+    if (!existing.printedName && c.printedName) existing.printedName = c.printedName;
+    if (!existing.flavorName && c.flavorName) existing.flavorName = c.flavorName;
     if (c.printingDetails) {
       const details = existing.printingDetails ?? [];
       for (const d of c.printingDetails) {

@@ -10,6 +10,8 @@ type ScryfallFace = {
 export type ScryfallCard = {
   oracle_id: string;
   name: string;
+  printed_name?: string;
+  flavor_name?: string;
   set: string;
   collector_number: string;
   mana_cost?: string | null;
@@ -56,7 +58,7 @@ export function stripScryfallCard(raw: ScryfallCard): Card {
           .filter((t) => t.length > 0)
           .join('\n\n');
 
-  return {
+  const card: Card = {
     oracleId: raw.oracle_id,
     name: raw.name,
     set: raw.set,
@@ -85,6 +87,9 @@ export function stripScryfallCard(raw: ScryfallCard): Card {
     }],
     tags: [],
   };
+  if (raw.printed_name && raw.printed_name !== raw.name) card.printedName = raw.printed_name;
+  if (raw.flavor_name && raw.flavor_name !== raw.name) card.flavorName = raw.flavor_name;
+  return card;
 }
 
 function normalizeRarity(r: string): Rarity {

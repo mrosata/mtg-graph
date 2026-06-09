@@ -67,6 +67,33 @@ describe('mergeCardsAcrossSets', () => {
     expect(out[0]!.printingDetails).toHaveLength(1);
   });
 
+  it('preserves printedName/flavorName from the first-seen printing across merge', () => {
+    const first: Card = { ...card('a', 'om1'), printedName: 'Kavaero, Mind-Bitten' };
+    const second = card('a', 'fdn');
+    const out = mergeCardsAcrossSets([first, second]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.printedName).toBe('Kavaero, Mind-Bitten');
+    expect(out[0]!.printings).toEqual(['om1', 'fdn']);
+  });
+
+  it('fills in printedName from a later printing when the first-seen lacks one', () => {
+    // Real-world case: `spm` (Marvel-flavor name, no printed_name) ships before
+    // `om1` (same canonical name, with the Magic-flavor `printed_name`). The
+    // merged card must end up with the om1 printedName so importers can find
+    // it via the Magic-flavor name.
+    const first = card('a', 'spm');
+    const second: Card = { ...card('a', 'om1'), printedName: 'Kavaero, Mind-Bitten' };
+    const out = mergeCardsAcrossSets([first, second]);
+    expect(out[0]!.printedName).toBe('Kavaero, Mind-Bitten');
+  });
+
+  it('fills in flavorName from a later printing when the first-seen lacks one', () => {
+    const first = card('a', 'blb');
+    const second: Card = { ...card('a', 'xxx'), flavorName: 'Godzilla, King of Monsters' };
+    const out = mergeCardsAcrossSets([first, second]);
+    expect(out[0]!.flavorName).toBe('Godzilla, King of Monsters');
+  });
+
   it('keeps printingDetails when a later printing has no mtgoId (paper-only)', () => {
     const out = mergeCardsAcrossSets([
       card('a', 'blb', { cn: '1', mtgoId: 129247 }),

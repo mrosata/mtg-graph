@@ -180,13 +180,18 @@ describe('parseDeck (sniffer)', () => {
 import { resolveImport } from './deckImport';
 import type { Card } from '@shared/types';
 
-function makeCard(oracleId: string, name: string): Card {
+function makeCard(
+  oracleId: string,
+  name: string,
+  extra: Partial<Pick<Card, 'printedName' | 'flavorName'>> = {},
+): Card {
   return {
     oracleId, name, set: 'tst', printings: ['tst'], collectorNumber: '1',
     manaCost: null, cmc: 0, colors: [], colorIdentity: [],
     typeLine: '', types: [], subtypes: [], supertypes: [],
     oracleText: '', keywords: [], power: null, toughness: null,
     rarity: 'common', imageUrl: '', tags: [],
+    ...extra,
   };
 }
 
@@ -263,6 +268,22 @@ describe('resolveImport', () => {
     expect(r.resolved).toEqual([
       { oracleId: 'bolt-id', count: 4, name: 'Lightning Bolt', mtgoId: 129247 },
     ]);
+  });
+
+  it('resolves Arena exports that use printedName (UB crossover, e.g. om1 Spider-Man)', () => {
+    // Arena lists the Magic-flavor name (`printed_name`) but Scryfall canonicalizes
+    // on the IP name. Importer should resolve the Arena line via the alternate tier
+    // and return the canonical name for storage.
+    const cards = new Map<string, Card>([
+      ...FIXTURE_CARDS,
+      ['spidey', makeCard('spidey', 'Superior Spider-Man', { printedName: 'Kavaero, Mind-Bitten' })],
+    ]);
+    const parsed = parseArenaDeck('Deck\n4 Kavaero, Mind-Bitten');
+    const r = resolveImport(parsed, cards);
+    expect(r.resolved).toEqual([
+      { oracleId: 'spidey', count: 4, name: 'Superior Spider-Man' },
+    ]);
+    expect(r.unknown).toEqual([]);
   });
 });
 

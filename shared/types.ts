@@ -32,6 +32,12 @@ export function hasTagId<T extends keyof TagMetadataMap>(
 export type Card = {
   oracleId: string;
   name: string;
+  // Scryfall's `printed_name` / `flavor_name` when present and distinct from
+  // `name`. UB crossover sets (e.g. `om1`) canonicalize on the IP name but
+  // Arena/MTGO exports use the Magic name printed on the card — the deck
+  // importer's name index uses these as a third-tier fallback.
+  printedName?: string;
+  flavorName?: string;
   set: string;
   printings: string[];
   collectorNumber: string;

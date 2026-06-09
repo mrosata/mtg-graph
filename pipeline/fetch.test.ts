@@ -123,6 +123,62 @@ describe('stripScryfallCard', () => {
     ]);
   });
 
+  it('captures printed_name when distinct from name (UB crossover Magic-flavor name)', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000C1',
+      name: 'Superior Spider-Man',
+      printed_name: 'Kavaero, Mind-Bitten',
+      set: 'om1', collector_number: '140',
+      cmc: 4, type_line: 'Legendary Creature — Human',
+      oracle_text: '',
+      rarity: 'mythic',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.name).toBe('Superior Spider-Man');
+    expect(card.printedName).toBe('Kavaero, Mind-Bitten');
+  });
+
+  it('omits printedName when Scryfall printed_name equals name (most printings)', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000C2',
+      name: 'Lightning Bolt',
+      printed_name: 'Lightning Bolt',
+      set: 'blb', collector_number: '1',
+      cmc: 1, type_line: 'Instant',
+      oracle_text: '',
+      rarity: 'common',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printedName).toBeUndefined();
+  });
+
+  it('omits printedName entirely when Scryfall does not provide one', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000C3',
+      name: 'Plains',
+      set: 'blb', collector_number: '2',
+      cmc: 0, type_line: 'Basic Land — Plains',
+      oracle_text: '',
+      rarity: 'common',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printedName).toBeUndefined();
+  });
+
+  it('captures flavor_name when distinct from name (older UB Godzilla-series style)', () => {
+    const raw = {
+      oracle_id: '00000000-0000-0000-0000-0000000000C4',
+      name: 'Babylon Sphinx',
+      flavor_name: 'Sphinx of Babylon',
+      set: 'xxx', collector_number: '1',
+      cmc: 5, type_line: 'Creature — Sphinx',
+      oracle_text: '',
+      rarity: 'rare',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.flavorName).toBe('Sphinx of Babylon');
+  });
+
   it('concatenates oracle text from card_faces when top-level oracle_text is empty', () => {
     const dfc = {
       oracle_id: '00000000-0000-0000-0000-00000000FACE',
