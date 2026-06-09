@@ -146,4 +146,74 @@ describe('MtgaImportPanel (decks-only mode)', () => {
     await waitFor(() => expect(importLibrary).toHaveBeenCalled());
     expect(importDeck).toHaveBeenCalledTimes(1);
   });
+
+  it('does NOT show source selector in decks-only mode', () => {
+    render(<MtgaImportPanel mode="decks-only" onClose={vi.fn()} />);
+    expect(screen.queryByRole('tab', { name: /Collection JSON/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Player\.log/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('MtgaImportPanel (JSON source)', () => {
+  beforeEach(() => {
+    importLibrary.mockClear();
+    importDeck.mockClear();
+  });
+
+  it('renders source selector in full mode and defaults to Player.log', () => {
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+    expect(screen.getByRole('tab', { name: /Player\.log/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /Collection JSON/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Choose Player\.log/i)).toBeInTheDocument();
+  });
+
+  it('switching to JSON source changes the file picker label', () => {
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole('tab', { name: /Collection JSON/i }));
+    expect(screen.getByLabelText(/Choose collection JSON/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Choose Player\.log/i)).not.toBeInTheDocument();
+  });
+
+  it('JSON path: parses, resolves via name lookup, imports library', async () => {
+    const onClose = vi.fn();
+    render(<MtgaImportPanel mode="full" onClose={onClose} />);
+    fireEvent.click(screen.getByRole('tab', { name: /Collection JSON/i }));
+
+    const jsonText = JSON.stringify([
+      { count: 4, name: 'oid-a', set: 'ONE', cn: '1' },
+      { count: 2, name: 'oid-b', set: 'ONE', cn: '2' },
+    ]);
+    const file = new File([jsonText], 'mtga_collection.json', { type: 'application/json' });
+    fireEvent.change(screen.getByLabelText(/Choose collection JSON/i), { target: { files: [file] } });
+
+    await waitFor(() => expect(screen.getByText(/Imported 2 cards/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Import library/i }));
+    await waitFor(() => expect(importLibrary).toHaveBeenCalledTimes(1));
+    expect(importDeck).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('JSON path: shows error on malformed JSON', async () => {
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole('tab', { name: /Collection JSON/i }));
+
+    const file = new File(['not json {'], 'mtga_collection.json', { type: 'application/json' });
+    fireEvent.change(screen.getByLabelText(/Choose collection JSON/i), { target: { files: [file] } });
+
+    await waitFor(() =>
+      expect(screen.getByText(/Invalid JSON/i)).toBeInTheDocument(),
+    );
+  });
+
+  it('JSON path: shows error when JSON is not an array', async () => {
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole('tab', { name: /Collection JSON/i }));
+
+    const file = new File(['{"foo":1}'], 'mtga_collection.json', { type: 'application/json' });
+    fireEvent.change(screen.getByLabelText(/Choose collection JSON/i), { target: { files: [file] } });
+
+    await waitFor(() =>
+      expect(screen.getByText(/top-level value must be a JSON array/i)).toBeInTheDocument(),
+    );
+  });
 });

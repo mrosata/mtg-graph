@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { useGraphStore } from '../stores/graphStore';
 import { useLibraryStore } from '../stores/libraryStore';
 import { useDeckStore } from '../stores/deckStore';
+import { STANDARD_SET_CODES } from '@shared/sets';
 import { parseMtgaLogFile } from '../lib/mtgaLogParser';
+import { parseMtgaCollectionJson } from '../lib/mtgaJsonParser';
 import {
   resolveMtgaCollection,
   resolveMtgaDecks,
   type MtgaCollectionSummary,
   type ParsedMtgaDeck,
 } from '../lib/mtgaResolve';
-import type { LibraryImportResult } from '../lib/libraryImport';
+import { resolveLibrary, type LibraryImportResult } from '../lib/libraryImport';
 import LibraryImportSummary from './LibraryImportSummary';
 import MtgaDeckChecklist from './MtgaDeckChecklist';
 
@@ -17,6 +19,8 @@ type Props = {
   mode: 'full' | 'decks-only';
   onClose: () => void;
 };
+
+type Source = 'log' | 'json';
 
 type ParseState =
   | { kind: 'idle' }
@@ -30,11 +34,17 @@ type ParseState =
     }
   | { kind: 'error'; message: string };
 
+const KNOWN_SET_CODES = new Set(STANDARD_SET_CODES.map((c) => c.toLowerCase()));
+
 export default function MtgaImportPanel({ mode, onClose }: Props) {
   const cards = useGraphStore((s) => s.cards);
   const importLibrary = useLibraryStore((s) => s.importLibrary);
   const ownedFromStore = useLibraryStore((s) => s.owned);
   const importDeck = useDeckStore((s) => s.importDeck);
+
+  // Decks-only mode is Player.log only — the JSON export carries no decks.
+  const [source, setSource] = useState<Source>('log');
+  const effectiveSource: Source = mode === 'decks-only' ? 'log' : source;
 
   const [state, setState] = useState<ParseState>({ kind: 'idle' });
   const [decksOptIn, setDecksOptIn] = useState(false);
@@ -42,7 +52,14 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
 
-  const handleFile = async (file: File) => {
+  const resetParseState = () => {
+    setState({ kind: 'idle' });
+    setDecksOptIn(false);
+    setCrossSectionOptIn(false);
+    setSelectedDeckIds(new Set());
+  };
+
+  const handleLogFile = async (file: File) => {
     setState({ kind: 'parsing', bytes: 0, total: file.size });
     try {
       const contents = await parseMtgaLogFile(file, (bytes, total) => {
@@ -56,7 +73,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           kind: 'error',
           message:
             "Neither a collection snapshot nor decks were found in this log. " +
-            "Try Player-prev.log if it exists in the same folder.",
+            "On Mac and Linux these events no longer write — switch to Collection JSON above.",
         });
         return;
       }
@@ -65,7 +82,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           kind: 'error',
           message:
             "We couldn't find a collection snapshot in this log. " +
-            "Open MTGA, click the Collection tab, then re-export Player.log.",
+            "On Windows, open MTGA → Collection tab, then re-export Player.log. " +
+            "On Mac/Linux, use Collection JSON instead.",
         });
         return;
       }
@@ -74,7 +92,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           kind: 'error',
           message:
             "We couldn't find any decks in this log. " +
-            "Open MTGA's deck builder, then re-export Player.log.",
+            "On Windows, open MTGA's deck builder, then re-export Player.log. " +
+            "Mac and Linux logs no longer carry deck data.",
         });
         return;
       }
@@ -95,6 +114,27 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
       setState({ kind: 'error', message: (e as Error).message });
     }
   };
+
+  const handleJsonFile = async (file: File) => {
+    setState({ kind: 'parsing', bytes: 0, total: file.size });
+    try {
+      const text = await readFileText(file);
+      const parsed = parseMtgaCollectionJson(text);
+      const result = resolveLibrary(parsed, cards, KNOWN_SET_CODES);
+      setState({
+        kind: 'ready',
+        libraryResult: result,
+        mtgaSummary: null,
+        decks: null,
+        filename: file.name,
+      });
+    } catch (e) {
+      setState({ kind: 'error', message: (e as Error).message });
+    }
+  };
+
+  const handleFile = (file: File) =>
+    effectiveSource === 'log' ? handleLogFile(file) : handleJsonFile(file);
 
   const handleConfirm = async () => {
     if (state.kind !== 'ready') return;
@@ -146,27 +186,88 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     busy ||
     (mode === 'decks-only' && selectedDeckIds.size === 0 && !crossSectionOptIn);
 
+  const fileAccept = effectiveSource === 'log' ? '.log,text/plain' : '.json,application/json';
+  const fileLabel = effectiveSource === 'log' ? 'Choose Player.log' : 'Choose collection JSON';
+
   return (
     <div>
-      <p className="text-xs text-vellum-dim">
-        Pick your Arena <code className="text-vellum-mute">Player.log</code>.
-      </p>
-      <p className="mt-1 text-xs text-vellum-dim">
-        Windows: <code>%APPDATA%\..\LocalLow\Wizards Of The Coast\MTGA\Player.log</code>
-        <br />
-        macOS: <code>~/Library/Logs/Wizards Of The Coast/MTGA/Player.log</code>
-      </p>
-      <p className="mt-1 text-xs text-vellum-dim">
-        The file can be large (50–500 MB); parsing happens locally — nothing is uploaded.
-      </p>
+      {mode === 'full' && (
+        <div className="mb-3 rounded border border-ink-line-2 bg-ink-raised px-3 py-2 text-xs text-vellum-dim">
+          <span className="font-semibold text-brass-hi">Heads up — </span>
+          MTGA's <code className="text-vellum-mute">Player.log</code> only carries
+          collection data on <strong>Windows</strong> with Detailed Logs enabled.
+          Mac and Linux clients no longer write the event. If that's you, switch
+          to <strong>Collection JSON</strong> below — produced by{' '}
+          <a
+            href="https://github.com/NthPhantom10/MTGA-collection-exporter"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brass underline hover:text-brass-hi"
+          >
+            MTGA-collection-exporter
+          </a>
+          {' '}(Windows-side, but the JSON file is portable).
+        </div>
+      )}
+
+      {mode === 'full' && (
+        <div
+          role="tablist"
+          aria-label="MTGA source"
+          className="mb-3 flex gap-1 text-sm"
+        >
+          <SourceButton
+            active={source === 'log'}
+            onClick={() => {
+              setSource('log');
+              resetParseState();
+            }}
+          >
+            Player.log
+          </SourceButton>
+          <SourceButton
+            active={source === 'json'}
+            onClick={() => {
+              setSource('json');
+              resetParseState();
+            }}
+          >
+            Collection JSON
+          </SourceButton>
+        </div>
+      )}
+
+      {effectiveSource === 'log' ? (
+        <>
+          <p className="text-xs text-vellum-dim">
+            Pick your Arena <code className="text-vellum-mute">Player.log</code>.
+          </p>
+          <p className="mt-1 text-xs text-vellum-dim">
+            Windows: <code>%APPDATA%\..\LocalLow\Wizards Of The Coast\MTGA\Player.log</code>
+            <br />
+            macOS: <code>~/Library/Logs/Wizards Of The Coast/MTGA/Player.log</code>
+          </p>
+          <p className="mt-1 text-xs text-vellum-dim">
+            The file can be large (50–500 MB); parsing happens locally — nothing is uploaded.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="text-xs text-vellum-dim">
+            Pick the <code className="text-vellum-mute">mtga_collection.json</code>{' '}
+            produced by MTGA-collection-exporter. Matched against card names + set
+            codes — same path Manabox CSVs use.
+          </p>
+        </>
+      )}
 
       <label className="focus-brass mt-3 inline-flex cursor-pointer items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi">
-        Choose Player.log
+        {fileLabel}
         <input
           type="file"
-          accept=".log,text/plain"
+          accept={fileAccept}
           className="hidden"
-          aria-label="Choose Player.log"
+          aria-label={fileLabel}
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void handleFile(f);
@@ -201,10 +302,10 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
 
       {state.kind === 'ready' && (
         <div className="mt-4 space-y-4">
-          {mode === 'full' && state.libraryResult && state.mtgaSummary && (
+          {mode === 'full' && state.libraryResult && (
             <LibraryImportSummary
               result={state.libraryResult}
-              mtgaSummary={state.mtgaSummary}
+              mtgaSummary={state.mtgaSummary ?? undefined}
             />
           )}
 
@@ -264,6 +365,42 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
         </button>
       </div>
     </div>
+  );
+}
+
+function readFileText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Couldn't read file."));
+    reader.readAsText(file);
+  });
+}
+
+function SourceButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={[
+        'focus-brass rounded px-3 py-1 text-sm transition-colors',
+        active
+          ? 'bg-ink-raised text-brass-hi border border-brass/40'
+          : 'text-vellum-mute border border-transparent hover:text-brass-hi',
+      ].join(' ')}
+    >
+      {children}
+    </button>
   );
 }
 
