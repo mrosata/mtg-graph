@@ -61,6 +61,10 @@ export type Card = {
     set: string;
     collectorNumber: string;
     mtgoId?: number;
+    // Scryfall arena_id when present. Per-printing — multiple arenaIds
+    // can map to the same oracleId across reprints / Arena-specific
+    // visual variants. Used only by MTGA library/deck import.
+    arenaId?: number;
   }>;
   tags: CardTag[];
 };

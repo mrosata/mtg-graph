@@ -1,8 +1,8 @@
 # MTG Arena import — design
 
-Status: blocked — see "Known issues" below (added 2026-06-09)
+Status: approved (revised 2026-06-09 — see "Platform support" section)
 Date: 2026-06-08
-Target version: v0.38 (deferred; branch preserved unmerged)
+Target version: v0.38
 
 ## Goal
 
@@ -252,44 +252,45 @@ app/tests/fixtures/mtga/   small synthetic Player.log snippets
 
 `MtgaImportPanel` accepts a `mode: 'full' | 'decks-only'` prop and is the single source of truth for the MTGA flow. `ImportLibraryModal` renders it inside the MTGA tab; the Decks-page entry point renders it inside its own minimal modal shell.
 
+## Platform support (revised 2026-06-09)
+
+The original design assumed `Player.log` carried collection + deck events on every platform. **Real-user testing on 2026-06-09 against MTGA client `2026.59.30` (macOS Epic build) found that Mac and Linux clients no longer write `PlayerInventory.GetPlayerCards*` or `Deck.GetDeckLists*` to `Player.log`, even with Detailed Logs enabled.** Confirmed against `Player.log` and `Player-prev.log`; no sibling log file exists. Online research (17Lands public statement, GitHub repos for Untapped/Aetherhub/Arena Tutor/etc.) confirms this has been a Mac-specific regression since ~2021 — all maintained third-party tools tail logs **on Windows via Overwolf**, where the events still fire.
+
+To keep the feature useful on every platform, the MTGA tab now offers two sources:
+
+1. **Player.log (Windows + Detailed Logs).** Original code path: streamed log parse → arena_id resolution → collection + opt-in decks. Works as designed for Windows users. Surfaces a per-import error message on Mac/Linux pointing users to source #2.
+2. **Collection JSON (cross-platform).** Accepts the `mtga_collection.json` output from [MTGA-collection-exporter](https://github.com/NthPhantom10/MTGA-collection-exporter) — a Windows-side `pymem` memory scanner that anchors on the live MTGA process after the user scrolls through Collection. The JSON is a portable file the user uploads here. **Collection only — the JSON has no deck data.**
+
+### JSON shape
+
+```json
+[
+  { "count": 4, "name": "Abrade", "set": "DMU", "cn": "131" },
+  { "count": 2, "name": "Sheoldred, the Apocalypse", "set": "DMU", "cn": "107" }
+]
+```
+
+Flat array, no arena IDs (the exporter merges by `(name, set)` and discards `GrpId`s). No schema versioning, no wildcards, no currency.
+
+### Resolution
+
+`parseMtgaCollectionJson(text)` produces a `ParsedLibrary` — the same shape Manabox CSV produces. Downstream resolution reuses `resolveLibrary` (name-based, not arena-id-based). Unknowns surface in the existing `unknownNames` / `unknownSets` buckets, same as Manabox. The arena-id index built for the Player.log path is unused here.
+
+### UI
+
+The MTGA tab now renders, in order:
+
+1. **Windows-only banner** (always visible): explains the Player.log limitation, links to MTGA-collection-exporter.
+2. **Source selector** (`Player.log` / `Collection JSON`): defaults to `Player.log`. Switching resets the parse state. Decks-only mode (Decks page entry) hides the selector — JSON has no decks, so Player.log is the only option there.
+3. **File picker** with dynamic label and accept attribute (`.log` vs `.json`).
+4. The same summary / decks-checklist / confirm machinery as the original design.
+
+`MtgaCollectionSummary` is still produced on the Player.log path but is absent on the JSON path — `LibraryImportSummary` accepts `mtgaSummary?:` and falls back to the Manabox-style Unknown-names / Unknown-sets groups when undefined.
+
 ## Future work (not in scope)
 
 - **C-tier expanded graph scope.** Pull all `is:arena` cards into the artifact so MTGA imports cover Historic / Alchemy / Explorer collections. Architecturally additive; the call-out is artifact size and re-running rule coverage against a much larger pool.
-- **Wildcard inventory.** The log carries `WildCardCommons/Uncommons/Rares/Mythics`. Could power a "decks I can craft" filter and per-card craft cost annotations.
+- **Wildcard inventory.** `Player.log`'s `StartHook` carries `WildCardCommons/Uncommons/Rares/Mythics` and currency — this fires on every MTGA launch regardless of which screens the user visits, so it's more reliably accessible than collection. Could power a "decks I can craft" filter and per-card craft cost annotations without depending on the missing PlayerInventory event.
 - **Sync provenance on decks.** Track MTGA deck UUID on imported decks to enable update-in-place re-sync.
 - **Auto-detect log file.** Browser `File System Access API` could remember the folder and re-read on demand. Behind a feature detect; not all browsers support it.
-
-## Known issues — feature blocked as of 2026-06-09
-
-Implementation complete on branch `worktree-mtga-import` (commits `3e1eef9..21e8877`) but does **not ship**. Real-user `Player.log` from MTGA client version **2026.59.30** (macOS Epic build) contains none of the events this design depends on, even with `Detailed Logs (Plugin Support)` enabled and after navigating to Collection + Decks.
-
-### What is missing from current MTGA logs
-
-- `<== PlayerInventory.GetPlayerCardsV3` (the collection snapshot)
-- `<== Deck.GetDeckLists*` (the player's saved decks)
-
-The Collection / Decks UI now renders from local cache without round-tripping the logged WebSocket layer. Confirmed against both `Player.log` and `Player-prev.log`; no sibling log file exists under `~/Library/Logs/Wizards Of The Coast/MTGA/`.
-
-### What `Player.log` does still emit
-
-- `StartHook` with an embedded `InventoryInfo` blob: currency, wildcards, cosmetics. **No card-id → count map.**
-- `DeckGetAllPreconDecksV3`: Wizards-made precon decks (not the user's saved decks).
-- `EventGetActiveMatches`, `EventGetCoursesV2`, `GetFormats`, `GraphGetGraphState`, `PeriodicRewardsGetStatus`, `QuestGetQuests`, `RankGetCombinedRankInfo`, `RankGetSeasonAndRankDetails`.
-
-### Practical paths today
-
-- **Deck import is already shipped.** MTGA's in-game "Export to Clipboard" produces Arena text format. The existing `parseArenaDeck` in `app/src/lib/deckImport.ts` handles this — users can paste a single deck via the existing deck-import UI without any of the work in this branch.
-- **Collection import has no near-term path.** Wildcards alone (from `StartHook`) could power a "craftable decks" filter without needing card ownership — that's a possible future direction that does not depend on the missing events.
-
-### What survives regardless of whether the branch merges
-
-- `arena_id` is plumbed through `printingDetails` in the pipeline artifact (`shared/types.ts`, `pipeline/fetch.ts`, `RULE_VERSION` bumped to `v0.40.0`). Useful for any future Arena-driven feature.
-- `app/src/lib/arenaIdIndex.ts`, `mtgaLogParser.ts`, and `mtgaResolve.ts` are correct against the historical log format and can be reused if MTGA reverts.
-
-### Re-evaluation triggers
-
-Re-open this spec if any of the following happens:
-
-- A future MTGA client release restores `PlayerInventory.GetPlayerCards*` / `Deck.GetDeckLists*` in `Player.log`. (Quick check: `grep -oE "<==\s*[A-Za-z][A-Za-z0-9_.]+\b" Player.log | sort -u` on a fresh log.)
-- A trusted third-party tool documents a new local signal (WebSocket intercept proxy, in-game overlay, file under `~/Library/Application Support/com.wizards.mtga/`) that gives card ownership without server credentials.
-- We decide a wildcards-only "craftable" filter is worth the partial-feature shipping cost.
+- **Re-check `Player.log` periodically.** If a future MTGA client release restores the events on Mac/Linux, we can drop the "Windows only" caveat. Quick check: `grep -oE "<==\s*[A-Za-z][A-Za-z0-9_.]+\b" Player.log | sort -u` on a fresh log — `PlayerInventory.GetPlayerCardsV3` (or any version suffix) coming back to the list means the regression is fixed.

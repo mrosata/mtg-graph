@@ -23,6 +23,7 @@ export type ScryfallCard = {
   keywords?: string[];
   rarity: string;
   mtgo_id?: number | null;
+  arena_id?: number | null;
   image_uris?: { normal?: string; large?: string };
   card_faces?: ScryfallFace[];
 };
@@ -76,11 +77,12 @@ export function stripScryfallCard(raw: ScryfallCard): Card {
     rarity: normalizeRarity(raw.rarity),
     imageUrl: image,
     mtgoId: raw.mtgo_id ?? null,
-    printingDetails: [
-      raw.mtgo_id != null
-        ? { set: raw.set, collectorNumber: raw.collector_number, mtgoId: raw.mtgo_id }
-        : { set: raw.set, collectorNumber: raw.collector_number },
-    ],
+    printingDetails: [{
+      set: raw.set,
+      collectorNumber: raw.collector_number,
+      ...(raw.mtgo_id != null && { mtgoId: raw.mtgo_id }),
+      ...(raw.arena_id != null && { arenaId: raw.arena_id }),
+    }],
     tags: [],
   };
 }

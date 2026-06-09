@@ -1,0 +1,3 @@
+[UnityCrossThreadLogger] Some unrelated MTGA log line.
+[UnityCrossThreadLogger]==> Authenticate(...)
+{ "ok": true }

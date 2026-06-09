@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import LibraryImportSummary from './LibraryImportSummary';
+import type { LibraryImportResult } from '../lib/libraryImport';
+import type { MtgaCollectionSummary } from '../lib/mtgaResolve';
 
 const baseResult = {
   owned: new Map([['a', 1], ['b', 2]]),
@@ -40,5 +42,45 @@ describe('LibraryImportSummary', () => {
     fireEvent.click(screen.getByRole('button', { name: /Unknown sets/ }));
     expect(screen.getByText(/Tarmogoyf/)).toBeInTheDocument();
     expect(screen.getByText(/Sol Ring/)).toBeInTheDocument();
+  });
+});
+
+const mtgaBaseResult: LibraryImportResult = {
+  owned: new Map([['oid-a', 4], ['oid-b', 2]]),
+  ownedDetail: new Map(),
+  unknownNames: [], unknownSets: [], unparseableLines: [],
+};
+
+describe('LibraryImportSummary — mtgaSummary', () => {
+  it('shows the out-of-pool line when mtgaSummary is provided and outOfPoolCount > 0', () => {
+    const mtgaSummary: MtgaCollectionSummary = {
+      totalCardsOwned: 100,
+      resolvedCardsOwned: 88,
+      outOfPoolCount: 12,
+      unresolvedArenaIds: [],
+    };
+    render(<LibraryImportSummary result={mtgaBaseResult} mtgaSummary={mtgaSummary} />);
+    expect(screen.getByText(/12.*aren't in our Standard pool/i)).toBeInTheDocument();
+  });
+
+  it('omits the out-of-pool line when outOfPoolCount is zero', () => {
+    const mtgaSummary: MtgaCollectionSummary = {
+      totalCardsOwned: 50,
+      resolvedCardsOwned: 50,
+      outOfPoolCount: 0,
+      unresolvedArenaIds: [],
+    };
+    render(<LibraryImportSummary result={mtgaBaseResult} mtgaSummary={mtgaSummary} />);
+    expect(screen.queryByText(/aren't in our Standard pool/i)).not.toBeInTheDocument();
+  });
+
+  it('hides unknown-names/unknown-sets/unparseable groups in MTGA mode', () => {
+    const mtgaSummary: MtgaCollectionSummary = {
+      totalCardsOwned: 1, resolvedCardsOwned: 1, outOfPoolCount: 0, unresolvedArenaIds: [],
+    };
+    render(<LibraryImportSummary result={mtgaBaseResult} mtgaSummary={mtgaSummary} />);
+    expect(screen.queryByText(/Unknown names/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Unknown sets/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Unparseable/i)).not.toBeInTheDocument();
   });
 });

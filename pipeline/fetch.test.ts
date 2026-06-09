@@ -88,6 +88,41 @@ describe('stripScryfallCard', () => {
     expect(card.mtgoId).toBeNull();
   });
 
+  it('records arena_id on the printing detail', () => {
+    const raw = {
+      oracle_id: 'oid-arena', name: 'Arena Card', set: 'one',
+      collector_number: '42', cmc: 0, type_line: 'Creature', rarity: 'rare',
+      mtgo_id: null, arena_id: 70123,
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printingDetails).toEqual([
+      { set: 'one', collectorNumber: '42', arenaId: 70123 },
+    ]);
+  });
+
+  it('omits arenaId when arena_id is absent', () => {
+    const raw = {
+      oracle_id: 'oid-no-arena', name: 'Paper Only', set: 'old',
+      collector_number: '1', cmc: 0, type_line: 'Land', rarity: 'common',
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printingDetails).toEqual([
+      { set: 'old', collectorNumber: '1' },
+    ]);
+  });
+
+  it('records both mtgo_id and arena_id when both present', () => {
+    const raw = {
+      oracle_id: 'oid-both', name: 'Both IDs', set: 'one',
+      collector_number: '7', cmc: 0, type_line: 'Instant', rarity: 'common',
+      mtgo_id: 80000, arena_id: 70999,
+    };
+    const card = stripScryfallCard(raw as any);
+    expect(card.printingDetails).toEqual([
+      { set: 'one', collectorNumber: '7', mtgoId: 80000, arenaId: 70999 },
+    ]);
+  });
+
   it('concatenates oracle text from card_faces when top-level oracle_text is empty', () => {
     const dfc = {
       oracle_id: '00000000-0000-0000-0000-00000000FACE',

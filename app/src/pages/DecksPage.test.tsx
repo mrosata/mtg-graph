@@ -145,7 +145,7 @@ describe('DecksPage import/export', () => {
 
   it('opens the import modal when "Import" is clicked', async () => {
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: /import/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /import deck/i })).toBeInTheDocument();
   });

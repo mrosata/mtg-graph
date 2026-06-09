@@ -86,4 +86,18 @@ describe('ImportLibraryModal', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(useLibraryStore.getState().owned?.get('bolt-id')).toBe(4);
   });
+
+  it('renders both tab headers and defaults to Manabox', () => {
+    render(<ImportLibraryModal onClose={() => {}} />);
+    expect(screen.getByRole('tab', { name: /Manabox CSV/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /MTG Arena/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Choose Manabox CSV/i)).toBeInTheDocument();
+  });
+
+  it('switches to the MTG Arena tab when clicked', () => {
+    render(<ImportLibraryModal onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: /MTG Arena/i }));
+    expect(screen.getByLabelText(/Choose Player\.log/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Choose Manabox CSV/i)).not.toBeInTheDocument();
+  });
 });

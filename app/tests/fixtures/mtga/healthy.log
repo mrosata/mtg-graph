@@ -1,0 +1,29 @@
+[UnityCrossThreadLogger]==> PlayerInventory.GetPlayerCardsV3(7, "")
+{"id": 7, "request": ""}
+
+[UnityCrossThreadLogger]<== PlayerInventory.GetPlayerCardsV3(7)
+{
+  "70001": 4,
+  "70002": 2,
+  "70003": 1
+}
+
+[UnityCrossThreadLogger]<== Deck.GetDeckListsV3(8)
+[
+  {
+    "id": "deck-aaa",
+    "name": "Mono-Red Aggro",
+    "format": "Standard",
+    "mainDeck": [{"id": 70001, "quantity": 4}, {"id": 70002, "quantity": 2}],
+    "sideboard": [{"id": 70003, "quantity": 1}],
+    "companion": null
+  },
+  {
+    "id": "deck-bbb",
+    "name": "Test Brew",
+    "format": "Historic",
+    "mainDeck": [{"id": 99999, "quantity": 1}],
+    "sideboard": [],
+    "companion": null
+  }
+]
