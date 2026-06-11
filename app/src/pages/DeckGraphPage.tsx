@@ -16,6 +16,7 @@ import {
 } from '../lib/deckGraph';
 import { FAMILIES, type FamilyId } from '../lib/tagFamilies';
 import { useNavStack } from '../lib/useNavStack';
+import { useDocumentMeta } from '../lib/seo';
 import CanvasNavButtons from '../components/deckGraph/CanvasNavButtons';
 import GraphCanvas from '../components/deckGraph/GraphCanvas';
 import PillRow from '../components/deckGraph/PillRow';
@@ -56,6 +57,10 @@ function parseMode(params: URLSearchParams): Mode {
 }
 
 export default function DeckGraphPage() {
+  useDocumentMeta(
+    'Deck Graph — MTG Graph',
+    'Visualize card interactions and synergies in your Magic: The Gathering deck.',
+  );
   const cards = useGraphStore((s) => s.cards);
   const outbound = useGraphStore((s) => s.edges);
   const inbound = useGraphStore((s) => s.edgesInbound);

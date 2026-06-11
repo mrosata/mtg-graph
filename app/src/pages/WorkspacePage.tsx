@@ -8,10 +8,12 @@ import ImportSummary from '../components/ImportSummary';
 import Toast from '../components/Toast';
 import { useDeckStore } from '../stores/deckStore';
 import { isDirty } from '../lib/deckDiff';
+import { useDocumentMeta } from '../lib/seo';
 import { TOUR_IDS } from '../wizard/selectors';
 import type { Filter } from '../lib/filter';
 
 export default function WorkspacePage() {
+  useDocumentMeta('Browse — MTG Graph');
   const [filter, setFilter] = useState<Filter>({ scope: 'standard' });
   const activeDeckId = useDeckStore((s) => s.activeDeckId);
   const hasActiveDeck = activeDeckId !== null;

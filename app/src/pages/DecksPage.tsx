@@ -12,6 +12,7 @@ import { deckColors } from '../lib/deckColors';
 import { deckToArenaText } from '../lib/deckExport';
 import { relativeTime } from '../lib/relativeTime';
 import { isDirty } from '../lib/deckDiff';
+import { useDocumentMeta } from '../lib/seo';
 import { TOUR_IDS } from '../wizard/selectors';
 import type { Color } from '@shared/types';
 import type { Deck } from '../lib/db';
@@ -72,6 +73,10 @@ function TrefoilMark() {
 }
 
 export default function DecksPage() {
+  useDocumentMeta(
+    'Decks — MTG Graph',
+    'Build, import, and manage Magic: The Gathering decks. Import from MTG Arena, ManaBox, or paste a decklist.',
+  );
   const decks = useDeckStore((s) => s.decks);
   const activeDeckId = useDeckStore((s) => s.activeDeckId);
   const setActiveDeck = useDeckStore((s) => s.setActiveDeck);
