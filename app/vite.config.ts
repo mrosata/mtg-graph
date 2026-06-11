@@ -13,8 +13,8 @@ export default defineConfig({
         short_name: 'MTG Graph',
         description:
           'Browse every Magic: The Gathering Standard card as a searchable interaction graph.',
-        theme_color: '#0a0a0a',
-        background_color: '#0a0a0a',
+        theme_color: '#0c0a0d',
+        background_color: '#0c0a0d',
         display: 'standalone',
         icons: [
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
