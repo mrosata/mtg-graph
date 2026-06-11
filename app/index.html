@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0c0a0d" />
+    <meta name="robots" content="index, follow" />
+    <meta name="application-name" content="MTG Graph" />
 
     <title>MTG Graph</title>
     <meta
@@ -11,6 +13,7 @@
       content="Browse every Magic: The Gathering Standard card as a searchable interaction graph. Find synergies, build decks, and explore mechanics across 6k+ cards."
     />
 
+    <link rel="canonical" href="https://mtg-graph.com/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -23,14 +26,18 @@
     />
 
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MTG Graph" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://mtg-graph.com/" />
     <meta property="og:title" content="MTG Graph — Standard card interactions & deck builder" />
     <meta
       property="og:description"
       content="Browse every MTG Standard card as a searchable interaction graph. Find synergies, build decks, and explore mechanics."
     />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="https://mtg-graph.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MTG Graph — a card interaction graph for Magic: The Gathering Standard" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="MTG Graph" />
@@ -38,9 +45,40 @@
       name="twitter:description"
       content="Browse every MTG Standard card as a searchable interaction graph."
     />
-    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image" content="https://mtg-graph.com/og-image.png" />
+    <meta name="twitter:image:alt" content="MTG Graph — a card interaction graph for Magic: The Gathering Standard" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "MTG Graph",
+        "description": "Browse every Magic: The Gathering Standard card as a searchable interaction graph. Find synergies, build decks, and explore mechanics.",
+        "url": "https://mtg-graph.com/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
+    <noscript>
+      <div style="max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; font-family: system-ui, -apple-system, sans-serif; color: #e8e0d0; background: #0c0a0d;">
+        <h1 style="font-size: 1.75rem; margin-bottom: 1rem;">MTG Graph</h1>
+        <p style="line-height: 1.6;">
+          MTG Graph is a browser-based tool for exploring Magic: The Gathering's
+          Standard format as a searchable interaction graph. It indexes every
+          Standard-legal card, tags their mechanics and abilities, and surfaces
+          the synergies between them so you can build smarter decks and discover
+          combos you'd otherwise miss.
+        </p>
+        <p style="line-height: 1.6; margin-top: 1rem;">
+          The full experience requires JavaScript. Please enable it, or visit
+          the project on
+          <a href="https://github.com/mrosata/mtg-graph" style="color: #d4a44a;">GitHub</a>.
+        </p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
