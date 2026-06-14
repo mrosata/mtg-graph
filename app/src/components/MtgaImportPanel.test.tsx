@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import MtgaImportPanel from './MtgaImportPanel';
+import * as bridge from '../lib/mtgaScanBridge';
 
 import healthy from '../../tests/fixtures/mtga/healthy.log?raw';
 
@@ -215,5 +216,39 @@ describe('MtgaImportPanel (JSON source)', () => {
     await waitFor(() =>
       expect(screen.getByText(/top-level value must be a JSON array/i)).toBeInTheDocument(),
     );
+  });
+});
+
+describe('MtgaImportPanel (Live scan source)', () => {
+  beforeEach(() => {
+    importLibrary.mockClear();
+    importDeck.mockClear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('scan source: healthy scan imports library', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
+      online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
+    });
+    vi.spyOn(bridge, 'scanCollection').mockResolvedValue({
+      status: 'ok',
+      collection: [{ count: 4, name: 'Abrade', set: 'DMU', cn: '131' }],
+    });
+    const onClose = vi.fn();
+    render(<MtgaImportPanel mode="full" onClose={onClose} />);
+    fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+    expect(await screen.findByRole('button', { name: /import library/i })).toBeInTheDocument();
+  });
+
+  it('scan source: engine offline shows launch card', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ online: false });
+    render(<MtgaImportPanel mode="full" onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+    expect(await screen.findByText(/start the exporter/i)).toBeInTheDocument();
   });
 });

@@ -12,6 +12,7 @@ import {
   type ParsedMtgaDeck,
 } from '../lib/mtgaResolve';
 import { resolveLibrary, type LibraryImportResult } from '../lib/libraryImport';
+import { bridgeHealth, scanCollection } from '../lib/mtgaScanBridge';
 import LibraryImportSummary from './LibraryImportSummary';
 import MtgaDeckChecklist from './MtgaDeckChecklist';
 
@@ -20,7 +21,7 @@ type Props = {
   onClose: () => void;
 };
 
-type Source = 'log' | 'json';
+type Source = 'log' | 'json' | 'scan';
 
 type ParseState =
   | { kind: 'idle' }
@@ -51,12 +52,46 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [crossSectionOptIn, setCrossSectionOptIn] = useState(false);
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [scanMsg, setScanMsg] = useState<string | null>(null);
 
   const resetParseState = () => {
     setState({ kind: 'idle' });
     setDecksOptIn(false);
     setCrossSectionOptIn(false);
     setSelectedDeckIds(new Set());
+    setScanMsg(null);
+  };
+
+  const handleScan = async () => {
+    setScanMsg(null);
+    setState({ kind: 'parsing', bytes: 0, total: 0 });
+    const health = await bridgeHealth();
+    if (!health.online) {
+      setState({ kind: 'idle' });
+      setScanMsg(
+        'Start the exporter first — double-click launch-mac.command, approve the password prompt, then Scan again.',
+      );
+      return;
+    }
+    if (!health.arena_process_found) {
+      setState({ kind: 'idle' });
+      setScanMsg('Open MTG Arena and visit the Collection tab, then Scan again.');
+      return;
+    }
+    const res = await scanCollection([]);
+    if (res.status === 'ambiguous') {
+      setState({ kind: 'idle' });
+      setScanMsg('Found more than one candidate — add one owned card below to narrow it down.');
+      return;
+    }
+    if (res.status !== 'ok' || !res.collection) {
+      setState({ kind: 'idle' });
+      setScanMsg("Couldn't locate your collection. Make sure Arena is on the Collection tab.");
+      return;
+    }
+    const parsed = parseMtgaCollectionJson(JSON.stringify(res.collection));
+    const result = resolveLibrary(parsed, cards, KNOWN_SET_CODES);
+    setState({ kind: 'ready', libraryResult: result, mtgaSummary: null, decks: null, filename: 'Live scan' });
   };
 
   const handleLogFile = async (file: File) => {
@@ -234,10 +269,19 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           >
             Collection JSON
           </SourceButton>
+          <SourceButton
+            active={source === 'scan'}
+            onClick={() => {
+              setSource('scan');
+              resetParseState();
+            }}
+          >
+            Live scan
+          </SourceButton>
         </div>
       )}
 
-      {effectiveSource === 'log' ? (
+      {effectiveSource === 'log' && (
         <>
           <p className="text-xs text-vellum-dim">
             Pick your Arena <code className="text-vellum-mute">Player.log</code>.
@@ -251,7 +295,9 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             The file can be large (50–500 MB); parsing happens locally — nothing is uploaded.
           </p>
         </>
-      ) : (
+      )}
+
+      {effectiveSource === 'json' && (
         <>
           <p className="text-xs text-vellum-dim">
             Pick the <code className="text-vellum-mute">mtga_collection.json</code>{' '}
@@ -261,19 +307,42 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
         </>
       )}
 
-      <label className="focus-brass mt-3 inline-flex cursor-pointer items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi">
-        {fileLabel}
-        <input
-          type="file"
-          accept={fileAccept}
-          className="hidden"
-          aria-label={fileLabel}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handleFile(f);
-          }}
-        />
-      </label>
+      {effectiveSource === 'scan' && (
+        <div>
+          <p className="text-xs text-vellum-dim">
+            Scan your live MTG Arena collection — no file needed. Requires the exporter
+            running locally (one-click launcher) and Arena open on the Collection tab.
+          </p>
+          <button
+            type="button"
+            onClick={() => void handleScan()}
+            className="focus-brass mt-3 inline-flex items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
+          >
+            Scan my collection
+          </button>
+          {scanMsg && (
+            <p className="mt-3 rounded border border-brass/40 bg-ink-raised px-3 py-2 text-xs text-vellum-mute">
+              {scanMsg}
+            </p>
+          )}
+        </div>
+      )}
+
+      {effectiveSource !== 'scan' && (
+        <label className="focus-brass mt-3 inline-flex cursor-pointer items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi">
+          {fileLabel}
+          <input
+            type="file"
+            accept={fileAccept}
+            className="hidden"
+            aria-label={fileLabel}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void handleFile(f);
+            }}
+          />
+        </label>
+      )}
 
       {state.kind === 'parsing' && (
         <div className="mt-3">
