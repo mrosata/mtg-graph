@@ -12,10 +12,12 @@ from .base import ProcessMemory
 #   /Users/Shared/Epic Games/MagicTheGathering/MTGA.app/Contents/MacOS/MTGA
 # which `ps -axo comm` reports verbatim; the "mtga" substring matches it.
 NAME_HINTS = ["mtga", "magicthegathering", "wine", "crossover", "whisky"]
-# Cap per-region reads so the pure-Python block scan stays tractable. The Mono/
-# managed heap that holds the collection is segmented into chunks well under this;
-# bump it if a live scan can't find the collection (see plan Task 11).
-MAX_REGION = 256 * 1024 * 1024
+# Cap per-region reads. Diagnostics (2026-06-13) found the owned-collection block
+# in a region between 256 MB and 1 GB, so the old 256 MB cap skipped it. We pattern
+# -scan for an anchor's 8 bytes (cheap bytes.find even on big regions) and only run
+# the expensive block extraction on a small window around hits, so a larger cap is
+# affordable here. Bump further if a live scan can't find the collection.
+MAX_REGION = 1280 * 1024 * 1024
 
 _libsys = ctypes.CDLL(ctypes.util.find_library("System"), use_errno=True)
 _libsys.mach_task_self.restype = ctypes.c_uint32

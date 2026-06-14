@@ -7,8 +7,10 @@ from urllib.parse import urlparse, parse_qs
 
 from .carddb import load_card_db, name_to_id
 from .memory import get_memory
-from .scan import autodetect_collection
+from .scan import find_collection
 from .export import resolve_rows
+
+PROC_HINTS = ["MTGA.exe", "mtga", "magicthegathering", "wine", "crossover", "whisky"]
 
 DEFAULT_PORT = 17171
 
@@ -16,13 +18,14 @@ class Engine:
     def __init__(self, out_dir: Path):
         self.db = load_card_db(sys.platform, out_dir / "arena_id_lookup.json")
         self._n2i = name_to_id(self.db) if self.db else {}
+        self._card_ids = set(self.db) if self.db else set()
         self._mem = None
         self._pid = None
 
     def _ensure_mem(self):
         if self._mem is None:
             self._mem = get_memory()
-        self._pid = self._mem.find_process(["MTGA.exe", "mtga", "wine", "crossover", "whisky"])
+        self._pid = self._mem.find_process(PROC_HINTS)
         return self._pid is not None
 
     def health(self):
@@ -54,7 +57,7 @@ class Engine:
     def scan(self, anchors=None):
         if not self._ensure_mem():
             return ("no_process", None)
-        return autodetect_collection(self._mem, anchors=anchors)
+        return find_collection(self._mem, anchors or [], self._card_ids)
 
 def build_handler_class(engine: "Engine"):
     class Handler(BaseHTTPRequestHandler):
