@@ -56,7 +56,7 @@ def run(out_dir: Path) -> int:
             continue
 
         anchors.append((gid, qty))
-        print("  Scanning memory...")
+        print("  Scanning memory (~15-30s)...")
         status, payload = find_collection(mem, anchors, card_ids)
         if status == "ok":
             break

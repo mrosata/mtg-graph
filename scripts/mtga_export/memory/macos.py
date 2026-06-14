@@ -12,12 +12,15 @@ from .base import ProcessMemory
 #   /Users/Shared/Epic Games/MagicTheGathering/MTGA.app/Contents/MacOS/MTGA
 # which `ps -axo comm` reports verbatim; the "mtga" substring matches it.
 NAME_HINTS = ["mtga", "magicthegathering", "wine", "crossover", "whisky"]
-# Cap per-region reads. Diagnostics (2026-06-13) found the owned-collection block
-# in a region between 256 MB and 1 GB, so the old 256 MB cap skipped it. We pattern
-# -scan for an anchor's 8 bytes (cheap bytes.find even on big regions) and only run
-# the expensive block extraction on a small window around hits, so a larger cap is
-# affordable here. Bump further if a live scan can't find the collection.
-MAX_REGION = 1280 * 1024 * 1024
+# Scan regions up to this size. Diagnostics (2026-06-13) found the owned-collection
+# block in a region between 256 MB and 1 GB (the old 256 MB cap skipped it); regions
+# over 1 GB never held it. Reads are CHUNKED (below), so this cap bounds which
+# regions we look at, not how much memory we allocate at once.
+MAX_REGION = 1024 * 1024 * 1024
+# Read memory in overlapping chunks so we never allocate a multi-hundred-MB buffer
+# (that thrashed memory and stalled). Overlap by 7 bytes so an 8-byte pattern that
+# straddles a chunk boundary is still found.
+SCAN_CHUNK = 16 * 1024 * 1024
 
 _libsys = ctypes.CDLL(ctypes.util.find_library("System"), use_errno=True)
 _libsys.mach_task_self.restype = ctypes.c_uint32
@@ -55,7 +58,8 @@ class MacMemory(ProcessMemory):
         self._task = task.value
         return True
 
-    def iter_regions(self) -> Iterator[tuple[int, bytes]]:
+    def _iter_region_bounds(self) -> Iterator[tuple[int, int]]:
+        """Yield (base, length) for every region, without reading any of it."""
         assert self._task is not None
         address = ctypes.c_uint64(1)
         while True:
@@ -75,11 +79,41 @@ class MacMemory(ProcessMemory):
             if kr != KERN_SUCCESS:
                 break
             base, length = address.value, size.value
-            if 0 < length <= MAX_REGION:
-                data = self.read_bytes(base, length)
-                if data:
-                    yield (base, data)
+            yield base, length
             address = ctypes.c_uint64(base + length)
+
+    def iter_regions(self) -> Iterator[tuple[int, bytes]]:
+        # Read in chunks so a large region never becomes one giant allocation.
+        for base, length in self._iter_region_bounds():
+            if not 0 < length <= MAX_REGION:
+                continue
+            off = 0
+            while off < length:
+                data = self.read_bytes(base + off, min(SCAN_CHUNK, length - off))
+                if data:
+                    yield (base + off, data)
+                off += SCAN_CHUNK
+
+    def pattern_scan(self, pattern: bytes) -> list[int]:
+        plen = len(pattern)
+        hits: list[int] = []
+        for base, length in self._iter_region_bounds():
+            if not 0 < length <= MAX_REGION:
+                continue
+            off = 0
+            while off < length:
+                # overlap by plen-1 so a pattern straddling a chunk is still found
+                data = self.read_bytes(base + off, min(SCAN_CHUNK + plen - 1, length - off))
+                if data:
+                    start = 0
+                    while True:
+                        i = data.find(pattern, start)
+                        if i < 0:
+                            break
+                        hits.append(base + off + i)
+                        start = i + 1
+                off += SCAN_CHUNK
+        return hits
 
     def read_bytes(self, addr: int, size: int) -> bytes:
         buf = (ctypes.c_char * size)()
