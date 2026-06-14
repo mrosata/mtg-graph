@@ -74,6 +74,18 @@ def card_purity(blk: dict[int, int], card_ids) -> float:
     return sum(1 for k in blk if k in card_ids) / len(blk)
 
 
+def _score_block(block: dict[int, int], constraints) -> int:
+    """How many deck constraints `owned >= count` the block satisfies.
+    A constraint carries every printing grpId of one card; the best printing wins.
+    """
+    n = 0
+    for c in constraints:
+        owned = max((block.get(g, 0) for g in c["gids"]), default=0)
+        if owned >= c["count"]:
+            n += 1
+    return n
+
+
 def _blocks_around(mem, addr: int, window: int) -> list[dict[int, int]]:
     """Read a window around a hit address and extract the dense blocks in it.
 

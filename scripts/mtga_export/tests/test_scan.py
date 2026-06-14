@@ -91,3 +91,15 @@ def test_autodetect_ambiguous_needs_anchor():
     status2, coll = autodetect_collection(mem, anchors=[(90000, 1)])
     assert status2 == "ok"
     assert 90000 in coll
+
+from mtga_export.scan import _score_block
+
+def test_score_block_counts_satisfied_lower_bounds():
+    block = {70000: 4, 70001: 2, 70004: 4}
+    constraints = [
+        {"gids": [70000], "count": 4},          # 4 >= 4  ✓
+        {"gids": [70001], "count": 3},          # 2 >= 3  ✗
+        {"gids": [70003, 70004], "count": 4},   # max(0,4)=4 >= 4  ✓ (multi-printing)
+        {"gids": [99999], "count": 1},          # absent → 0 >= 1  ✗
+    ]
+    assert _score_block(block, constraints) == 2
