@@ -128,7 +128,7 @@ def build_handler_class(engine: "Engine"):
             if urlparse(self.path).path == "/api/scan":
                 try:
                     status, payload = self.handle_scan(engine, body)
-                except (KeyError, TypeError):
+                except (KeyError, TypeError, ValueError):
                     self._send(400, json.dumps({"error": "malformed anchors"}))
                     return
                 self._send(status, payload)

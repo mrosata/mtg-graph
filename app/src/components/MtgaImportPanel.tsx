@@ -72,6 +72,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     setCrossSectionOptIn(false);
     setSelectedDeckIds(new Set());
     setScanMsg(null);
+    setDeckMatch(null);
     setConnected(false);
     setAnchors([]);
     setAnchor(null);
@@ -413,12 +414,12 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             <div className="mt-3 space-y-2">
               <div role="tablist" aria-label="anchor mode" className="flex gap-1 text-xs">
                 <button type="button" role="tab" aria-selected={scanMode === 'deck'}
-                  onClick={() => { setScanMode('deck'); setScanMsg(null); }}
+                  onClick={() => { setScanMode('deck'); setScanMsg(null); setDeckMatch(null); }}
                   className={['focus-brass rounded px-2 py-0.5', scanMode === 'deck' ? 'bg-ink-raised text-brass-hi border border-brass/40' : 'text-vellum-mute border border-transparent hover:text-brass-hi'].join(' ')}>
                   Paste a deck
                 </button>
                 <button type="button" role="tab" aria-selected={scanMode === 'search'}
-                  onClick={() => { setScanMode('search'); setScanMsg(null); }}
+                  onClick={() => { setScanMode('search'); setScanMsg(null); setDeckMatch(null); }}
                   className={['focus-brass rounded px-2 py-0.5', scanMode === 'search' ? 'bg-ink-raised text-brass-hi border border-brass/40' : 'text-vellum-mute border border-transparent hover:text-brass-hi'].join(' ')}>
                   Search a card
                 </button>
