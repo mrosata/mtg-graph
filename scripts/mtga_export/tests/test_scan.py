@@ -103,3 +103,75 @@ def test_score_block_counts_satisfied_lower_bounds():
         {"gids": [99999], "count": 1},          # absent → 0 >= 1  ✗
     ]
     assert _score_block(block, constraints) == 2
+
+from mtga_export.scan import find_collection_by_deck
+
+def _owned_block(extra=None):
+    # a realistic owned collection: 120 cards, counts cycling 1..4
+    blk = {70000 + i: (i % 4) + 1 for i in range(120)}
+    blk[70000] = 4; blk[70001] = 4; blk[70002] = 3; blk[70010] = 4
+    blk[70004] = 4  # owned printing of a multi-printing card
+    if extra:
+        blk.update(extra)
+    return blk
+
+def _deck_constraints():
+    cs = [
+        {"gids": [70000], "count": 4},
+        {"gids": [70001], "count": 4},
+        {"gids": [70002], "count": 3},
+        {"gids": [70010], "count": 4},
+        {"gids": [70003, 70004], "count": 4},   # multi-printing; owns 70004
+        {"gids": [99999], "count": 4},           # un-crafted; not owned
+    ]
+    cs += [{"gids": [70000 + i], "count": (i % 4) + 1} for i in range(20, 45)]
+    return cs
+
+def test_find_collection_by_deck_convergence_over_rarity():
+    coll = _owned_block()
+    # rarity decoy: same keys, all value 1 except a rare colliding at (70000,4)
+    rar = {70000 + i: 1 for i in range(120)}
+    rar[70000] = 4
+    region = (b"\x00" * 64 + _block_bytes(list(rar.items()))
+              + b"\xff" * 8192 + _block_bytes(list(coll.items())) + b"\x00" * 64)
+    mem = FakeMemory(regions=[(0x10000, region)])
+    card_ids = set(coll) | {99999}
+    status, blk, meta = find_collection_by_deck(mem, _deck_constraints(), card_ids,
+                                                min_match=5, margin=1)
+    assert status == "ok"
+    assert blk[70000] == 4 and blk.get(70004) == 4 and 99999 not in blk
+    assert meta["total"] == len(_deck_constraints())
+    assert meta["matched"] >= 5
+
+def test_find_collection_by_deck_inconclusive_on_tie():
+    # two distinct card-pure blocks both satisfy the deck within margin
+    a = _owned_block({79000: 1})            # differs only by one extra key -> distinct sig
+    b = _owned_block({79001: 1})
+    region = (b"\x00" * 64 + _block_bytes(list(a.items()))
+              + b"\xff" * 8192 + _block_bytes(list(b.items())) + b"\x00" * 64)
+    mem = FakeMemory(regions=[(0x10000, region)])
+    card_ids = set(a) | set(b)
+    status, blk, meta = find_collection_by_deck(mem, _deck_constraints(), card_ids,
+                                                min_match=5, margin=2)
+    assert status == "inconclusive"
+    assert blk is None
+
+def test_find_collection_by_deck_tier_escalation_no_4ofs():
+    coll = _owned_block()
+    region = b"\x00" * 64 + _block_bytes(list(coll.items())) + b"\x00" * 64
+    mem = FakeMemory(regions=[(0x10000, region)])
+    # deck has NO 4-ofs; top card is a 3-of (owned 3) -> must escalate to locate via (gid,3)
+    cs = [{"gids": [70002], "count": 3}] + [{"gids": [70000 + i], "count": min((i % 3) + 1, 3)}
+                                            for i in range(20, 45)]
+    status, blk, meta = find_collection_by_deck(mem, cs, set(coll), min_match=5, margin=1)
+    assert status == "ok"
+    assert blk[70002] == 3
+
+def test_find_collection_by_deck_not_found():
+    coll = _owned_block()
+    region = b"\x00" * 64 + _block_bytes(list(coll.items())) + b"\x00" * 64
+    mem = FakeMemory(regions=[(0x10000, region)])
+    # constraints reference only cards absent from memory
+    cs = [{"gids": [1234 + i], "count": 4} for i in range(8)]
+    status, blk, meta = find_collection_by_deck(mem, cs, set(coll))
+    assert status == "not_found"
