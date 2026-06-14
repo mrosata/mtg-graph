@@ -53,10 +53,14 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
+  // Live scan: anchor-first. Connect probes the bridge; once connected the
+  // anchor picker is the primary UI. `anchors` accumulates confirmed cards as
+  // the engine asks us to narrow an ambiguous match.
+  const [connected, setConnected] = useState(false);
+  const [anchors, setAnchors] = useState<{ grpId: number; quantity: number }[]>([]);
   const [anchorHits, setAnchorHits] = useState<CardHit[]>([]);
   const [anchor, setAnchor] = useState<{ grpId: number; name: string } | null>(null);
   const [anchorQty, setAnchorQty] = useState('');
-  const [ambiguous, setAmbiguous] = useState(false);
 
   const resetParseState = () => {
     setState({ kind: 'idle' });
@@ -64,50 +68,39 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     setCrossSectionOptIn(false);
     setSelectedDeckIds(new Set());
     setScanMsg(null);
-    setAmbiguous(false);
+    setConnected(false);
+    setAnchors([]);
     setAnchor(null);
     setAnchorHits([]);
     setAnchorQty('');
   };
 
-  const handleScan = async () => {
+  const handleConnect = async () => {
     setScanMsg(null);
-    setAmbiguous(false);
     setState({ kind: 'parsing', bytes: 0, total: 0 });
     const health = await bridgeHealth();
+    setState({ kind: 'idle' });
     if (!health.online) {
-      setState({ kind: 'idle' });
       setScanMsg(
-        'Start the exporter first — double-click launch-mac.command, approve the password prompt, then Scan again.',
+        'Start the exporter first — double-click launch-mac.command, approve the password prompt, then Connect again.',
       );
       return;
     }
     if (!health.arena_process_found) {
-      setState({ kind: 'idle' });
-      setScanMsg('Open MTG Arena and visit the Collection tab, then Scan again.');
+      setScanMsg('Open MTG Arena and visit the Collection tab, then Connect again.');
       return;
     }
-    const res = await scanCollection([]);
-    if (res.status === 'ambiguous') {
-      setState({ kind: 'idle' });
-      setAmbiguous(true);
-      setScanMsg('Found more than one candidate — add one owned card to narrow it down.');
-      return;
-    }
-    if (res.status !== 'ok' || !res.collection) {
-      setState({ kind: 'idle' });
-      setScanMsg("Couldn't locate your collection. Make sure Arena is on the Collection tab.");
-      return;
-    }
-    const parsed = parseMtgaCollectionJson(JSON.stringify(res.collection));
-    const result = resolveLibrary(parsed, cards, KNOWN_SET_CODES);
-    setState({ kind: 'ready', libraryResult: result, mtgaSummary: null, decks: null, filename: 'Live scan' });
+    setConnected(true);
   };
 
-  const runAnchorScan = async () => {
-    if (!anchor || !anchorQty) return;
-    setAmbiguous(false);
-    const res = await scanCollection([{ grpId: anchor.grpId, quantity: Number(anchorQty) }]);
+  const handleScan = async () => {
+    if (!anchor || Number(anchorQty) < 1) return;
+    setScanMsg(null);
+    const pending = [...anchors, { grpId: anchor.grpId, quantity: Number(anchorQty) }];
+    setState({ kind: 'parsing', bytes: 0, total: 0 });
+    const res = await scanCollection(pending);
+    setState({ kind: 'idle' });
+
     if (res.status === 'ok' && res.collection) {
       const parsed = parseMtgaCollectionJson(JSON.stringify(res.collection));
       setState({
@@ -117,10 +110,32 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
         decks: null,
         filename: 'Live scan',
       });
-    } else {
-      setAmbiguous(true);
-      setScanMsg("Still couldn't pin it down — try a different card with a distinctive quantity.");
+      return;
     }
+
+    if (res.status === 'ambiguous' || res.status === 'need_anchor') {
+      // Keep the accepted anchor(s); ask for one more to disambiguate.
+      setAnchors(pending);
+      setAnchor(null);
+      setAnchorHits([]);
+      setAnchorQty('');
+      setScanMsg('Add one more card you own to narrow it down.');
+      return;
+    }
+
+    if (res.status === 'no_process') {
+      setScanMsg('Open MTG Arena and visit the Collection tab, then scan again.');
+      return;
+    }
+
+    // not_found (and any other non-ok status): the current card didn't work.
+    // Drop only the just-tried anchor so they can pick a different one.
+    setAnchor(null);
+    setAnchorHits([]);
+    setAnchorQty('');
+    setScanMsg(
+      "Couldn't find your collection from that card — try a different one you own (a card you have 3-4 of works best).",
+    );
   };
 
   const handleLogFile = async (file: File) => {
@@ -343,21 +358,24 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           <p className="text-xs text-vellum-dim">
             Scan your live MTG Arena collection — no file needed. Requires the exporter
             running locally (one-click launcher) and Arena open on the Collection tab.
+            To find your collection, name one card you own and how many copies you have.
           </p>
-          <button
-            type="button"
-            onClick={() => void handleScan()}
-            className="focus-brass mt-3 inline-flex items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
-          >
-            Scan my collection
-          </button>
-          {scanMsg && (
-            <p className="mt-3 rounded border border-brass/40 bg-ink-raised px-3 py-2 text-xs text-vellum-mute">
-              {scanMsg}
-            </p>
-          )}
-          {ambiguous && (
+
+          {!connected ? (
+            <button
+              type="button"
+              onClick={() => void handleConnect()}
+              className="focus-brass mt-3 inline-flex items-center rounded border border-ink-line-2 bg-ink-raised px-3 py-1.5 text-sm text-vellum-mute transition-colors hover:border-brass/40 hover:text-brass-hi"
+            >
+              Connect
+            </button>
+          ) : (
             <div className="mt-3 space-y-2">
+              {anchors.length > 0 && (
+                <p className="text-xs text-vellum-dim">
+                  {anchors.length === 1 ? '1 anchor card' : `${anchors.length} anchor cards`} added.
+                </p>
+              )}
               <input
                 type="text"
                 placeholder="Search a card you own…"
@@ -366,19 +384,21 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
                   void searchCards(e.target.value).then(setAnchorHits);
                 }}
               />
-              <ul className="max-h-32 overflow-auto text-sm">
-                {anchorHits.map((h) => (
-                  <li key={h.grpId}>
-                    <button
-                      type="button"
-                      className="text-vellum-mute hover:text-brass-hi"
-                      onClick={() => setAnchor({ grpId: h.grpId, name: h.name })}
-                    >
-                      {h.name} ({h.set})
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {!anchor && (
+                <ul className="max-h-32 overflow-auto text-sm">
+                  {anchorHits.map((h) => (
+                    <li key={h.grpId}>
+                      <button
+                        type="button"
+                        className="text-vellum-mute hover:text-brass-hi"
+                        onClick={() => setAnchor({ grpId: h.grpId, name: h.name })}
+                      >
+                        {h.name} ({h.set})
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {anchor && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-brass-hi">{anchor.name}</span>
@@ -390,16 +410,23 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
                     onChange={(e) => setAnchorQty(e.target.value)}
                     className="w-16 rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm"
                   />
-                  <button
-                    type="button"
-                    onClick={() => void runAnchorScan()}
-                    className="focus-brass rounded bg-brass px-3 py-1 text-sm font-semibold text-ink-bg"
-                  >
-                    Narrow it down
-                  </button>
                 </div>
               )}
+              <button
+                type="button"
+                onClick={() => void handleScan()}
+                disabled={!anchor || Number(anchorQty) < 1}
+                className="focus-brass rounded bg-brass px-3 py-1 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
+              >
+                Scan my collection
+              </button>
             </div>
+          )}
+
+          {scanMsg && (
+            <p className="mt-3 rounded border border-brass/40 bg-ink-raised px-3 py-2 text-xs text-vellum-mute">
+              {scanMsg}
+            </p>
           )}
         </div>
       )}

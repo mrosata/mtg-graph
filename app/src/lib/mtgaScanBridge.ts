@@ -1,7 +1,13 @@
 const BASE = import.meta.env.VITE_MTGA_BRIDGE_URL ?? 'http://127.0.0.1:17171';
 
 export type ScanRow = { count: number; name: string; set: string; cn: string };
-export type ScanStatus = 'ok' | 'ambiguous' | 'not_found' | 'no_process' | 'needs_root';
+export type ScanStatus =
+  | 'ok'
+  | 'need_anchor'
+  | 'ambiguous'
+  | 'not_found'
+  | 'no_process'
+  | 'needs_root';
 export type ScanResult = { status: ScanStatus; collection?: ScanRow[] };
 export type Health = {
   online: boolean;

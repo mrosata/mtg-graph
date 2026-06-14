@@ -229,51 +229,135 @@ describe('MtgaImportPanel (Live scan source)', () => {
     vi.restoreAllMocks();
   });
 
-  it('scan source: healthy scan imports library', async () => {
-    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
-      online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
-    });
-    vi.spyOn(bridge, 'scanCollection').mockResolvedValue({
-      status: 'ok',
-      collection: [{ count: 4, name: 'Abrade', set: 'DMU', cn: '131' }],
-    });
-    const onClose = vi.fn();
-    render(<MtgaImportPanel mode="full" onClose={onClose} />);
-    fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
-    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
-    expect(await screen.findByRole('button', { name: /import library/i })).toBeInTheDocument();
-  });
+  const healthyHealth = {
+    online: true,
+    running_as_root: true,
+    arena_process_found: true,
+    card_db_ready: true,
+  } as const;
 
-  it('scan source: engine offline shows launch card', async () => {
+  // Drive the anchor picker: connect, search, pick the first hit, set quantity.
+  async function pickAnchor(query: string, qty: string) {
+    fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
+    fireEvent.click(screen.getByRole('button', { name: /connect/i }));
+
+    const searchInput = await screen.findByPlaceholderText(/search a card/i);
+    fireEvent.change(searchInput, { target: { value: query } });
+    fireEvent.click(await screen.findByText(new RegExp(query, 'i')));
+    fireEvent.change(screen.getByLabelText(/quantity/i), { target: { value: qty } });
+  }
+
+  it('scan source: connecting while engine offline shows launch card', async () => {
     vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ online: false });
     render(<MtgaImportPanel mode="full" onClose={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
-    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+    fireEvent.click(screen.getByRole('button', { name: /connect/i }));
     expect(await screen.findByText(/start the exporter/i)).toBeInTheDocument();
   });
 
-  it('scan source: ambiguous then anchor resolves', async () => {
+  it('scan source: connecting with no Arena process shows Collection-tab hint', async () => {
     vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
-      online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
+      online: true,
+      running_as_root: true,
+      arena_process_found: false,
+      card_db_ready: true,
     });
-    const scan = vi.spyOn(bridge, 'scanCollection')
-      .mockResolvedValueOnce({ status: 'ambiguous' })
-      .mockResolvedValueOnce({ status: 'ok', collection: [{ count: 3, name: 'Sheoldred', set: 'DMU', cn: '107' }] });
-    vi.spyOn(bridge, 'searchCards').mockResolvedValue([
-      { grpId: 70002, name: 'Sheoldred', set: 'DMU', collectorNumber: '107' },
-    ]);
     render(<MtgaImportPanel mode="full" onClose={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
+    fireEvent.click(screen.getByRole('button', { name: /connect/i }));
+    expect(await screen.findByText(/Collection tab/i)).toBeInTheDocument();
+  });
+
+  it('scan source: anchor-first happy path imports library', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ ...healthyHealth });
+    vi.spyOn(bridge, 'searchCards').mockResolvedValue([
+      { grpId: 70001, name: 'Abrade', set: 'DMU', collectorNumber: '131' },
+    ]);
+    const scan = vi.spyOn(bridge, 'scanCollection').mockResolvedValue({
+      status: 'ok',
+      collection: [{ count: 4, name: 'Abrade', set: 'DMU', cn: '131' }],
+    });
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+
+    await pickAnchor('Abrade', '4');
     fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
 
-    const searchInput = await screen.findByPlaceholderText(/search a card/i);
-    fireEvent.change(searchInput, { target: { value: 'sheol' } });
-    fireEvent.click(await screen.findByText(/Sheoldred/));
+    expect(await screen.findByRole('button', { name: /import library/i })).toBeInTheDocument();
+    expect(scan).toHaveBeenCalledTimes(1);
+    expect(scan).toHaveBeenCalledWith([{ grpId: 70001, quantity: 4 }]);
+  });
 
+  it('scan source: ambiguous prompts a second anchor, then both are scanned', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ ...healthyHealth });
+    vi.spyOn(bridge, 'searchCards')
+      .mockResolvedValueOnce([{ grpId: 70001, name: 'Abrade', set: 'DMU', collectorNumber: '131' }])
+      .mockResolvedValueOnce([{ grpId: 70002, name: 'Sheoldred', set: 'DMU', collectorNumber: '107' }]);
+    const scan = vi.spyOn(bridge, 'scanCollection')
+      .mockResolvedValueOnce({ status: 'ambiguous' })
+      .mockResolvedValueOnce({
+        status: 'ok',
+        collection: [{ count: 3, name: 'Sheoldred', set: 'DMU', cn: '107' }],
+      });
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+
+    await pickAnchor('Abrade', '4');
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+
+    expect(await screen.findByText(/add one more card you own/i)).toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText(/search a card/i);
+    fireEvent.change(searchInput, { target: { value: 'Sheoldred' } });
+    fireEvent.click(await screen.findByText(/Sheoldred/));
     fireEvent.change(screen.getByLabelText(/quantity/i), { target: { value: '3' } });
-    fireEvent.click(screen.getByRole('button', { name: /narrow it down/i }));
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
 
     expect(await screen.findByRole('button', { name: /import library/i })).toBeInTheDocument();
     expect(scan).toHaveBeenCalledTimes(2);
+    expect(scan).toHaveBeenLastCalledWith([
+      { grpId: 70001, quantity: 4 },
+      { grpId: 70002, quantity: 3 },
+    ]);
+  });
+
+  it('scan source: need_anchor also prompts for another card', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ ...healthyHealth });
+    vi.spyOn(bridge, 'searchCards').mockResolvedValue([
+      { grpId: 70001, name: 'Abrade', set: 'DMU', collectorNumber: '131' },
+    ]);
+    vi.spyOn(bridge, 'scanCollection').mockResolvedValue({ status: 'need_anchor' });
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+
+    await pickAnchor('Abrade', '4');
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+
+    expect(await screen.findByText(/add one more card you own/i)).toBeInTheDocument();
+  });
+
+  it('scan source: not_found suggests trying a different card', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ ...healthyHealth });
+    vi.spyOn(bridge, 'searchCards').mockResolvedValue([
+      { grpId: 70001, name: 'Abrade', set: 'DMU', collectorNumber: '131' },
+    ]);
+    vi.spyOn(bridge, 'scanCollection').mockResolvedValue({ status: 'not_found' });
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+
+    await pickAnchor('Abrade', '4');
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+
+    expect(await screen.findByText(/try a different one you own/i)).toBeInTheDocument();
+  });
+
+  it('scan source: no_process points back to the Collection tab', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({ ...healthyHealth });
+    vi.spyOn(bridge, 'searchCards').mockResolvedValue([
+      { grpId: 70001, name: 'Abrade', set: 'DMU', collectorNumber: '131' },
+    ]);
+    vi.spyOn(bridge, 'scanCollection').mockResolvedValue({ status: 'no_process' });
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+
+    await pickAnchor('Abrade', '4');
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+
+    expect(await screen.findByText(/visit the Collection tab, then scan again/i)).toBeInTheDocument();
   });
 });
