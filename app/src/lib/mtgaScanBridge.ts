@@ -5,9 +5,12 @@ export type ScanStatus =
   | 'ok'
   | 'need_anchor'
   | 'ambiguous'
+  | 'inconclusive'
   | 'not_found'
   | 'no_process';
-export type ScanResult = { status: ScanStatus; collection?: ScanRow[] };
+export type ScanResult = { status: ScanStatus; collection?: ScanRow[]; matched?: number; total?: number };
+
+export type DeckEntry = { name: string; count: number };
 export type Health = {
   online: boolean;
   running_as_root?: boolean;
@@ -39,6 +42,16 @@ export async function scanCollection(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ anchors }),
+  });
+  if (!r.ok) return { status: 'not_found' };
+  return (await r.json()) as ScanResult;
+}
+
+export async function scanDeck(deck: DeckEntry[]): Promise<ScanResult> {
+  const r = await fetch(`${BASE}/api/scan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deck }),
   });
   if (!r.ok) return { status: 'not_found' };
   return (await r.json()) as ScanResult;
