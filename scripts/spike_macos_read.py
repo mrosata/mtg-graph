@@ -1,11 +1,22 @@
-"""Throwaway feasibility probe — can we read MTG-Arena-under-Wine memory on macOS?
+"""Throwaway feasibility probe — can we read live MTG Arena memory on macOS?
 
-Run on a Mac with Arena open (Collection tab visited) under Wine/CrossOver/Whisky:
+Works for either setup: the NATIVE macOS Arena (Epic Games build) or Arena
+running under a Windows compat layer (Wine/CrossOver/Whisky).
+
+Run on a Mac with Arena open and the Collection tab scrolled (so the collection
+loads into memory):
     sudo python3 scripts/spike_macos_read.py
 
-It prints candidate processes, attaches to the chosen one via task_for_pid, and
-reads 16 bytes from the first readable region. SUCCESS or the failing errno tells
-us whether Phase 4 is viable.
+It prints candidate processes, attaches to each via task_for_pid, and reads 16
+bytes from the first readable region. The result tells us whether the native
+reader (Phase 4) is viable:
+
+  * "SUCCESS region=… size=…" -> we can read Arena's memory. Note the process
+    `comm` and region size; they feed memory/macos.py (NAME_HINTS, MAX_REGION).
+  * "task_for_pid FAILED kr=…" on every candidate -> blocked. For a native,
+    notarized Arena this almost certainly means the hardened runtime is denying
+    the task port even as root (SIP/hardened-runtime). Memory reading is not
+    available without disabling protections; we fall back to a different design.
 """
 import ctypes
 import ctypes.util
@@ -70,7 +81,10 @@ def main():
         return 2
     cands = list_candidate_pids()
     if not cands:
-        print("No Wine/MTGA candidate processes. Is Arena running under Wine?")
+        print("No MTGA/Wine candidate processes found.")
+        print("Is MTG Arena actually running right now? Find its real process name with:")
+        print("    ps -axo pid,comm | grep -i -E 'mtga|arena|wizards'")
+        print("…then tell me the name and I'll add it to the hint list.")
         return 1
     print("Candidates:")
     for pid, comm in cands:
