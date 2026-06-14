@@ -24,3 +24,10 @@ ManaBox_Collection.csv
 
 # Python venv for scripts/mtga_export
 scripts/.venv/
+
+# MTGA exporter generated outputs + card-DB cache
+scripts/mtga_collection.json
+scripts/mtga_collection.txt
+scripts/mtga_collection.csv
+scripts/arena_id_lookup.json
+scripts/last_anchors.json
