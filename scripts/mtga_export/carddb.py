@@ -150,3 +150,19 @@ def load_card_db(platform: str, cache_path: Path) -> dict[int, dict]:
 
 def name_to_id(lookup: dict[int, dict]) -> dict[str, int]:
     return {v["name"].lower(): k for k, v in lookup.items()}
+
+_BASICS = {
+    "plains", "island", "swamp", "mountain", "forest", "wastes",
+    "snow-covered plains", "snow-covered island", "snow-covered swamp",
+    "snow-covered mountain", "snow-covered forest",
+}
+
+def name_to_ids(lookup: dict[int, dict]) -> dict[str, list[int]]:
+    """name (lowercased) -> every grpId that prints under it (all printings)."""
+    out: dict[str, list[int]] = {}
+    for gid, info in lookup.items():
+        out.setdefault(info["name"].lower(), []).append(gid)
+    return out
+
+def is_basic(name: str) -> bool:
+    return name.strip().lower() in _BASICS

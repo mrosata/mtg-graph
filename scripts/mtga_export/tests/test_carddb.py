@@ -50,3 +50,21 @@ def test_raw_path_globs_windows():
 def test_name_to_id_lowercases():
     lookup = {70000: {"name": "Abrade", "set": "DMU", "collector_number": "131"}}
     assert name_to_id(lookup)["abrade"] == 70000
+
+from mtga_export.carddb import name_to_ids, is_basic
+
+def test_name_to_ids_collects_all_printings():
+    lookup = {
+        100: {"name": "Bleachbone Verge", "set": "DFT", "collector_number": "250"},
+        200: {"name": "Bleachbone Verge", "set": "DFT", "collector_number": "300"},
+        300: {"name": "Bloodfell Caves", "set": "MOM", "collector_number": "270"},
+    }
+    idx = name_to_ids(lookup)
+    assert sorted(idx["bleachbone verge"]) == [100, 200]
+    assert idx["bloodfell caves"] == [300]
+
+def test_is_basic():
+    for n in ["Plains", "island", "Snow-Covered Mountain", "Wastes"]:
+        assert is_basic(n)
+    for n in ["Bloodfell Caves", "Llanowar Elves"]:
+        assert not is_basic(n)
