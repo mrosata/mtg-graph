@@ -118,6 +118,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
         filename: 'Live scan',
       });
     } else {
+      setAmbiguous(true);
       setScanMsg("Still couldn't pin it down — try a different card with a distinctive quantity.");
     }
   };
@@ -270,6 +271,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             MTGA-collection-exporter
           </a>
           {' '}(Windows-side, but the JSON file is portable).
+          {' '}On <strong>Mac</strong>, skip the file entirely — use{' '}
+          <strong>Live scan</strong> above (one-click launcher reads Arena directly).
         </div>
       )}
 
