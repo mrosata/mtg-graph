@@ -6,7 +6,7 @@ def _load_localizations(cur, tables: set) -> dict[int, str]:
     """Build {LocId: english text}, tolerant of the two known .mtga schemas.
 
     Windows builds:  Localizations(Id, Text, Format)
-    macOS Epic build: Localizations_enUS(LocId, Loc, Formatted)  [Localizations is just LocId]
+    macOS Epic build: Localizations_enUS(LocId, Formatted, Loc)  [Localizations is just LocId]
     """
     loc: dict[int, str] = {}
     if "Localizations_enUS" in tables:

@@ -95,9 +95,19 @@ def build_handler_class(engine: "Engine"):
         def do_POST(self):
             length = int(self.headers.get("Content-Length", 0))
             raw = self.rfile.read(length) if length else b"{}"
-            body = json.loads(raw or b"{}")
+            try:
+                body = json.loads(raw or b"{}")
+                if not isinstance(body, dict):
+                    raise ValueError("body must be a JSON object")
+            except (ValueError, json.JSONDecodeError):
+                self._send(400, json.dumps({"error": "invalid JSON body"}))
+                return
             if urlparse(self.path).path == "/api/scan":
-                status, payload = self.handle_scan(engine, body)
+                try:
+                    status, payload = self.handle_scan(engine, body)
+                except (KeyError, TypeError):
+                    self._send(400, json.dumps({"error": "malformed anchors"}))
+                    return
                 self._send(status, payload)
             else:
                 self._send(404, json.dumps({"error": "not found"}))

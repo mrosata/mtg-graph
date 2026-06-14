@@ -6,8 +6,7 @@ export type ScanStatus =
   | 'need_anchor'
   | 'ambiguous'
   | 'not_found'
-  | 'no_process'
-  | 'needs_root';
+  | 'no_process';
 export type ScanResult = { status: ScanStatus; collection?: ScanRow[] };
 export type Health = {
   online: boolean;
