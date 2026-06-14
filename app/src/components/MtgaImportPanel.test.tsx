@@ -251,4 +251,29 @@ describe('MtgaImportPanel (Live scan source)', () => {
     fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
     expect(await screen.findByText(/start the exporter/i)).toBeInTheDocument();
   });
+
+  it('scan source: ambiguous then anchor resolves', async () => {
+    vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
+      online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
+    });
+    const scan = vi.spyOn(bridge, 'scanCollection')
+      .mockResolvedValueOnce({ status: 'ambiguous' })
+      .mockResolvedValueOnce({ status: 'ok', collection: [{ count: 3, name: 'Sheoldred', set: 'DMU', cn: '107' }] });
+    vi.spyOn(bridge, 'searchCards').mockResolvedValue([
+      { grpId: 70002, name: 'Sheoldred', set: 'DMU', collectorNumber: '107' },
+    ]);
+    render(<MtgaImportPanel mode="full" onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
+    fireEvent.click(screen.getByRole('button', { name: /scan my collection/i }));
+
+    const searchInput = await screen.findByPlaceholderText(/search a card/i);
+    fireEvent.change(searchInput, { target: { value: 'sheol' } });
+    fireEvent.click(await screen.findByText(/Sheoldred/));
+
+    fireEvent.change(screen.getByLabelText(/quantity/i), { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: /narrow it down/i }));
+
+    expect(await screen.findByRole('button', { name: /import library/i })).toBeInTheDocument();
+    expect(scan).toHaveBeenCalledTimes(2);
+  });
 });

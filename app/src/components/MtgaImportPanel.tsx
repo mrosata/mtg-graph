@@ -12,7 +12,7 @@ import {
   type ParsedMtgaDeck,
 } from '../lib/mtgaResolve';
 import { resolveLibrary, type LibraryImportResult } from '../lib/libraryImport';
-import { bridgeHealth, scanCollection } from '../lib/mtgaScanBridge';
+import { bridgeHealth, scanCollection, searchCards, type CardHit } from '../lib/mtgaScanBridge';
 import LibraryImportSummary from './LibraryImportSummary';
 import MtgaDeckChecklist from './MtgaDeckChecklist';
 
@@ -53,6 +53,10 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
+  const [anchorHits, setAnchorHits] = useState<CardHit[]>([]);
+  const [anchor, setAnchor] = useState<{ grpId: number; name: string } | null>(null);
+  const [anchorQty, setAnchorQty] = useState('');
+  const [ambiguous, setAmbiguous] = useState(false);
 
   const resetParseState = () => {
     setState({ kind: 'idle' });
@@ -60,10 +64,15 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     setCrossSectionOptIn(false);
     setSelectedDeckIds(new Set());
     setScanMsg(null);
+    setAmbiguous(false);
+    setAnchor(null);
+    setAnchorHits([]);
+    setAnchorQty('');
   };
 
   const handleScan = async () => {
     setScanMsg(null);
+    setAmbiguous(false);
     setState({ kind: 'parsing', bytes: 0, total: 0 });
     const health = await bridgeHealth();
     if (!health.online) {
@@ -81,7 +90,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     const res = await scanCollection([]);
     if (res.status === 'ambiguous') {
       setState({ kind: 'idle' });
-      setScanMsg('Found more than one candidate — add one owned card below to narrow it down.');
+      setAmbiguous(true);
+      setScanMsg('Found more than one candidate — add one owned card to narrow it down.');
       return;
     }
     if (res.status !== 'ok' || !res.collection) {
@@ -92,6 +102,24 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     const parsed = parseMtgaCollectionJson(JSON.stringify(res.collection));
     const result = resolveLibrary(parsed, cards, KNOWN_SET_CODES);
     setState({ kind: 'ready', libraryResult: result, mtgaSummary: null, decks: null, filename: 'Live scan' });
+  };
+
+  const runAnchorScan = async () => {
+    if (!anchor || !anchorQty) return;
+    setAmbiguous(false);
+    const res = await scanCollection([{ grpId: anchor.grpId, quantity: Number(anchorQty) }]);
+    if (res.status === 'ok' && res.collection) {
+      const parsed = parseMtgaCollectionJson(JSON.stringify(res.collection));
+      setState({
+        kind: 'ready',
+        libraryResult: resolveLibrary(parsed, cards, KNOWN_SET_CODES),
+        mtgaSummary: null,
+        decks: null,
+        filename: 'Live scan',
+      });
+    } else {
+      setScanMsg("Still couldn't pin it down — try a different card with a distinctive quantity.");
+    }
   };
 
   const handleLogFile = async (file: File) => {
@@ -324,6 +352,51 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             <p className="mt-3 rounded border border-brass/40 bg-ink-raised px-3 py-2 text-xs text-vellum-mute">
               {scanMsg}
             </p>
+          )}
+          {ambiguous && (
+            <div className="mt-3 space-y-2">
+              <input
+                type="text"
+                placeholder="Search a card you own…"
+                className="focus-brass w-full rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm text-vellum-mute"
+                onChange={(e) => {
+                  void searchCards(e.target.value).then(setAnchorHits);
+                }}
+              />
+              <ul className="max-h-32 overflow-auto text-sm">
+                {anchorHits.map((h) => (
+                  <li key={h.grpId}>
+                    <button
+                      type="button"
+                      className="text-vellum-mute hover:text-brass-hi"
+                      onClick={() => setAnchor({ grpId: h.grpId, name: h.name })}
+                    >
+                      {h.name} ({h.set})
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {anchor && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-brass-hi">{anchor.name}</span>
+                  <input
+                    aria-label="quantity"
+                    type="number"
+                    min={1}
+                    value={anchorQty}
+                    onChange={(e) => setAnchorQty(e.target.value)}
+                    className="w-16 rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void runAnchorScan()}
+                    className="focus-brass rounded bg-brass px-3 py-1 text-sm font-semibold text-ink-bg"
+                  >
+                    Narrow it down
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
