@@ -12,7 +12,8 @@ import {
   type ParsedMtgaDeck,
 } from '../lib/mtgaResolve';
 import { resolveLibrary, type LibraryImportResult } from '../lib/libraryImport';
-import { bridgeHealth, scanCollection, searchCards, type CardHit } from '../lib/mtgaScanBridge';
+import { bridgeHealth, scanCollection, scanDeck, searchCards, type CardHit } from '../lib/mtgaScanBridge';
+import { parseArenaDeck } from '../lib/deckImport';
 import LibraryImportSummary from './LibraryImportSummary';
 import MtgaDeckChecklist from './MtgaDeckChecklist';
 
@@ -61,6 +62,9 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [anchorHits, setAnchorHits] = useState<CardHit[]>([]);
   const [anchor, setAnchor] = useState<{ grpId: number; name: string } | null>(null);
   const [anchorQty, setAnchorQty] = useState('');
+  const [scanMode, setScanMode] = useState<'deck' | 'search'>('deck');
+  const [deckText, setDeckText] = useState('');
+  const [deckMatch, setDeckMatch] = useState<{ matched: number; total: number } | null>(null);
 
   const resetParseState = () => {
     setState({ kind: 'idle' });
@@ -136,6 +140,42 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     setScanMsg(
       "Couldn't find your collection from that card — try a different one you own (a card you have 3-4 of works best).",
     );
+  };
+
+  const handleDeckScan = async () => {
+    setScanMsg(null);
+    setDeckMatch(null);
+    const parsed = parseArenaDeck(deckText);
+    const byName = new Map<string, number>();
+    for (const e of [...parsed.entries, ...parsed.sideboardEntries]) {
+      // Strip Arena set/collector suffix: "Abrade (DMU) 131" → "Abrade"
+      const nameOnly = e.name.replace(/\s*\([^)]+\)\s*\S*$/, '').trim() || e.name;
+      byName.set(nameOnly, (byName.get(nameOnly) ?? 0) + e.count);
+    }
+    const deck = [...byName].map(([name, count]) => ({ name, count }));
+    if (deck.length === 0) {
+      setScanMsg("That doesn't look like an Arena deck. Paste a deck exported from MTGA.");
+      return;
+    }
+    setState({ kind: 'parsing', bytes: 0, total: 0 });
+    const res = await scanDeck(deck);
+    setState({ kind: 'idle' });
+    if (res.status === 'ok' && res.collection) {
+      setDeckMatch({ matched: res.matched ?? 0, total: res.total ?? deck.length });
+      setState({
+        kind: 'ready',
+        libraryResult: resolveLibrary(parseMtgaCollectionJson(JSON.stringify(res.collection)), cards, KNOWN_SET_CODES),
+        mtgaSummary: null,
+        decks: null,
+        filename: 'Live scan (deck)',
+      });
+      return;
+    }
+    if (res.status === 'no_process') {
+      setScanMsg('Open MTG Arena and visit the Collection tab, then try again.');
+      return;
+    }
+    setScanMsg("Couldn't pin it down from that deck — paste a different deck or use Search a card.");
   };
 
   const handleLogFile = async (file: File) => {
@@ -371,55 +411,76 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             </button>
           ) : (
             <div className="mt-3 space-y-2">
-              {anchors.length > 0 && (
-                <p className="text-xs text-vellum-dim">
-                  {anchors.length === 1 ? '1 anchor card' : `${anchors.length} anchor cards`} added.
-                </p>
-              )}
-              <input
-                type="text"
-                placeholder="Search a card you own…"
-                className="focus-brass w-full rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm text-vellum-mute"
-                onChange={(e) => {
-                  void searchCards(e.target.value).then(setAnchorHits);
-                }}
-              />
-              {!anchor && (
-                <ul className="max-h-32 overflow-auto text-sm">
-                  {anchorHits.map((h) => (
-                    <li key={h.grpId}>
-                      <button
-                        type="button"
-                        className="text-vellum-mute hover:text-brass-hi"
-                        onClick={() => setAnchor({ grpId: h.grpId, name: h.name })}
-                      >
-                        {h.name} ({h.set})
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {anchor && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-brass-hi">{anchor.name}</span>
-                  <input
-                    aria-label="quantity"
-                    type="number"
-                    min={1}
-                    value={anchorQty}
-                    onChange={(e) => setAnchorQty(e.target.value)}
-                    className="w-16 rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm"
+              <div role="tablist" aria-label="anchor mode" className="flex gap-1 text-xs">
+                <button type="button" role="tab" aria-selected={scanMode === 'deck'}
+                  onClick={() => { setScanMode('deck'); setScanMsg(null); }}
+                  className={['focus-brass rounded px-2 py-0.5', scanMode === 'deck' ? 'bg-ink-raised text-brass-hi border border-brass/40' : 'text-vellum-mute border border-transparent hover:text-brass-hi'].join(' ')}>
+                  Paste a deck
+                </button>
+                <button type="button" role="tab" aria-selected={scanMode === 'search'}
+                  onClick={() => { setScanMode('search'); setScanMsg(null); }}
+                  className={['focus-brass rounded px-2 py-0.5', scanMode === 'search' ? 'bg-ink-raised text-brass-hi border border-brass/40' : 'text-vellum-mute border border-transparent hover:text-brass-hi'].join(' ')}>
+                  Search a card
+                </button>
+              </div>
+
+              {scanMode === 'deck' ? (
+                <>
+                  <textarea
+                    value={deckText}
+                    onChange={(e) => setDeckText(e.target.value)}
+                    placeholder="In Arena: open a deck → Export → paste here"
+                    rows={6}
+                    className="focus-brass w-full rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm text-vellum-mute"
                   />
-                </div>
+                  <button type="button" onClick={() => void handleDeckScan()}
+                    className="focus-brass rounded bg-brass px-3 py-1 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi">
+                    Find my collection
+                  </button>
+                </>
+              ) : (
+                <>
+                  {anchors.length > 0 && (
+                    <p className="text-xs text-vellum-dim">
+                      {anchors.length === 1 ? '1 anchor card' : `${anchors.length} anchor cards`} added.
+                    </p>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Search a card you own…"
+                    className="focus-brass w-full rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm text-vellum-mute"
+                    onChange={(e) => { void searchCards(e.target.value).then(setAnchorHits); }}
+                  />
+                  {!anchor && (
+                    <ul className="max-h-32 overflow-auto text-sm">
+                      {anchorHits.map((h) => (
+                        <li key={h.grpId}>
+                          <button type="button" className="text-vellum-mute hover:text-brass-hi"
+                            onClick={() => setAnchor({ grpId: h.grpId, name: h.name })}>
+                            {h.name} ({h.set})
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {anchor && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-brass-hi">{anchor.name}</span>
+                      <input aria-label="quantity" type="number" min={1} value={anchorQty}
+                        onChange={(e) => setAnchorQty(e.target.value)}
+                        className="w-16 rounded border border-ink-line-2 bg-ink-raised px-2 py-1 text-sm" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => void handleScan()}
+                    disabled={!anchor || Number(anchorQty) < 1}
+                    className="focus-brass rounded bg-brass px-3 py-1 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
+                  >
+                    Scan my collection
+                  </button>
+                </>
               )}
-              <button
-                type="button"
-                onClick={() => void handleScan()}
-                disabled={!anchor || Number(anchorQty) < 1}
-                className="focus-brass rounded bg-brass px-3 py-1 text-sm font-semibold text-ink-bg transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-ink-raised disabled:text-vellum-dim"
-              >
-                Scan my collection
-              </button>
             </div>
           )}
 
@@ -474,6 +535,11 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
 
       {state.kind === 'ready' && (
         <div className="mt-4 space-y-4">
+          {deckMatch && (
+            <p className="text-xs text-brass-hi">
+              Matched {deckMatch.matched} of {deckMatch.total} deck cards.
+            </p>
+          )}
           {mode === 'full' && state.libraryResult && (
             <LibraryImportSummary
               result={state.libraryResult}

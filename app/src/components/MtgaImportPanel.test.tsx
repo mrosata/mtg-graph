@@ -241,7 +241,11 @@ describe('MtgaImportPanel (Live scan source)', () => {
     fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
     fireEvent.click(screen.getByRole('button', { name: /connect/i }));
 
-    const searchInput = await screen.findByPlaceholderText(/search a card/i);
+    // After connecting, default mode is 'deck' — switch to search mode first.
+    const searchTab = await screen.findByRole('tab', { name: /Search a card/i });
+    fireEvent.click(searchTab);
+
+    const searchInput = await screen.findByPlaceholderText(/search a card you own/i);
     fireEvent.change(searchInput, { target: { value: query } });
     fireEvent.click(await screen.findByText(new RegExp(query, 'i')));
     fireEvent.change(screen.getByLabelText(/quantity/i), { target: { value: qty } });
@@ -360,4 +364,47 @@ describe('MtgaImportPanel (Live scan source)', () => {
 
     expect(await screen.findByText(/visit the Collection tab, then scan again/i)).toBeInTheDocument();
   });
+});
+
+function connectScanTab() {
+  vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
+    online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
+  });
+  render(<MtgaImportPanel mode="full" onClose={() => {}} />);
+  fireEvent.click(screen.getByRole('tab', { name: /Live scan/i }));
+}
+
+it('scan deck mode: paste deck → ok → summary with matched count', async () => {
+  connectScanTab();
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  await screen.findByRole('button', { name: /Find my collection/i }); // deck is the default mode
+  fireEvent.change(screen.getByPlaceholderText(/Export.*paste/i), {
+    target: { value: 'Deck\n4 Abrade (DMU) 131\n' },
+  });
+  const spy = vi.spyOn(bridge, 'scanDeck').mockResolvedValue({
+    status: 'ok', collection: [{ count: 4, name: 'Abrade', set: 'DMU', cn: '131' }], matched: 21, total: 24,
+  });
+  fireEvent.click(screen.getByRole('button', { name: /Find my collection/i }));
+  expect(await screen.findByText(/matched 21 of 24/i)).toBeInTheDocument();
+  expect(spy).toHaveBeenCalledWith([{ name: 'Abrade', count: 4 }]);
+});
+
+it('scan deck mode: inconclusive shows fallback message', async () => {
+  connectScanTab();
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  await screen.findByRole('button', { name: /Find my collection/i });
+  fireEvent.change(screen.getByPlaceholderText(/Export.*paste/i), { target: { value: 'Deck\n2 Llanowar Elves (DMU) 168\n' } });
+  vi.spyOn(bridge, 'scanDeck').mockResolvedValue({ status: 'inconclusive', matched: 3, total: 12 });
+  fireEvent.click(screen.getByRole('button', { name: /Find my collection/i }));
+  expect(await screen.findByText(/couldn't pin it down|search a card/i)).toBeInTheDocument();
+});
+
+it('scan deck mode: empty paste is rejected without a bridge call', async () => {
+  connectScanTab();
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  await screen.findByRole('button', { name: /Find my collection/i });
+  const spy = vi.spyOn(bridge, 'scanDeck');
+  fireEvent.click(screen.getByRole('button', { name: /Find my collection/i }));
+  expect(await screen.findByText(/doesn't look like an Arena deck/i)).toBeInTheDocument();
+  expect(spy).not.toHaveBeenCalled();
 });
