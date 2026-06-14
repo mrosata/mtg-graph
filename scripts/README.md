@@ -68,6 +68,10 @@ The bundled exporter under `scripts/mtga_export/` also runs on macOS:
 
 The local bridge listens on `http://127.0.0.1:17171`; the app talks to it directly, so no file is exported or uploaded.
 
+You don't have to type a card to anchor the scan: in the app's Live scan, choose
+"Paste a deck" and paste any deck you own (Arena → deck → Export). The scanner uses
+the deck's card counts to find your collection — usually no manual card entry needed.
+
 ## Files
 - `MTGA_Exporter.exe`: The standalone application.
 - `mtg.py`: The source code.
