@@ -27,3 +27,28 @@ def test_scan_ambiguous_status():
     handler = build_handler_class(engine)
     status, body = handler.handle_scan(engine, {})
     assert json.loads(body)["status"] == "ambiguous"
+
+def test_handle_scan_deck_branch_ok():
+    class DeckEngine:
+        db = {70000: {"name": "Abrade", "set": "DMU", "collector_number": "131"}}
+        def scan_deck(self, entries):
+            assert entries == [{"name": "Abrade", "count": 4}]
+            return ("ok", {70000: 4}, {"matched": 9, "total": 10})
+    engine = DeckEngine()
+    handler = build_handler_class(engine)
+    status, body = handler.handle_scan(engine, {"deck": [{"name": "Abrade", "count": 4}]})
+    assert status == 200
+    out = json.loads(body)
+    assert out["status"] == "ok"
+    assert out["matched"] == 9 and out["total"] == 10
+    assert {"count": 4, "name": "Abrade", "set": "DMU", "cn": "131"} in out["collection"]
+
+def test_handle_scan_deck_inconclusive():
+    class DeckEngine:
+        db = {}
+        def scan_deck(self, entries):
+            return ("inconclusive", None, {"matched": 3, "total": 12})
+    engine = DeckEngine()
+    handler = build_handler_class(engine)
+    status, body = handler.handle_scan(engine, {"deck": [{"name": "X", "count": 2}]})
+    assert json.loads(body) == {"status": "inconclusive", "matched": 3, "total": 12}
