@@ -21,3 +21,6 @@ app/tsconfig.tsbuildinfo
 .superpowers/
 .wrangler/
 ManaBox_Collection.csv
+
+# Python venv for scripts/mtga_export
+scripts/.venv/
