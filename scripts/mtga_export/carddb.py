@@ -2,22 +2,45 @@ from __future__ import annotations
 
 import sqlite3
 
+def _load_localizations(cur, tables: set) -> dict[int, str]:
+    """Build {LocId: english text}, tolerant of the two known .mtga schemas.
+
+    Windows builds:  Localizations(Id, Text, Format)
+    macOS Epic build: Localizations_enUS(LocId, Loc, Formatted)  [Localizations is just LocId]
+    """
+    loc: dict[int, str] = {}
+    if "Localizations_enUS" in tables:
+        for locid, formatted, text in cur.execute(
+            "SELECT LocId, Formatted, Loc FROM Localizations_enUS"
+        ):
+            # prefer the plain (Formatted=0) variant; fall back to any
+            if text and (formatted == 0 or locid not in loc):
+                loc[locid] = text
+        return loc
+    if "Localizations" in tables:
+        try:
+            rows = cur.execute(
+                "SELECT Id, Text FROM Localizations WHERE Format LIKE '%en-US%' OR Format IS NULL"
+            )
+        except sqlite3.Error:
+            rows = cur.execute("SELECT Id, Text FROM Localizations")
+        for lid, text in rows.fetchall():
+            if text:
+                loc[lid] = text
+    return loc
+
+
 def parse_mtga_sqlite(path: str) -> dict[int, dict]:
     """Return {GrpId: {name, set, collector_number}} from one .mtga SQLite file."""
     conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
         cur = conn.cursor()
         tables = {r[0] for r in cur.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        if "Cards" not in tables or "Localizations" not in tables:
+        if "Cards" not in tables:
             return {}
-        loc = {}
-        try:
-            rows = cur.execute("SELECT Id, Text FROM Localizations WHERE Format LIKE '%en-US%' OR Format IS NULL")
-        except sqlite3.Error:
-            rows = cur.execute("SELECT Id, Text FROM Localizations")
-        for lid, text in rows.fetchall():
-            if text:
-                loc[lid] = text
+        loc = _load_localizations(cur, tables)
+        if not loc:
+            return {}
         cols = {r[1] for r in cur.execute("PRAGMA table_info(Cards)")}
         sel_set = "ExpansionCode" if "ExpansionCode" in cols else "NULL"
         sel_cn = "CollectorNumber" if "CollectorNumber" in cols else "NULL"
@@ -47,6 +70,9 @@ def raw_path_globs(platform: str) -> list[str]:
     if platform == "darwin":
         suffix = "drive_c/Program Files/Wizards of the Coast/MTGA/MTGA_Data/Downloads/Raw"
         return [
+            # Native macOS Epic build keeps its downloaded data here.
+            f"{home}/Library/Application Support/com.wizards.mtga/Downloads/Raw",
+            # Windows-under-Wine wrappers.
             f"{home}/Library/Application Support/com.isaacmarovitz.Whisky/Bottles/*/{suffix}",
             f"{home}/Library/Application Support/CrossOver/Bottles/*/{suffix}",
             f"{home}/.wine/{suffix}",
@@ -98,13 +124,23 @@ def fetch_scryfall_db() -> dict[int, dict]:
     return lookup
 
 def load_card_db(platform: str, cache_path: Path) -> dict[int, dict]:
+    """Resolve grpId -> card. Order: cache, then Scryfall (authoritative names
+    that match the app's graph artifact), then the local .mtga DB as an offline
+    fallback. The local DB's multi-face card names diverge from Scryfall's, which
+    breaks the app's name-based import, so it is only used when Scryfall is
+    unreachable."""
     if cache_path.exists():
         try:
             data = json.loads(cache_path.read_text(encoding="utf-8"))
             return {int(k): v for k, v in data.items() if isinstance(v, dict)}
         except Exception:
             pass
-    lookup = load_local_db(platform) or fetch_scryfall_db()
+    try:
+        lookup = fetch_scryfall_db()
+    except Exception:
+        lookup = {}
+    if not lookup:
+        lookup = load_local_db(platform)
     if lookup:
         try:
             cache_path.write_text(json.dumps({str(k): v for k, v in lookup.items()}), encoding="utf-8")
