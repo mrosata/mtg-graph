@@ -418,7 +418,8 @@ it('scan deck mode: inconclusive shows fallback message', async () => {
   fireEvent.change(screen.getByPlaceholderText(/Export.*paste/i), { target: { value: 'Deck\n2 Llanowar Elves (DMU) 168\n' } });
   vi.spyOn(bridge, 'scanDeck').mockResolvedValue({ status: 'inconclusive', matched: 3, total: 12 });
   fireEvent.click(screen.getByRole('button', { name: /Find my collection/i }));
-  expect(await screen.findByText(/couldn't pin it down|search a card/i)).toBeInTheDocument();
+  expect(await screen.findByText(/only matched 3 of 12/i)).toBeInTheDocument();
+  expect(screen.getByText(/collection may not be loaded/i)).toBeInTheDocument();
 });
 
 it('scan deck mode: empty paste is rejected without a bridge call', async () => {

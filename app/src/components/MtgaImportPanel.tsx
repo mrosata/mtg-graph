@@ -178,6 +178,18 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
       setScanMsg('Open MTG Arena and visit the Collection tab, then try again.');
       return;
     }
+    if (res.status === 'inconclusive') {
+      const matched = res.matched ?? 0;
+      const total = res.total ?? deck.length;
+      // A low match usually means the collection isn't resident in memory yet —
+      // exporting a deck leaves you in the deck builder, not the Collection tab.
+      setScanMsg(
+        `Only matched ${matched} of ${total} of your deck's cards. Your collection may not be ` +
+          `loaded — open the Collection tab in Arena and scroll through it once, then scan again. ` +
+          `(Or use Search a card.)`,
+      );
+      return;
+    }
     setScanMsg("Couldn't pin it down from that deck — paste a different deck or use Search a card.");
   };
 
@@ -400,8 +412,9 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
         <div>
           <p className="text-xs text-vellum-dim">
             Scan your live MTG Arena collection — no file needed. Requires the exporter
-            running locally (one-click launcher) and Arena open on the Collection tab.
-            To find your collection, name one card you own and how many copies you have.
+            running locally (one-click launcher). <strong>Important:</strong> open your{' '}
+            <strong>Collection</strong> tab in Arena and scroll through it once so it loads
+            into memory, then scan (paste a deck, or search a card you own).
           </p>
 
           {!connected ? (
@@ -435,6 +448,11 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
 
               {scanMode === 'deck' ? (
                 <>
+                  <p className="text-xs text-vellum-dim">
+                    Paste any deck you own (Arena → deck → Export). Tip: after copying it,
+                    visit your <strong>Collection</strong> tab and scroll once so the
+                    collection is loaded before you scan.
+                  </p>
                   <textarea
                     value={deckText}
                     onChange={(e) => setDeckText(e.target.value)}
