@@ -137,22 +137,39 @@ def test_find_collection_by_deck_convergence_over_rarity():
     mem = FakeMemory(regions=[(0x10000, region)])
     card_ids = set(coll) | {99999}
     status, blk, meta = find_collection_by_deck(mem, _deck_constraints(), card_ids,
-                                                min_match=5, margin=1)
+                                                min_match=5)
     assert status == "ok"
     assert blk[70000] == 4 and blk.get(70004) == 4 and 99999 not in blk
     assert meta["total"] == len(_deck_constraints())
     assert meta["matched"] >= 5
 
-def test_find_collection_by_deck_inconclusive_on_tie():
-    # two distinct card-pure blocks both satisfy the deck within margin
-    a = _owned_block({79000: 1})            # differs only by one extra key -> distinct sig
+def test_find_collection_by_deck_duplicate_copies_resolve_ok():
+    # Two NEAR-IDENTICAL copies of the collection (memory keeps a couple). They tie
+    # for the top score but overlap ~entirely -> they're copies, not ambiguity -> ok.
+    a = _owned_block({79000: 1})
     b = _owned_block({79001: 1})
     region = (b"\x00" * 64 + _block_bytes(list(a.items()))
               + b"\xff" * 8192 + _block_bytes(list(b.items())) + b"\x00" * 64)
     mem = FakeMemory(regions=[(0x10000, region)])
     card_ids = set(a) | set(b)
-    status, blk, meta = find_collection_by_deck(mem, _deck_constraints(), card_ids,
-                                                min_match=5, margin=2)
+    status, blk, meta = find_collection_by_deck(mem, _deck_constraints(), card_ids, min_match=5)
+    assert status == "ok"
+    assert blk[70000] == 4
+
+def test_find_collection_by_deck_inconclusive_on_distinct_blocks():
+    # Two GENUINELY DIFFERENT card-pure blocks both satisfy the deck but share few
+    # keys (e.g. the collection vs an unrelated table) -> true ambiguity -> bail.
+    a = _owned_block()
+    b = {70000: 4, 70001: 4, 70002: 3, 70004: 4, 70010: 4}
+    for i in range(20, 45):
+        b[70000 + i] = (i % 4) + 1
+    for j in range(100):
+        b[80000 + j] = (j % 4) + 1            # disjoint filler -> low overlap with a
+    region = (b"\x00" * 64 + _block_bytes(list(a.items()))
+              + b"\xff" * 8192 + _block_bytes(list(b.items())) + b"\x00" * 64)
+    mem = FakeMemory(regions=[(0x10000, region)])
+    card_ids = set(a) | set(b)
+    status, blk, meta = find_collection_by_deck(mem, _deck_constraints(), card_ids, min_match=5)
     assert status == "inconclusive"
     assert blk is None
 
@@ -163,7 +180,7 @@ def test_find_collection_by_deck_tier_escalation_no_4ofs():
     # deck has NO 4-ofs; top card is a 3-of (owned 3) -> must escalate to locate via (gid,3)
     cs = [{"gids": [70002], "count": 3}] + [{"gids": [70000 + i], "count": min((i % 3) + 1, 3)}
                                             for i in range(20, 45)]
-    status, blk, meta = find_collection_by_deck(mem, cs, set(coll), min_match=5, margin=1)
+    status, blk, meta = find_collection_by_deck(mem, cs, set(coll), min_match=5)
     assert status == "ok"
     assert blk[70002] == 3
 

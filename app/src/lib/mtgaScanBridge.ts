@@ -8,7 +8,7 @@ export type ScanStatus =
   | 'inconclusive'
   | 'not_found'
   | 'no_process';
-export type ScanResult = { status: ScanStatus; collection?: ScanRow[]; matched?: number; total?: number };
+export type ScanResult = { status: ScanStatus; collection?: ScanRow[]; matched?: number; total?: number; unresolved?: number };
 
 export type DeckEntry = { name: string; count: number };
 

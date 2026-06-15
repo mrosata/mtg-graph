@@ -64,7 +64,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [anchorQty, setAnchorQty] = useState('');
   const [scanMode, setScanMode] = useState<'deck' | 'search'>('deck');
   const [deckText, setDeckText] = useState('');
-  const [deckMatch, setDeckMatch] = useState<{ matched: number; total: number } | null>(null);
+  const [deckMatch, setDeckMatch] = useState<{ matched: number; total: number; unresolved: number } | null>(null);
   const [bridgeStale, setBridgeStale] = useState(false);
 
   const resetParseState = () => {
@@ -164,7 +164,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     const res = await scanDeck(deck);
     setState({ kind: 'idle' });
     if (res.status === 'ok' && res.collection) {
-      setDeckMatch({ matched: res.matched ?? 0, total: res.total ?? deck.length });
+      setDeckMatch({ matched: res.matched ?? 0, total: res.total ?? deck.length, unresolved: res.unresolved ?? 0 });
       setState({
         kind: 'ready',
         libraryResult: resolveLibrary(parseMtgaCollectionJson(JSON.stringify(res.collection)), cards, KNOWN_SET_CODES),
@@ -181,12 +181,17 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     if (res.status === 'inconclusive') {
       const matched = res.matched ?? 0;
       const total = res.total ?? deck.length;
-      // A low match usually means the collection isn't resident in memory yet —
-      // exporting a deck leaves you in the deck builder, not the Collection tab.
+      // Low match → the collection probably isn't resident in memory (exporting a
+      // deck leaves you in the deck builder, not the Collection tab). High match but
+      // still inconclusive → genuine ambiguity; scrolling the Collection tab to
+      // refresh memory is still the best next step.
       setScanMsg(
-        `Only matched ${matched} of ${total} of your deck's cards. Your collection may not be ` +
-          `loaded — open the Collection tab in Arena and scroll through it once, then scan again. ` +
-          `(Or use Search a card.)`,
+        matched < total
+          ? `Only matched ${matched} of ${total} of your deck's cards — your collection may not be ` +
+              `loaded. Open the Collection tab in Arena, scroll through it once, then scan again. ` +
+              `(Or use Search a card.)`
+          : `Found your cards but couldn't lock onto a single collection. Open the Collection tab ` +
+              `in Arena, scroll through it once, then scan again. (Or use Search a card.)`,
       );
       return;
     }
@@ -565,6 +570,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           {deckMatch && (
             <p className="text-xs text-brass-hi">
               Matched {deckMatch.matched} of {deckMatch.total} deck cards.
+              {deckMatch.unresolved > 0 &&
+                ` (${deckMatch.unresolved} not in the card database — likely a very new set.)`}
             </p>
           )}
           {mode === 'full' && state.libraryResult && (

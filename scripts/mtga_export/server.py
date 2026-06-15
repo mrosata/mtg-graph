@@ -76,11 +76,15 @@ class Engine:
                 continue
             merged[nm.lower()] = merged.get(nm.lower(), 0) + int(e.get("count", 0))
         constraints = []
+        unresolved = 0
         for nm, cnt in merged.items():
             gids = self._name_to_ids.get(nm)
             if gids and cnt >= 1:
                 constraints.append({"gids": gids, "count": min(cnt, 4)})
-        return find_collection_by_deck(self._mem, constraints, self._card_ids)
+            else:
+                unresolved += 1  # name not in the card DB (e.g. a set too new for Scryfall)
+        status, payload, meta = find_collection_by_deck(self._mem, constraints, self._card_ids)
+        return status, payload, {**meta, "unresolved": unresolved}
 
 def build_handler_class(engine: "Engine"):
     class Handler(BaseHTTPRequestHandler):

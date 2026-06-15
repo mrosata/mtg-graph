@@ -422,6 +422,28 @@ it('scan deck mode: inconclusive shows fallback message', async () => {
   expect(screen.getByText(/collection may not be loaded/i)).toBeInTheDocument();
 });
 
+it('scan deck mode: ok with unresolved cards notes them in the summary', async () => {
+  connectScanTab();
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  await screen.findByRole('button', { name: /Find my collection/i });
+  fireEvent.change(screen.getByPlaceholderText(/Export.*paste/i), { target: { value: 'Deck\n4 Abrade (DMU) 131\n' } });
+  vi.spyOn(bridge, 'scanDeck').mockResolvedValue({
+    status: 'ok', collection: [{ count: 4, name: 'Abrade', set: 'DMU', cn: '131' }], matched: 8, total: 8, unresolved: 2,
+  });
+  fireEvent.click(screen.getByRole('button', { name: /Find my collection/i }));
+  expect(await screen.findByText(/Matched 8 of 8 deck cards.*2 not in the card database/i)).toBeInTheDocument();
+});
+
+it('scan deck mode: full-match-but-inconclusive gets the ambiguity message', async () => {
+  connectScanTab();
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  await screen.findByRole('button', { name: /Find my collection/i });
+  fireEvent.change(screen.getByPlaceholderText(/Export.*paste/i), { target: { value: 'Deck\n4 Abrade (DMU) 131\n' } });
+  vi.spyOn(bridge, 'scanDeck').mockResolvedValue({ status: 'inconclusive', matched: 8, total: 8 });
+  fireEvent.click(screen.getByRole('button', { name: /Find my collection/i }));
+  expect(await screen.findByText(/couldn't lock onto a single collection/i)).toBeInTheDocument();
+});
+
 it('scan deck mode: empty paste is rejected without a bridge call', async () => {
   connectScanTab();
   fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
