@@ -11,8 +11,14 @@ export type ScanStatus =
 export type ScanResult = { status: ScanStatus; collection?: ScanRow[]; matched?: number; total?: number };
 
 export type DeckEntry = { name: string; count: number };
+
+// Bump in lockstep with the bridge's BRIDGE_API_VERSION. A connected bridge
+// reporting a lower (or missing) version is a stale long-lived process.
+export const EXPECTED_BRIDGE_VERSION = 2;
+
 export type Health = {
   online: boolean;
+  version?: number;
   running_as_root?: boolean;
   arena_process_found?: boolean;
   card_db_ready?: boolean;

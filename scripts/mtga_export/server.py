@@ -12,6 +12,11 @@ from .export import resolve_rows
 
 PROC_HINTS = ["MTGA.exe", "mtga", "magicthegathering", "wine", "crossover", "whisky"]
 
+# Bridge <-> app contract version. Bump when /api/scan's request/response shape
+# changes so a stale long-lived bridge can be detected. v1 = anchors only;
+# v2 = added the `deck` scan path.
+BRIDGE_API_VERSION = 2
+
 DEFAULT_PORT = 17171
 
 class Engine:
@@ -38,6 +43,7 @@ class Engine:
         except Exception:
             found = False
         return {
+            "version": BRIDGE_API_VERSION,
             "platform": sys.platform,
             "running_as_root": bool(root),
             "arena_process_found": found,

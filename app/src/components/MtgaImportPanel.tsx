@@ -12,7 +12,7 @@ import {
   type ParsedMtgaDeck,
 } from '../lib/mtgaResolve';
 import { resolveLibrary, type LibraryImportResult } from '../lib/libraryImport';
-import { bridgeHealth, scanCollection, scanDeck, searchCards, type CardHit } from '../lib/mtgaScanBridge';
+import { bridgeHealth, scanCollection, scanDeck, searchCards, EXPECTED_BRIDGE_VERSION, type CardHit } from '../lib/mtgaScanBridge';
 import { parseArenaDeck } from '../lib/deckImport';
 import LibraryImportSummary from './LibraryImportSummary';
 import MtgaDeckChecklist from './MtgaDeckChecklist';
@@ -65,6 +65,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const [scanMode, setScanMode] = useState<'deck' | 'search'>('deck');
   const [deckText, setDeckText] = useState('');
   const [deckMatch, setDeckMatch] = useState<{ matched: number; total: number } | null>(null);
+  const [bridgeStale, setBridgeStale] = useState(false);
 
   const resetParseState = () => {
     setState({ kind: 'idle' });
@@ -95,6 +96,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
       setScanMsg('Open MTG Arena and visit the Collection tab, then Connect again.');
       return;
     }
+    setBridgeStale(health.version === undefined || health.version < EXPECTED_BRIDGE_VERSION);
     setConnected(true);
   };
 
@@ -412,6 +414,12 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             </button>
           ) : (
             <div className="mt-3 space-y-2">
+              {bridgeStale && (
+                <p className="rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+                  Your local exporter looks out of date — quit it (Ctrl-C) and re-launch to get the
+                  latest. Deck import needs the current version.
+                </p>
+              )}
               <div role="tablist" aria-label="anchor mode" className="flex gap-1 text-xs">
                 <button type="button" role="tab" aria-selected={scanMode === 'deck'}
                   onClick={() => { setScanMode('deck'); setScanMsg(null); setDeckMatch(null); }}

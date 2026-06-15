@@ -231,6 +231,7 @@ describe('MtgaImportPanel (Live scan source)', () => {
 
   const healthyHealth = {
     online: true,
+    version: 2,
     running_as_root: true,
     arena_process_found: true,
     card_db_ready: true,
@@ -368,11 +369,32 @@ describe('MtgaImportPanel (Live scan source)', () => {
 
 function connectScanTab() {
   vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
-    online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
+    online: true, version: 2, running_as_root: true, arena_process_found: true, card_db_ready: true,
   });
   render(<MtgaImportPanel mode="full" onClose={() => {}} />);
   fireEvent.click(screen.getByRole('tab', { name: /Live scan/i }));
 }
+
+it('scan: warns when the bridge reports no/old version', async () => {
+  vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
+    online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
+  });
+  render(<MtgaImportPanel mode="full" onClose={() => {}} />);
+  fireEvent.click(screen.getByRole('tab', { name: /Live scan/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  expect(await screen.findByText(/out of date/i)).toBeInTheDocument();
+});
+
+it('scan: no version warning when the bridge is current', async () => {
+  vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
+    online: true, version: 2, running_as_root: true, arena_process_found: true, card_db_ready: true,
+  });
+  render(<MtgaImportPanel mode="full" onClose={() => {}} />);
+  fireEvent.click(screen.getByRole('tab', { name: /Live scan/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
+  await screen.findByRole('button', { name: /Find my collection/i });
+  expect(screen.queryByText(/out of date/i)).not.toBeInTheDocument();
+});
 
 it('scan deck mode: paste deck → ok → summary with matched count', async () => {
   connectScanTab();

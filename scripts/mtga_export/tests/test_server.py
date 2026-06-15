@@ -28,6 +28,15 @@ def test_scan_ambiguous_status():
     status, body = handler.handle_scan(engine, {})
     assert json.loads(body)["status"] == "ambiguous"
 
+def test_health_reports_api_version(tmp_path):
+    from mtga_export.server import Engine, BRIDGE_API_VERSION
+    (tmp_path / "arena_id_lookup.json").write_text(
+        '{"100": {"name": "X", "set": "DMU", "collector_number": "1"}}'
+    )
+    h = Engine(tmp_path).health()
+    assert h["version"] == BRIDGE_API_VERSION == 2
+
+
 def test_handle_scan_deck_branch_ok():
     class DeckEngine:
         db = {70000: {"name": "Abrade", "set": "DMU", "collector_number": "131"}}
