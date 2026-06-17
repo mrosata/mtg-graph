@@ -100,14 +100,15 @@ function tagCards(cards: Card[]): Card[] {
       text: string,
       name: string,
       face: 'front' | 'back' | undefined,
+      textOnly?: boolean,
     ): CardTag[] => {
       const normalized = normalizeOracleText(text, name, isLegendary);
-      const hostTags = applyRules(normalized, c, rules);
+      const hostTags = applyRules(normalized, c, rules, textOnly ? { textOnly: true } : undefined);
       const hostTagIds = new Set(hostTags.map((t) => t.tagId));
       const grantedTags: CardTag[] = [];
       for (const inner of extractGrantedInnerTexts(stripReminderText(text))) {
         const innerNorm = normalizeInnerGrantText(inner);
-        for (const innerTag of applyRules(innerNorm, c, rules)) {
+        for (const innerTag of applyRules(innerNorm, c, rules, textOnly ? { textOnly: true } : undefined)) {
           if (!isForwardable(innerTag, hostTagIds)) continue;
           if (hostTagIds.has(innerTag.tagId)) continue;
           hostTagIds.add(innerTag.tagId);
@@ -120,10 +121,23 @@ function tagCards(cards: Card[]): Card[] {
 
     let collected: CardTag[];
     if (c.faces && c.faces.length === 2) {
-      collected = [
-        ...runOnText(c.faces[0]!.oracleText, c.faces[0]!.name, 'front'),
-        ...runOnText(c.faces[1]!.oracleText, c.faces[1]!.name, 'back'),
-      ];
+      // Text-based rules run per face with face attribution; matchCard rules
+      // run once at the card level (keywords are pooled by Scryfall, not per-face).
+      const frontTags = runOnText(c.faces[0]!.oracleText, c.faces[0]!.name, 'front', true);
+      const backTags = runOnText(c.faces[1]!.oracleText, c.faces[1]!.name, 'back', true);
+      const cardLevelTags = applyRules('', c, rules, { matchCardOnly: true });
+
+      // Dedup by tagId: text-attributed tags (with face) take priority over
+      // card-level matchCard tags (no face). Seed with text tags first so they
+      // win when both exist for the same tagId.
+      const byTagId = new Map<string, CardTag>();
+      for (const t of [...frontTags, ...backTags]) {
+        if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
+      }
+      for (const t of cardLevelTags) {
+        if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
+      }
+      collected = [...byTagId.values()];
     } else {
       collected = runOnText(c.oracleText, c.name, undefined);
     }
