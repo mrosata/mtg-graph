@@ -17,6 +17,7 @@ export type CardTag<TagId extends string = string> = {
   tagId: TagId;
   axis: TagAxis;
   evidence: string;
+  face?: 'front' | 'back';
   metadata?: TagId extends keyof TagMetadataMap
     ? TagMetadataMap[TagId]
     : Record<string, unknown>;
@@ -28,6 +29,30 @@ export function hasTagId<T extends keyof TagMetadataMap>(
 ): tag is CardTag<T> {
   return tag.tagId === tagId;
 }
+
+export type CardLayout =
+  | 'normal'
+  | 'transform'
+  | 'modal_dfc'
+  | 'meld'
+  | 'split'
+  | 'adventure';
+
+export type Face = {
+  name: string;
+  typeLine: string;
+  types: string[];
+  subtypes: string[];
+  supertypes: string[];
+  oracleText: string;
+  manaCost: string | null;
+  colors: Color[];
+  power: string | null;
+  toughness: string | null;
+  // Present for transform/modal_dfc/meld (per-face art).
+  // Undefined for split/adventure (single shared image lives on Card.imageUrl).
+  imageUrl?: string;
+};
 
 export type Card = {
   oracleId: string;
@@ -55,6 +80,8 @@ export type Card = {
   toughness: string | null;
   rarity: Rarity;
   imageUrl: string;
+  layout?: CardLayout;
+  faces?: Face[];
   // MTGO Catalog ID for the first-seen printing. Null when the printing isn't
   // on MTGO (some preview/promo/Alchemy variants). Used only as fallback metadata
   // for DEK export; not referenced by the graph, rules, or any lookup.
