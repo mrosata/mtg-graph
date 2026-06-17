@@ -15,6 +15,7 @@ type Props = {
 const CARD_W = 220;
 const CARD_H = 320;
 const GAP = 8;
+const FLIPPABLE_LAYOUTS: ReadonlySet<string> = new Set(['transform', 'modal_dfc', 'meld']);
 
 export default function CardGrid({ cards, onCardClick, onHoverCard, width, height }: Props) {
   const colCount = Math.max(1, Math.floor(width / (CARD_W + GAP)));
@@ -63,6 +64,15 @@ export default function CardGrid({ cards, onCardClick, onHoverCard, width, heigh
                   className="h-full w-full object-contain"
                 />
               </div>
+              {FLIPPABLE_LAYOUTS.has(card.layout ?? 'normal') && (
+                <span
+                  aria-label="Has two faces"
+                  title={`Two-faced card (${card.layout})`}
+                  className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-brass/60 bg-ink-bg/80 text-[11px] text-brass-hi shadow-sm"
+                >
+                  ↻
+                </span>
+              )}
               <OwnedBadge card={card} className="absolute bottom-2 right-2" />
             </button>
           );
