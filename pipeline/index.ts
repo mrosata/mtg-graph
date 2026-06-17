@@ -95,32 +95,40 @@ function tagCards(cards: Card[]): Card[] {
   );
   return cards.map((c) => {
     const isLegendary = c.supertypes?.includes('Legendary') ?? false;
-    const normalized = normalizeOracleText(c.oracleText, c.name, isLegendary);
-    const hostTags = applyRules(normalized, c, rules);
 
-    // v0.24 — anthem-grant inner-ability forwarding. Extract the inner
-    // bodies BEFORE `stripQuotedAbilities` erases them, re-tag, forward
-    // a filtered subset onto the host.
-    const grantedTags: CardTag[] = [];
-    const hostTagIds = new Set(hostTags.map((t) => t.tagId));
-    // v0.33+ — strip reminder text BEFORE grant extraction so quoted
-    // ability bodies inside `(...)` (Clue / Food / Mutavault token
-    // reminders, Mountain-conversion reminders) don't leak as grants
-    // onto the host card. See HIGH-3 in audit-ship-list.md.
-    for (const inner of extractGrantedInnerTexts(stripReminderText(c.oracleText))) {
-      const innerNorm = normalizeInnerGrantText(inner);
-      for (const innerTag of applyRules(innerNorm, c, rules)) {
-        if (!isForwardable(innerTag, hostTagIds)) continue;
-        if (hostTagIds.has(innerTag.tagId)) continue; // dedupe vs host
-        hostTagIds.add(innerTag.tagId);
-        grantedTags.push({
-          ...innerTag,
-          evidence: `granted: ${innerTag.evidence}`,
-        });
+    const runOnText = (
+      text: string,
+      name: string,
+      face: 'front' | 'back' | undefined,
+    ): CardTag[] => {
+      const normalized = normalizeOracleText(text, name, isLegendary);
+      const hostTags = applyRules(normalized, c, rules);
+      const hostTagIds = new Set(hostTags.map((t) => t.tagId));
+      const grantedTags: CardTag[] = [];
+      for (const inner of extractGrantedInnerTexts(stripReminderText(text))) {
+        const innerNorm = normalizeInnerGrantText(inner);
+        for (const innerTag of applyRules(innerNorm, c, rules)) {
+          if (!isForwardable(innerTag, hostTagIds)) continue;
+          if (hostTagIds.has(innerTag.tagId)) continue;
+          hostTagIds.add(innerTag.tagId);
+          grantedTags.push({ ...innerTag, evidence: `granted: ${innerTag.evidence}` });
+        }
       }
+      const merged = [...hostTags, ...grantedTags];
+      return face ? merged.map((t) => ({ ...t, face })) : merged;
+    };
+
+    let collected: CardTag[];
+    if (c.faces && c.faces.length === 2) {
+      collected = [
+        ...runOnText(c.faces[0]!.oracleText, c.faces[0]!.name, 'front'),
+        ...runOnText(c.faces[1]!.oracleText, c.faces[1]!.name, 'back'),
+      ];
+    } else {
+      collected = runOnText(c.oracleText, c.name, undefined);
     }
 
-    const tags = expandChildren([...hostTags, ...grantedTags], tagDefById);
+    const tags = expandChildren(collected, tagDefById);
     return { ...c, tags };
   });
 }
