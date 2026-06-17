@@ -1,16 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import type { Card, Face } from '../shared/types';
 import { ensureWarmed } from './rules';
-import { getAllRules } from './rules';
-import { getTagCatalog } from './catalog';
-import { normalizeOracleText, stripReminderText } from './normalize';
-import { extractGrantedInnerTexts, normalizeInnerGrantText } from './grant-extraction';
-import { applyRules } from './rules/runner';
-import { expandChildren } from './tag-expansion';
-
-// Mirror tagCards() from pipeline/index.ts. We re-implement here because
-// the production tagCards is an internal helper; this test instead asserts
-// the FACE attribution shape that tagCards must produce.
+import { tagCards } from './tag';
 
 function makeFace(name: string, oracleText: string): Face {
   return { name, typeLine: 'Creature — X', types: ['Creature'], subtypes: ['X'], supertypes: [],
@@ -36,37 +27,64 @@ describe('per-face tag attribution', () => {
       power: '1', toughness: '1', rarity: 'common', imageUrl: '',
       layout: 'transform', faces: [front, back], tags: [],
     };
-    const tagged = tagCardsForTest(card);
-    const frontTag = tagged.tags.find((t) => t.tagId === 'trigger.another_creature_etb');
-    const backTag = tagged.tags.find((t) => t.tagId === 'effect.has_offspring');
+    const [tagged] = tagCards([card]);
+    const frontTag = tagged!.tags.find((t) => t.tagId === 'trigger.another_creature_etb');
+    const backTag = tagged!.tags.find((t) => t.tagId === 'effect.has_offspring');
     expect(frontTag?.face).toBe('front');
     expect(backTag?.face).toBe('back');
   });
 
-  it('matchCard-only keyword rule fires exactly once for DFC with keyword on back face (no duplicate, no face field)', () => {
+  it('matchCard-only keyword rule (Flying via keywords array + isIntrinsicKeyword) fires exactly once, no face field', () => {
     // Regression for the double-fire bug: effect.has_flying uses matchCard
-    // (no text-regex match). With the old code, it fired on BOTH per-face
-    // applyRules calls, producing two CardTags for the same tagId.
-    // With the fix, matchCard rules run once at card level — no face attribution.
-    // Flying appears in the back face's oracle text and Scryfall's keywords array.
+    // (no text-regex match). With the fix, matchCard rules run once at card
+    // level — no face attribution.
+    //
+    // Neither face's oracle text alone contains "Flying" on a keyword-block line;
+    // the combined card.oracleText does. So the text-only per-face pass cannot
+    // match, but matchCard (which reads card.oracleText directly) fires once.
     const front = makeFace('Grounded Walker', 'Whenever another creature enters the battlefield, draw a card.');
-    const back = makeFace('Sky Soarer', 'Flying');
+    const back = makeFace('Sky Soarer', 'Offspring {2}');
     const card: Card = {
       oracleId: 'fly1', name: 'Grounded Walker // Sky Soarer', set: 's', printings: ['s'],
       collectorNumber: '1', manaCost: '{1}', cmc: 1, colors: [], colorIdentity: [],
       typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
       // Combined oracle text includes Flying on its own keyword-block line.
+      // (isIntrinsicKeyword reads card.oracleText; the Flying line is not in any face.)
       oracleText: 'Whenever another creature enters the battlefield, draw a card.\n\nFlying',
       keywords: ['Flying'],
       power: '1', toughness: '1', rarity: 'common', imageUrl: '',
       layout: 'transform', faces: [front, back], tags: [],
     };
-    const tagged = tagCardsForTest(card);
-    const flyingTags = tagged.tags.filter((t) => t.tagId === 'effect.has_flying');
+    const [tagged] = tagCards([card]);
+    const flyingTags = tagged!.tags.filter((t) => t.tagId === 'effect.has_flying');
     // Exactly one tag — no double-fire.
     expect(flyingTags).toHaveLength(1);
     // matchCard-only rules carry no face attribution (keywords are card-level).
     expect(flyingTags[0]?.face).toBeUndefined();
+  });
+
+  it('text-based rule matching on BOTH faces produces two tags (front + back)', () => {
+    // When the same text-regex rule matches oracle text on BOTH faces, both
+    // face-attributed CardTag entries must be preserved (I-4 fix).
+    // Using effect.has_offspring (text-only match on "offspring {N}") which
+    // has no matchCard fallback, guaranteeing text-only path.
+    const front = makeFace('Offspring Front', 'Offspring {2}');
+    const back = makeFace('Offspring Back', 'Offspring {3}');
+    const card: Card = {
+      oracleId: 'dualoff', name: 'Offspring Front // Offspring Back', set: 's', printings: ['s'],
+      collectorNumber: '1', manaCost: '{1}', cmc: 1, colors: [], colorIdentity: [],
+      typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
+      oracleText: 'Offspring {2}\n\nOffspring {3}',
+      keywords: [],  // no keyword array — text-only path
+      power: '1', toughness: '1', rarity: 'common', imageUrl: '',
+      layout: 'transform', faces: [front, back], tags: [],
+    };
+    const [tagged] = tagCards([card]);
+    const offspringTags = tagged!.tags.filter((t) => t.tagId === 'effect.has_offspring');
+    // Both text-based entries must survive dedup.
+    expect(offspringTags).toHaveLength(2);
+    const faces = offspringTags.map((t) => t.face).sort();
+    expect(faces).toEqual(['back', 'front']);
   });
 
   it('single-face cards do not get a face field', () => {
@@ -79,56 +97,39 @@ describe('per-face tag attribution', () => {
       power: '1', toughness: '1', rarity: 'common', imageUrl: '',
       layout: 'normal', tags: [],
     };
-    const tagged = tagCardsForTest(card);
-    const etbTag = tagged.tags.find((t) => t.tagId === 'trigger.another_creature_etb');
+    const [tagged] = tagCards([card]);
+    const etbTag = tagged!.tags.find((t) => t.tagId === 'trigger.another_creature_etb');
     expect(etbTag).toBeDefined();
     expect(etbTag?.face).toBeUndefined();
   });
+
+  it('cross-face grant: Treasure-creator on front does not forward effect.add_mana from back-face anthem grant', () => {
+    // I-1 regression: allHostTagIds must be the UNION across all faces so the
+    // Treasure guard fires even when effect.create_treasure is on a different
+    // face from the grant being evaluated.
+    //
+    // Front: creates a Treasure token (fires effect.create_treasure on front).
+    // Back:  anthem "creatures you control have 'tap: add {G}'" — the inner
+    //        grant text would ordinarily forward effect.add_mana, but because
+    //        effect.create_treasure is present on the card (front face) the
+    //        forwarding must be suppressed.
+    const front = makeFace('Treasure Maker', 'When this creature enters the battlefield, create a Treasure token.');
+    const back = makeFace('Mana Anthem', 'Creatures you control have "tap: add {G}."');
+    const card: Card = {
+      oracleId: 'crossface1',
+      name: 'Treasure Maker // Mana Anthem', set: 's', printings: ['s'],
+      collectorNumber: '1', manaCost: '{2}{G}', cmc: 3, colors: ['G'], colorIdentity: ['G'],
+      typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
+      oracleText: 'When this creature enters the battlefield, create a Treasure token.\n\nCreatures you control have "tap: add {G}."',
+      keywords: [],
+      power: '2', toughness: '2', rarity: 'rare', imageUrl: '',
+      layout: 'transform', faces: [front, back], tags: [],
+    };
+    const [tagged] = tagCards([card]);
+    const addManaTags = tagged!.tags.filter((t) => t.tagId === 'effect.add_mana');
+    expect(addManaTags).toHaveLength(0);
+    // Confirm Treasure tag IS present (front face host tag).
+    const treasureTags = tagged!.tags.filter((t) => t.tagId === 'effect.create_treasure');
+    expect(treasureTags.length).toBeGreaterThan(0);
+  });
 });
-
-// Inline replica of the per-face tagging pipeline; kept tight on purpose so
-// the test surfaces shape changes loudly. Lift to a shared helper later if
-// other tests need it.
-function tagCardsForTest(c: Card): Card {
-  const catalog = getTagCatalog();
-  const rules = getAllRules();
-  const tagDefById = Object.fromEntries(catalog.map((d) => [d.tagId, d]));
-  const isLegendary = c.supertypes?.includes('Legendary') ?? false;
-
-  const runFace = (text: string, name: string, face: 'front' | 'back' | undefined, textOnly?: boolean) => {
-    const normalized = normalizeOracleText(text, name, isLegendary);
-    const hostTags = applyRules(normalized, c, rules, textOnly ? { textOnly: true } : undefined);
-    const hostTagIds = new Set(hostTags.map((t) => t.tagId));
-    const grantedTags = [];
-    for (const inner of extractGrantedInnerTexts(stripReminderText(text))) {
-      const innerNorm = normalizeInnerGrantText(inner);
-      for (const innerTag of applyRules(innerNorm, c, rules, textOnly ? { textOnly: true } : undefined)) {
-        if (hostTagIds.has(innerTag.tagId)) continue;
-        hostTagIds.add(innerTag.tagId);
-        grantedTags.push({ ...innerTag, evidence: `granted: ${innerTag.evidence}` });
-      }
-    }
-    return [...hostTags, ...grantedTags].map((t) => face ? { ...t, face } : t);
-  };
-
-  let all;
-  if (c.faces && c.faces.length === 2) {
-    // Text-based rules per face; matchCard rules once at card level (no face).
-    const frontTags = runFace(c.faces[0]!.oracleText, c.faces[0]!.name, 'front', true);
-    const backTags = runFace(c.faces[1]!.oracleText, c.faces[1]!.name, 'back', true);
-    const cardLevelTags = applyRules('', c, rules, { matchCardOnly: true });
-    // Dedup: text-attributed (face-bearing) tags win over card-level no-face tags.
-    const byTagId = new Map<string, import('../shared/types').CardTag>();
-    for (const t of [...frontTags, ...backTags]) {
-      if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
-    }
-    for (const t of cardLevelTags) {
-      if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
-    }
-    all = [...byTagId.values()];
-  } else {
-    all = runFace(c.oracleText, c.name, undefined);
-  }
-  const tags = expandChildren(all, tagDefById);
-  return { ...c, tags };
-}

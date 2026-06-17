@@ -1,6 +1,6 @@
 // pipeline/index.ts
 import { resolve } from 'node:path';
-import type { Artifact, Card, TagDef } from '../shared/types';
+import type { Artifact, Card } from '../shared/types';
 import { STANDARD_SET_CODES, UPCOMING_SET_CODES, COMMANDER_SET_CODES } from '../shared/sets';
 const UPCOMING_SET_SET = new Set(UPCOMING_SET_CODES);
 const COMMANDER_SET_SET = new Set(COMMANDER_SET_CODES);
@@ -8,15 +8,10 @@ import { fetchSetFromScryfall } from './fetch';
 import { DEFAULT_CACHE_DIR } from './cache';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { normalizeOracleText, stripReminderText } from './normalize';
-import { extractGrantedInnerTexts, normalizeInnerGrantText } from './grant-extraction';
-import { applyRules } from './rules/runner';
-import { getAllRules } from './rules';
 import { getTagCatalog, RULE_VERSION } from './catalog';
-import { expandChildren } from './tag-expansion';
 import { mergeCardsAcrossSets } from './merge';
 import { writeArtifact } from './emit';
-import type { CardTag } from '../shared/types';
+import { tagCards } from './tag';
 
 function hasCachedSet(setCode: string): boolean {
   return existsSync(join(DEFAULT_CACHE_DIR, `${setCode}.json`));
@@ -62,89 +57,6 @@ function parseArgs(argv: string[]): Args {
   throw new Error(
     'Missing required argument: --set <code>, --sets <a,b,c>, --standard, or --upcoming',
   );
-}
-
-// Forwarding filter for inner-grant tags. The host card grants its
-// permanents the inner ability — we forward the inner's TRIGGER and
-// EFFECT axes (minus intrinsic `has_*` keyword tags) so the host shows up
-// as a source of those abilities in the graph. We do NOT forward:
-//   - `effect.has_*` — intrinsic-keyword axes. "Creatures you control have
-//     flying" doesn't make the source card fly.
-//   - `condition.*` — gating/scaling axes describe what the GRANTED
-//     permanent cares about, not what the source cares about.
-function isForwardable(tag: CardTag, hostTagIds: Set<string>): boolean {
-  if (tag.tagId.startsWith('effect.has_')) return false;
-  if (tag.axis === 'condition') return false;
-  // Treasure tokens grant an intrinsic mana ability; the host card "creates"
-  // those tokens but does not itself add mana / ramp. The host is already
-  // tagged via effect.create_treasure on the create-token clause.
-  if (
-    (tag.tagId === 'effect.add_mana' || tag.tagId === 'effect.ramp_nonland') &&
-    hostTagIds.has('effect.create_treasure')
-  ) {
-    return false;
-  }
-  return true;
-}
-
-function tagCards(cards: Card[]): Card[] {
-  const catalog = getTagCatalog();
-  const rules = getAllRules();
-  const tagDefById: Record<string, TagDef> = Object.fromEntries(
-    catalog.map((d) => [d.tagId, d]),
-  );
-  return cards.map((c) => {
-    const isLegendary = c.supertypes?.includes('Legendary') ?? false;
-
-    const runOnText = (
-      text: string,
-      name: string,
-      face: 'front' | 'back' | undefined,
-      textOnly?: boolean,
-    ): CardTag[] => {
-      const normalized = normalizeOracleText(text, name, isLegendary);
-      const hostTags = applyRules(normalized, c, rules, textOnly ? { textOnly: true } : undefined);
-      const hostTagIds = new Set(hostTags.map((t) => t.tagId));
-      const grantedTags: CardTag[] = [];
-      for (const inner of extractGrantedInnerTexts(stripReminderText(text))) {
-        const innerNorm = normalizeInnerGrantText(inner);
-        for (const innerTag of applyRules(innerNorm, c, rules, textOnly ? { textOnly: true } : undefined)) {
-          if (!isForwardable(innerTag, hostTagIds)) continue;
-          if (hostTagIds.has(innerTag.tagId)) continue;
-          hostTagIds.add(innerTag.tagId);
-          grantedTags.push({ ...innerTag, evidence: `granted: ${innerTag.evidence}` });
-        }
-      }
-      const merged = [...hostTags, ...grantedTags];
-      return face ? merged.map((t) => ({ ...t, face })) : merged;
-    };
-
-    let collected: CardTag[];
-    if (c.faces && c.faces.length === 2) {
-      // Text-based rules run per face with face attribution; matchCard rules
-      // run once at the card level (keywords are pooled by Scryfall, not per-face).
-      const frontTags = runOnText(c.faces[0]!.oracleText, c.faces[0]!.name, 'front', true);
-      const backTags = runOnText(c.faces[1]!.oracleText, c.faces[1]!.name, 'back', true);
-      const cardLevelTags = applyRules('', c, rules, { matchCardOnly: true });
-
-      // Dedup by tagId: text-attributed tags (with face) take priority over
-      // card-level matchCard tags (no face). Seed with text tags first so they
-      // win when both exist for the same tagId.
-      const byTagId = new Map<string, CardTag>();
-      for (const t of [...frontTags, ...backTags]) {
-        if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
-      }
-      for (const t of cardLevelTags) {
-        if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
-      }
-      collected = [...byTagId.values()];
-    } else {
-      collected = runOnText(c.oracleText, c.name, undefined);
-    }
-
-    const tags = expandChildren(collected, tagDefById);
-    return { ...c, tags };
-  });
 }
 
 async function main() {

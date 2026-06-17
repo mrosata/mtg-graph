@@ -135,6 +135,26 @@ describe('CardDetailDrawer multi-face', () => {
     expect(screen.getByRole('heading', { name: /Amazing Spider-Man/i })).toBeInTheDocument();
   });
 
+  it('keyboard "f" does NOT flip when focus is inside an input', () => {
+    const { container } = renderDrawer(dfcCard());
+    // Inject an input into the rendered subtree and focus it.
+    const input = document.createElement('input');
+    container.appendChild(input);
+    input.focus();
+    // Fire the keydown on the focused input itself (target = input).
+    fireEvent.keyDown(input, { key: 'f' });
+    // Drawer must still show the front face.
+    expect(screen.getByRole('heading', { name: /Peter Parker/i })).toBeInTheDocument();
+    container.removeChild(input);
+  });
+
+  it('keyboard "f" with metaKey does NOT flip the card', () => {
+    renderDrawer(dfcCard());
+    fireEvent.keyDown(window, { key: 'f', metaKey: true });
+    // Still front face — modifier guard should prevent the flip.
+    expect(screen.getByRole('heading', { name: /Peter Parker/i })).toBeInTheDocument();
+  });
+
   it('tag chips filter to the visible face', () => {
     renderDrawer(dfcCard());
     // front: Create-token chip visible, vigilance chip hidden

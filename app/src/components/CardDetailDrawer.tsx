@@ -36,6 +36,17 @@ export default function CardDetailDrawer({
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Do not capture keypresses that originate from text-input elements or
+      // when a modifier is held (e.g. Cmd+F for browser find).
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
       if (e.key === 'Escape' && canBack) onBack();
       if (e.key === 'f' && isFlippable) setFace((f) => (f === 'front' ? 'back' : 'front'));
     };
