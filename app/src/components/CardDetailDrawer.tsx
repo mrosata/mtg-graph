@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Card } from '@shared/types';
 import { useGraphStore } from '../stores/graphStore';
 import TagChip from './TagChip';
@@ -16,6 +16,8 @@ type Props = {
   canForward: boolean;
 };
 
+const FLIPPABLE: ReadonlySet<string> = new Set(['transform', 'modal_dfc', 'meld']);
+
 export default function CardDetailDrawer({
   card,
   onFocusCard,
@@ -26,50 +28,69 @@ export default function CardDetailDrawer({
 }: Props) {
   const tagCatalog = useGraphStore((s) => s.tagCatalog);
   const scrollRef = useRef<HTMLElement | null>(null);
+  const [face, setFace] = useState<'front' | 'back'>('front');
+
+  const isFlippable = FLIPPABLE.has(card.layout ?? 'normal') && (card.faces?.length ?? 0) === 2;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && canBack) onBack();
+      if (e.key === 'f' && isFlippable) setFace((f) => (f === 'front' ? 'back' : 'front'));
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onBack, canBack]);
+  }, [onBack, canBack, isFlippable]);
 
   useEffect(() => {
+    setFace('front');
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [card.oracleId]);
 
+  const activeFace = isFlippable ? card.faces![face === 'front' ? 0 : 1]! : null;
+  const displayName = activeFace?.name ?? card.name;
+  const displayTypeLine = activeFace?.typeLine ?? card.typeLine;
+  const displayOracleText = activeFace?.oracleText ?? card.oracleText;
+  const displayImage = activeFace?.imageUrl ?? card.imageUrl;
+
+  const visibleTags = isFlippable
+    ? card.tags.filter((t) => t.face === face || t.face === undefined)
+    : card.tags;
+
   return (
     <aside ref={scrollRef} className="h-full w-full overflow-y-auto border-l border-ink-line bg-ink-panel p-4 text-vellum">
+      {/* nav buttons unchanged */}
       <div className="inline-flex overflow-hidden rounded-md border border-ink-line bg-ink-raised/60">
-        <NavButton
-          direction="back"
-          disabled={!canBack}
-          onClick={onBack}
-          ariaLabel="Previous card"
-        />
+        <NavButton direction="back" disabled={!canBack} onClick={onBack} ariaLabel="Previous card" />
         <div className="h-8 w-px bg-ink-line" aria-hidden="true" />
-        <NavButton
-          direction="forward"
-          disabled={!canForward}
-          onClick={onForward}
-          ariaLabel="Next card"
-        />
+        <NavButton direction="forward" disabled={!canForward} onClick={onForward} ariaLabel="Next card" />
       </div>
-      <div className="foil-edge mt-3 overflow-hidden rounded-md" style={{ transitionDuration: '320ms' }}>
-        <img src={card.imageUrl} alt={card.name} className="w-full" />
+
+      <div className="foil-edge mt-3 overflow-hidden rounded-md relative" style={{ transitionDuration: '320ms' }}>
+        <img src={displayImage} alt={displayName} className="w-full" />
+        {isFlippable && (
+          <button
+            type="button"
+            onClick={() => setFace((f) => (f === 'front' ? 'back' : 'front'))}
+            aria-label={face === 'front' ? 'Flip to back face' : 'Flip to front face'}
+            title={card.faces![face === 'front' ? 1 : 0]!.name}
+            className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-brass/50 bg-ink-bg/80 text-brass-hi shadow-md backdrop-blur transition-colors hover:bg-brass/20 focus-brass"
+          >
+            ↻
+          </button>
+        )}
       </div>
-      <h2 className="mt-4 font-head text-3xl leading-tight text-vellum">{card.name}</h2>
-      <p className="font-head italic text-sm text-vellum-mute">{card.typeLine}</p>
+
+      <h2 className="mt-4 font-head text-3xl leading-tight text-vellum">{displayName}</h2>
+      <p className="font-head italic text-sm text-vellum-mute">{displayTypeLine}</p>
       <div className="brass-hairline-soft mt-3" aria-hidden="true" />
       <div className="mt-3 flex items-center gap-3">
         <AddToDeckButton oracleId={card.oracleId} />
       </div>
       <div className="mt-3 whitespace-pre-wrap">
-        <OracleText text={card.oracleText} />
+        <OracleText text={displayOracleText} />
       </div>
       <div className="mt-3 flex flex-wrap gap-1">
-        {collapseParentChildChips(card.tags, tagCatalog).map((t, i) => (
+        {collapseParentChildChips(visibleTags, tagCatalog).map((t, i) => (
           <TagChip key={`${t.tagId}-${i}`} tag={t} def={tagCatalog.get(t.tagId)} />
         ))}
       </div>
