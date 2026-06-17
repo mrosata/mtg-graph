@@ -75,4 +75,32 @@ describe('buildCardNameLookup / lookupByName', () => {
     const lk = buildCardNameLookup(cards);
     expect(lookupByName(lk, 'Decoy Card')?.oracleId).toBe('decoy-real');
   });
+
+  function dfcCard(): Card {
+    return {
+      oracleId: 'peter', name: 'Peter Parker // Amazing Spider-Man',
+      set: 'spm', printings: ['spm'], collectorNumber: '10',
+      manaCost: '{1}{W}', cmc: 2, colors: ['W'], colorIdentity: ['G','U','W'],
+      typeLine: 'Legendary Creature', types: ['Creature'],
+      subtypes: ['Human'], supertypes: ['Legendary'],
+      oracleText: '', keywords: [], power: '0', toughness: '1',
+      rarity: 'mythic', imageUrl: '',
+      layout: 'modal_dfc',
+      faces: [
+        { name: 'Peter Parker', typeLine: '', types: [], subtypes: [], supertypes: [], oracleText: '', manaCost: '{1}{W}', colors: ['W'], power: '0', toughness: '1' },
+        { name: 'Amazing Spider-Man', typeLine: '', types: [], subtypes: [], supertypes: [], oracleText: '', manaCost: '{1}{G}{W}{U}', colors: ['G','U','W'], power: '4', toughness: '4' },
+      ],
+      tags: [],
+    };
+  }
+
+  it('resolves back face name to the same oracleId as the combined and front name', () => {
+    const lookup = buildCardNameLookup(new Map([['peter', dfcCard()]]));
+    const front = lookupByName(lookup, 'Peter Parker');
+    const back = lookupByName(lookup, 'Amazing Spider-Man');
+    const combined = lookupByName(lookup, 'Peter Parker // Amazing Spider-Man');
+    expect(front?.oracleId).toBe('peter');
+    expect(back?.oracleId).toBe('peter');
+    expect(combined?.oracleId).toBe('peter');
+  });
 });
