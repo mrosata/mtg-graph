@@ -38,13 +38,11 @@ function Group({
 
 export default function LibraryImportSummary({ result, mtgaSummary }: Props) {
   const cardCount = result.owned.size;
-  let copyCount = 0;
-  for (const n of result.owned.values()) copyCount += n;
 
   return (
     <div>
       <p className="text-sm tabular text-brass-hi">
-        {`Imported ${cardCount.toLocaleString()} cards (${copyCount.toLocaleString()} copies)`}
+        {`Imported ${cardCount.toLocaleString()} cards`}
       </p>
       {mtgaSummary && mtgaSummary.outOfPoolCount > 0 && (
         <p className="mt-1 text-xs text-vellum-dim">

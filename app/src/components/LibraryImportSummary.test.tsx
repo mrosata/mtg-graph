@@ -18,10 +18,10 @@ const baseResult = {
 };
 
 describe('LibraryImportSummary', () => {
-  it('shows the totals header (cards + copies)', () => {
+  it('shows the imported card count', () => {
     render(<LibraryImportSummary result={baseResult} />);
     expect(screen.getByText(/2 cards/)).toBeInTheDocument();
-    expect(screen.getByText(/3 copies/)).toBeInTheDocument();
+    expect(screen.queryByText(/copies/)).not.toBeInTheDocument();
   });
 
   it('renders three group headers with their counts', () => {
