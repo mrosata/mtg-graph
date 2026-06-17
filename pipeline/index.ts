@@ -1,6 +1,6 @@
 // pipeline/index.ts
 import { resolve } from 'node:path';
-import type { Artifact, Card, TagDef } from '../shared/types';
+import type { Artifact, Card } from '../shared/types';
 import { STANDARD_SET_CODES, UPCOMING_SET_CODES, COMMANDER_SET_CODES } from '../shared/sets';
 const UPCOMING_SET_SET = new Set(UPCOMING_SET_CODES);
 const COMMANDER_SET_SET = new Set(COMMANDER_SET_CODES);
@@ -8,15 +8,10 @@ import { fetchSetFromScryfall } from './fetch';
 import { DEFAULT_CACHE_DIR } from './cache';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { normalizeOracleText, stripReminderText } from './normalize';
-import { extractGrantedInnerTexts, normalizeInnerGrantText } from './grant-extraction';
-import { applyRules } from './rules/runner';
-import { getAllRules } from './rules';
 import { getTagCatalog, RULE_VERSION } from './catalog';
-import { expandChildren } from './tag-expansion';
 import { mergeCardsAcrossSets } from './merge';
 import { writeArtifact } from './emit';
-import type { CardTag } from '../shared/types';
+import { tagCards } from './tag';
 
 function hasCachedSet(setCode: string): boolean {
   return existsSync(join(DEFAULT_CACHE_DIR, `${setCode}.json`));
@@ -62,67 +57,6 @@ function parseArgs(argv: string[]): Args {
   throw new Error(
     'Missing required argument: --set <code>, --sets <a,b,c>, --standard, or --upcoming',
   );
-}
-
-// Forwarding filter for inner-grant tags. The host card grants its
-// permanents the inner ability — we forward the inner's TRIGGER and
-// EFFECT axes (minus intrinsic `has_*` keyword tags) so the host shows up
-// as a source of those abilities in the graph. We do NOT forward:
-//   - `effect.has_*` — intrinsic-keyword axes. "Creatures you control have
-//     flying" doesn't make the source card fly.
-//   - `condition.*` — gating/scaling axes describe what the GRANTED
-//     permanent cares about, not what the source cares about.
-function isForwardable(tag: CardTag, hostTagIds: Set<string>): boolean {
-  if (tag.tagId.startsWith('effect.has_')) return false;
-  if (tag.axis === 'condition') return false;
-  // Treasure tokens grant an intrinsic mana ability; the host card "creates"
-  // those tokens but does not itself add mana / ramp. The host is already
-  // tagged via effect.create_treasure on the create-token clause.
-  if (
-    (tag.tagId === 'effect.add_mana' || tag.tagId === 'effect.ramp_nonland') &&
-    hostTagIds.has('effect.create_treasure')
-  ) {
-    return false;
-  }
-  return true;
-}
-
-function tagCards(cards: Card[]): Card[] {
-  const catalog = getTagCatalog();
-  const rules = getAllRules();
-  const tagDefById: Record<string, TagDef> = Object.fromEntries(
-    catalog.map((d) => [d.tagId, d]),
-  );
-  return cards.map((c) => {
-    const isLegendary = c.supertypes?.includes('Legendary') ?? false;
-    const normalized = normalizeOracleText(c.oracleText, c.name, isLegendary);
-    const hostTags = applyRules(normalized, c, rules);
-
-    // v0.24 — anthem-grant inner-ability forwarding. Extract the inner
-    // bodies BEFORE `stripQuotedAbilities` erases them, re-tag, forward
-    // a filtered subset onto the host.
-    const grantedTags: CardTag[] = [];
-    const hostTagIds = new Set(hostTags.map((t) => t.tagId));
-    // v0.33+ — strip reminder text BEFORE grant extraction so quoted
-    // ability bodies inside `(...)` (Clue / Food / Mutavault token
-    // reminders, Mountain-conversion reminders) don't leak as grants
-    // onto the host card. See HIGH-3 in audit-ship-list.md.
-    for (const inner of extractGrantedInnerTexts(stripReminderText(c.oracleText))) {
-      const innerNorm = normalizeInnerGrantText(inner);
-      for (const innerTag of applyRules(innerNorm, c, rules)) {
-        if (!isForwardable(innerTag, hostTagIds)) continue;
-        if (hostTagIds.has(innerTag.tagId)) continue; // dedupe vs host
-        hostTagIds.add(innerTag.tagId);
-        grantedTags.push({
-          ...innerTag,
-          evidence: `granted: ${innerTag.evidence}`,
-        });
-      }
-    }
-
-    const tags = expandChildren([...hostTags, ...grantedTags], tagDefById);
-    return { ...c, tags };
-  });
 }
 
 async function main() {

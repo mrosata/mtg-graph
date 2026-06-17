@@ -271,3 +271,82 @@ describe('fetchSetFromScryfall caching', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+import facesFixture from './fixtures/scryfall-faces-sample.json' with { type: 'json' };
+
+describe('stripScryfallCard multi-face handling', () => {
+  const byOracle: Record<string, any> = Object.fromEntries(
+    (facesFixture.data as any[]).map((r) => [r.oracle_id, r]),
+  );
+
+  it('sets layout=normal when Scryfall layout is missing', () => {
+    const card = stripScryfallCard({
+      oracle_id: 'x', name: 'Plain', set: 's', collector_number: '1',
+      cmc: 0, type_line: 'Land', rarity: 'common',
+    } as any);
+    expect(card.layout).toBe('normal');
+    expect(card.faces).toBeUndefined();
+  });
+
+  it('modal_dfc: builds two faces with per-face image, front-face image as top-level', () => {
+    const card = stripScryfallCard(byOracle['fixture-peter-parker'] as any);
+    expect(card.layout).toBe('modal_dfc');
+    expect(card.faces?.length).toBe(2);
+    expect(card.faces?.[0]?.name).toBe('Peter Parker');
+    expect(card.faces?.[1]?.name).toBe('Amazing Spider-Man');
+    expect(card.faces?.[0]?.imageUrl).toBe('https://example.test/peter-front.jpg');
+    expect(card.faces?.[1]?.imageUrl).toBe('https://example.test/peter-back.jpg');
+    expect(card.imageUrl).toBe('https://example.test/peter-front.jpg');
+    expect(card.faces?.[0]?.manaCost).toBe('{1}{W}');
+    expect(card.faces?.[1]?.manaCost).toBe('{1}{G}{W}{U}');
+    expect(card.faces?.[0]?.types).toContain('Creature');
+    expect(card.faces?.[0]?.subtypes).toEqual(['Human', 'Scientist', 'Hero']);
+    expect(card.faces?.[1]?.subtypes).toEqual(['Spider', 'Human', 'Hero']);
+    expect(card.faces?.[1]?.power).toBe('4');
+    expect(card.faces?.[1]?.toughness).toBe('4');
+  });
+
+  it('transform: same shape as modal_dfc (per-face images)', () => {
+    const card = stripScryfallCard(byOracle['fixture-werewolf'] as any);
+    expect(card.layout).toBe('transform');
+    expect(card.faces?.length).toBe(2);
+    expect(card.faces?.[0]?.imageUrl).toBe('https://example.test/were-front.jpg');
+    expect(card.faces?.[1]?.imageUrl).toBe('https://example.test/were-back.jpg');
+    expect(card.imageUrl).toBe('https://example.test/were-front.jpg');
+  });
+
+  it('meld: per-face images on both sides', () => {
+    const card = stripScryfallCard(byOracle['fixture-meld'] as any);
+    expect(card.layout).toBe('meld');
+    expect(card.faces?.[0]?.imageUrl).toBe('https://example.test/meld-front.jpg');
+    expect(card.faces?.[1]?.imageUrl).toBe('https://example.test/meld-back.jpg');
+  });
+
+  it('split: faces have no per-face imageUrl; top-level image is the shared physical image', () => {
+    const card = stripScryfallCard(byOracle['fixture-split'] as any);
+    expect(card.layout).toBe('split');
+    expect(card.faces?.length).toBe(2);
+    expect(card.faces?.[0]?.imageUrl).toBeUndefined();
+    expect(card.faces?.[1]?.imageUrl).toBeUndefined();
+    expect(card.imageUrl).toBe('https://example.test/fire-ice.jpg');
+    expect(card.faces?.[0]?.name).toBe('Fire');
+    expect(card.faces?.[1]?.name).toBe('Ice');
+  });
+
+  it('adventure: same shape as split (single shared image)', () => {
+    const card = stripScryfallCard(byOracle['fixture-adventure'] as any);
+    expect(card.layout).toBe('adventure');
+    expect(card.faces?.length).toBe(2);
+    expect(card.faces?.[0]?.imageUrl).toBeUndefined();
+    expect(card.faces?.[1]?.imageUrl).toBeUndefined();
+    expect(card.imageUrl).toBe('https://example.test/adventure.jpg');
+  });
+
+  it('oracleText stays the concatenated form for back-compat', () => {
+    const card = stripScryfallCard(byOracle['fixture-peter-parker'] as any);
+    expect(card.oracleText).toContain('When Peter Parker enters');
+    expect(card.oracleText).toContain('web-slinging');
+    // Concatenated with \n\n
+    expect(card.oracleText.split('\n\n').length).toBe(2);
+  });
+});

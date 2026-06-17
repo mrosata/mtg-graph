@@ -44,6 +44,7 @@ export function expandChildren(
       }
       seen.add(childId);
       result.push({
+        ...tag,
         tagId: childId,
         axis: childDef.axis,
         evidence: tag.evidence,

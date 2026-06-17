@@ -74,6 +74,17 @@ function applyNeighborFilter(neighbors: Neighbor[], cards: Map<string, Card>, fi
   return neighbors.filter((n) => matching.has(n.oracleId));
 }
 
+function faceLabelForEdge(
+  sourceCard: Card | undefined,
+  sourceTagId: string,
+): string | null {
+  if (!sourceCard?.faces) return null;
+  const matches = sourceCard.tags.filter((t) => t.tagId === sourceTagId && t.face);
+  if (matches.length !== 1) return null;
+  const idx = matches[0]!.face === 'front' ? 0 : 1;
+  return sourceCard.faces[idx]?.name ?? null;
+}
+
 type Props = {
   oracleId: string;
   onFocusCard: (oracleId: string) => void;
@@ -310,10 +321,17 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
                       const src = tagCatalog.get(r.sourceTagId)?.label ?? r.sourceTagId;
                       const tgt = tagCatalog.get(r.targetTagId)?.label ?? r.targetTagId;
                       const arrow = r.direction === 'outbound' ? '→' : '←';
+                      // For outbound edges, the SELECTED card is the source. For inbound, the
+                      // NEIGHBOR card is the source. Pull the face label from the right side.
+                      const sourceCard = r.direction === 'outbound'
+                        ? cards.get(oracleId)
+                        : cards.get(n.oracleId);
+                      const faceLabel = faceLabelForEdge(sourceCard, r.sourceTagId);
                       return (
                         <span key={i}>
                           {i > 0 && '; '}
                           {src} {arrow} {tgt}
+                          {faceLabel && <em className="text-vellum-dim"> · {faceLabel}</em>}
                         </span>
                       );
                     })}

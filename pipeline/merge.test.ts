@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mergeCardsAcrossSets } from './merge';
-import type { Card } from '../shared/types';
+import type { Card, Face } from '../shared/types';
 
 function card(oracleId: string, set: string, opts: { cn?: string; mtgoId?: number } = {}): Card {
   const collectorNumber = opts.cn ?? '1';
@@ -103,5 +103,27 @@ describe('mergeCardsAcrossSets', () => {
       { set: 'blb', collectorNumber: '1', mtgoId: 129247 },
       { set: 'tle', collectorNumber: '162' },
     ]);
+  });
+
+  it('preserves the first-seen printing\'s faces array', () => {
+    const front: Face = { name: 'Front', typeLine: '', types: [], subtypes: [], supertypes: [], oracleText: 'F', manaCost: null, colors: [], power: null, toughness: null, imageUrl: 'http://first/front.jpg' };
+    const back: Face = { name: 'Back', typeLine: '', types: [], subtypes: [], supertypes: [], oracleText: 'B', manaCost: null, colors: [], power: null, toughness: null, imageUrl: 'http://first/back.jpg' };
+    const firstSeen: Card = {
+      oracleId: 'o1', name: 'Front // Back', set: 'a', printings: ['a'],
+      collectorNumber: '1', manaCost: null, cmc: 0, colors: [], colorIdentity: [],
+      typeLine: '', types: [], subtypes: [], supertypes: [],
+      oracleText: 'F\n\nB', keywords: [], power: null, toughness: null,
+      rarity: 'common', imageUrl: 'http://first/front.jpg',
+      layout: 'transform', faces: [front, back], tags: [],
+    };
+    const reprint: Card = { ...firstSeen, set: 'b', printings: ['b'], imageUrl: 'http://later/front.jpg',
+      faces: [{ ...front, imageUrl: 'http://later/front.jpg' }, { ...back, imageUrl: 'http://later/back.jpg' }] };
+
+    const merged = mergeCardsAcrossSets([firstSeen, reprint]);
+    expect(merged.length).toBe(1);
+    expect(merged[0]!.faces?.[0]?.imageUrl).toBe('http://first/front.jpg');
+    expect(merged[0]!.faces?.[1]?.imageUrl).toBe('http://first/back.jpg');
+    expect(merged[0]!.layout).toBe('transform');
+    expect(merged[0]!.printings).toEqual(['a', 'b']);
   });
 });
