@@ -8,6 +8,7 @@ import { normalizeOracleText } from './normalize';
 import { expandChildren } from './tag-expansion';
 import { stripScryfallCard } from './fetch';
 import fixture from './fixtures/scryfall-tdm-sample.json' with { type: 'json' };
+import facesFixture from './fixtures/scryfall-faces-sample.json' with { type: 'json' };
 import type { Artifact } from '../shared/types';
 
 const tagDefById = Object.fromEntries(getTagCatalog().map((d) => [d.tagId, d]));
@@ -76,5 +77,51 @@ describe('pipeline end-to-end (fixture)', () => {
       expect(targets.has('fixture-broad-ltb')).toBe(true);
       expect(targets.has('fixture-creature-ltb')).toBe(true);
     });
+  });
+
+  it('multi-face fixture cards round-trip layout and faces through tagging', () => {
+    const rules = getAllRules();
+    const cards = (facesFixture as any).data.map((raw: any) => stripScryfallCard(raw));
+    expect(cards.find((c: any) => c.layout === 'modal_dfc')).toBeDefined();
+    expect(cards.find((c: any) => c.layout === 'transform')).toBeDefined();
+    expect(cards.find((c: any) => c.layout === 'meld')).toBeDefined();
+    expect(cards.find((c: any) => c.layout === 'split')).toBeDefined();
+    expect(cards.find((c: any) => c.layout === 'adventure')).toBeDefined();
+
+    const werewolf = cards.find((c: any) => c.oracleId === 'fixture-werewolf')!;
+    // Per-face tagging: text-based rules per face, then card-level matchCard rules.
+    // Front face has no flying; back face does. Dedup prefers face-attributed tags
+    // when both exist, so effect.has_flying (matchCard-only) shows face='back' for
+    // the back face's oracle text, and no face for card-level keywords.
+    const frontFaceNorm = normalizeOracleText(werewolf.faces![0]!.oracleText, werewolf.faces![0]!.name);
+    const backFaceNorm = normalizeOracleText(werewolf.faces![1]!.oracleText, werewolf.faces![1]!.name);
+
+    const frontFaceTags = applyRules(frontFaceNorm, werewolf, rules, { textOnly: true })
+      .map((t) => ({ ...t, face: 'front' as const }));
+    const backFaceTags = applyRules(backFaceNorm, werewolf, rules, { textOnly: true })
+      .map((t) => ({ ...t, face: 'back' as const }));
+    const cardLevelTags = applyRules('', werewolf, rules, { matchCardOnly: true });
+
+    // Expand children and dedup: face-attributed tags win over card-level no-face tags.
+    const expandedFrontBack = expandChildren([...frontFaceTags, ...backFaceTags], tagDefById);
+    const byTagId = new Map<string, (typeof expandedFrontBack)[0]>();
+    for (const t of expandedFrontBack) {
+      if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
+    }
+    const expandedCardLevel = expandChildren(cardLevelTags, tagDefById);
+    for (const t of expandedCardLevel) {
+      if (!byTagId.has(t.tagId)) byTagId.set(t.tagId, t);
+    }
+
+    const tagged = {
+      ...werewolf,
+      tags: [...byTagId.values()],
+    };
+    // effect.has_flying is a matchCard rule that matches Flying keyword.
+    // The werewolf has Flying in its keywords, so it fires at card level (no face).
+    // This test documents that matchCard-only keyword rules don't get per-face attribution.
+    const flying = tagged.tags.find((t) => t.tagId === 'effect.has_flying');
+    expect(flying).toBeDefined();
+    expect(flying?.face).toBeUndefined();
   });
 });

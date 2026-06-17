@@ -39,13 +39,14 @@
       "cmc": 3,
       "type_line": "Creature — Human Werewolf // Creature — Werewolf",
       "color_identity": ["R"],
+      "keywords": ["Flying", "Transform"],
       "rarity": "rare",
       "card_faces": [
         {
           "name": "Were Front",
           "mana_cost": "{2}{R}",
           "type_line": "Creature — Human Werewolf",
-          "oracle_text": "At the beginning of each upkeep, if no spells were cast last turn, transform Were Front.",
+          "oracle_text": "Trample\nAt the beginning of each upkeep, if no spells were cast last turn, transform Were Front.",
           "colors": ["R"], "power": "2", "toughness": "2",
           "image_uris": { "normal": "https://example.test/were-front.jpg" }
         },
@@ -53,7 +54,7 @@
           "name": "Were Back",
           "mana_cost": "",
           "type_line": "Creature — Werewolf",
-          "oracle_text": "Flying. At the beginning of each upkeep, if a player cast two or more spells last turn, transform Were Back.",
+          "oracle_text": "Flying\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Were Back.",
           "colors": ["R"], "power": "3", "toughness": "3",
           "image_uris": { "normal": "https://example.test/were-back.jpg" }
         }
