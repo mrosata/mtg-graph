@@ -55,6 +55,63 @@ function renderDrawer(card: Card) {
   );
 }
 
+function splitCard(): Card {
+  return {
+    oracleId: 'fire-ice', name: 'Fire // Ice',
+    set: 'tdm', printings: ['tdm'], collectorNumber: '3',
+    manaCost: '{1}{R}', cmc: 2, colors: ['R','U'], colorIdentity: ['R','U'],
+    typeLine: 'Instant // Instant', types: ['Instant'],
+    subtypes: [], supertypes: [],
+    oracleText: 'Fire deals 2 damage...\n\nTap target permanent. Draw a card.',
+    keywords: [], power: null, toughness: null,
+    rarity: 'uncommon', imageUrl: 'http://test/fire-ice.jpg',
+    layout: 'split',
+    faces: [
+      { name: 'Fire', typeLine: 'Instant', types: ['Instant'], subtypes: [], supertypes: [],
+        oracleText: 'Fire deals 2 damage divided as you choose among one or two targets.',
+        manaCost: '{1}{R}', colors: ['R'], power: null, toughness: null },
+      { name: 'Ice', typeLine: 'Instant', types: ['Instant'], subtypes: [], supertypes: [],
+        oracleText: 'Tap target permanent. Draw a card.',
+        manaCost: '{1}{U}', colors: ['U'], power: null, toughness: null },
+    ],
+    tags: [
+      { tagId: 'effect.deal_damage', axis: 'effect', evidence: 'fire', face: 'front' },
+      { tagId: 'effect.tap_permanent', axis: 'effect', evidence: 'ice', face: 'back' },
+    ],
+  };
+}
+
+describe('CardDetailDrawer split/adventure', () => {
+  beforeEach(() => {
+    useGraphStore.setState({
+      cards: new Map([['fire-ice', splitCard()]]),
+      edges: new Map(), edgesInbound: new Map(),
+      tagCatalog: new Map([
+        ['effect.deal_damage', { tagId: 'effect.deal_damage', axis: 'effect', label: 'Deal damage', description: '', pairsWith: [] }],
+        ['effect.tap_permanent', { tagId: 'effect.tap_permanent', axis: 'effect', label: 'Tap permanent', description: '', pairsWith: [] }],
+      ]) as any,
+    });
+  });
+
+  it('split: shows one image, both face names + both oracle text blocks, no flip button', () => {
+    renderDrawer(splitCard());
+    expect(screen.queryByLabelText(/Flip to back face/i)).toBeNull();
+    expect(screen.getByText(/^Fire$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Ice$/)).toBeInTheDocument();
+    expect(screen.getByText(/Fire deals 2 damage/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tap target permanent/i)).toBeInTheDocument();
+    const imgs = screen.getAllByRole('img');
+    expect(imgs.length).toBe(1);
+  });
+
+  it('split: tag chips show face badge', () => {
+    renderDrawer(splitCard());
+    // Two chips visible (no filtering), each tagged with its face
+    expect(screen.getByText(/Deal damage/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tap permanent/i)).toBeInTheDocument();
+  });
+});
+
 describe('CardDetailDrawer multi-face', () => {
   it('flippable: shows front face initially, flip button is rendered', () => {
     renderDrawer(dfcCard());

@@ -17,6 +17,7 @@ type Props = {
 };
 
 const FLIPPABLE: ReadonlySet<string> = new Set(['transform', 'modal_dfc', 'meld']);
+const STACKED: ReadonlySet<string> = new Set(['split', 'adventure']);
 
 export default function CardDetailDrawer({
   card,
@@ -31,6 +32,7 @@ export default function CardDetailDrawer({
   const [face, setFace] = useState<'front' | 'back'>('front');
 
   const isFlippable = FLIPPABLE.has(card.layout ?? 'normal') && (card.faces?.length ?? 0) === 2;
+  const isStacked = STACKED.has(card.layout ?? 'normal') && (card.faces?.length ?? 0) === 2;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -52,7 +54,9 @@ export default function CardDetailDrawer({
   const displayOracleText = activeFace?.oracleText ?? card.oracleText;
   const displayImage = activeFace?.imageUrl ?? card.imageUrl;
 
-  const visibleTags = isFlippable
+  const visibleTags = isStacked
+    ? card.tags
+    : isFlippable
     ? card.tags.filter((t) => t.face === face || t.face === undefined)
     : card.tags;
 
@@ -80,15 +84,35 @@ export default function CardDetailDrawer({
         )}
       </div>
 
-      <h2 className="mt-4 font-head text-3xl leading-tight text-vellum">{displayName}</h2>
-      <p className="font-head italic text-sm text-vellum-mute">{displayTypeLine}</p>
-      <div className="brass-hairline-soft mt-3" aria-hidden="true" />
-      <div className="mt-3 flex items-center gap-3">
-        <AddToDeckButton oracleId={card.oracleId} />
-      </div>
-      <div className="mt-3 whitespace-pre-wrap">
-        <OracleText text={displayOracleText} />
-      </div>
+      {isStacked ? (
+        <>
+          <h2 className="mt-4 font-head text-3xl leading-tight text-vellum">{card.name}</h2>
+          <p className="font-head italic text-sm text-vellum-mute">{card.typeLine}</p>
+          <div className="brass-hairline-soft mt-3" aria-hidden="true" />
+          <div className="mt-3 flex items-center gap-3">
+            <AddToDeckButton oracleId={card.oracleId} />
+          </div>
+          {card.faces!.map((f, i) => (
+            <div key={i} className="mt-4 border-t border-ink-line pt-3">
+              <h3 className="font-head text-xl text-vellum">{f.name}</h3>
+              <p className="font-head italic text-xs text-vellum-mute">{f.typeLine}</p>
+              <div className="mt-2 whitespace-pre-wrap"><OracleText text={f.oracleText} /></div>
+            </div>
+          ))}
+        </>
+      ) : (
+        <>
+          <h2 className="mt-4 font-head text-3xl leading-tight text-vellum">{displayName}</h2>
+          <p className="font-head italic text-sm text-vellum-mute">{displayTypeLine}</p>
+          <div className="brass-hairline-soft mt-3" aria-hidden="true" />
+          <div className="mt-3 flex items-center gap-3">
+            <AddToDeckButton oracleId={card.oracleId} />
+          </div>
+          <div className="mt-3 whitespace-pre-wrap">
+            <OracleText text={displayOracleText} />
+          </div>
+        </>
+      )}
       <div className="mt-3 flex flex-wrap gap-1">
         {collapseParentChildChips(visibleTags, tagCatalog).map((t, i) => (
           <TagChip key={`${t.tagId}-${i}`} tag={t} def={tagCatalog.get(t.tagId)} />
