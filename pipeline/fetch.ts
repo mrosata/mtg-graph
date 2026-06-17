@@ -1,9 +1,15 @@
 // pipeline/fetch.ts
-import type { Card, Color, Rarity } from '../shared/types';
+import type { Card, Color, Face, Rarity } from '../shared/types';
 import { DEFAULT_CACHE_DIR, readCachedSet, writeCachedSet } from './cache';
 
 type ScryfallFace = {
+  name?: string;
+  type_line?: string;
+  mana_cost?: string | null;
   oracle_text?: string;
+  colors?: string[];
+  power?: string | null;
+  toughness?: string | null;
   image_uris?: { normal?: string; large?: string };
 };
 
@@ -26,6 +32,7 @@ export type ScryfallCard = {
   rarity: string;
   mtgo_id?: number | null;
   arena_id?: number | null;
+  layout?: string;
   image_uris?: { normal?: string; large?: string };
   card_faces?: ScryfallFace[];
 };
@@ -38,11 +45,59 @@ type ScryfallPage = {
 
 const COLORS: ReadonlySet<string> = new Set(['W', 'U', 'B', 'R', 'G']);
 
+const MULTI_FACE_LAYOUTS: ReadonlySet<string> = new Set([
+  'transform',
+  'modal_dfc',
+  'meld',
+  'split',
+  'adventure',
+]);
+
+const PER_FACE_IMAGE_LAYOUTS: ReadonlySet<string> = new Set([
+  'transform',
+  'modal_dfc',
+  'meld',
+]);
+
+function asCardLayout(raw?: string): import('../shared/types').CardLayout {
+  if (raw === 'transform' || raw === 'modal_dfc' || raw === 'meld' || raw === 'split' || raw === 'adventure') return raw;
+  return 'normal';
+}
+
 export function stripScryfallCard(raw: ScryfallCard): Card {
   const { types, subtypes, supertypes } = parseTypeLine(raw.type_line);
+
+  const rawLayout = raw.layout;
+  const layout = asCardLayout(rawLayout);
+
+  const buildFace = (f: ScryfallFace): Face => {
+    const { types: ft, subtypes: fs, supertypes: fp } = parseTypeLine(f.type_line ?? '');
+    const face: Face = {
+      name: f.name ?? '',
+      typeLine: f.type_line ?? '',
+      types: ft, subtypes: fs, supertypes: fp,
+      oracleText: f.oracle_text ?? '',
+      manaCost: f.mana_cost ?? null,
+      colors: (f.colors ?? []).filter((c): c is Color => COLORS.has(c)),
+      power: f.power ?? null,
+      toughness: f.toughness ?? null,
+    };
+    if (rawLayout && PER_FACE_IMAGE_LAYOUTS.has(rawLayout)) {
+      const img = f.image_uris?.normal ?? f.image_uris?.large;
+      if (img) face.imageUrl = img;
+    }
+    return face;
+  };
+
+  const faces: Face[] | undefined =
+    rawLayout && MULTI_FACE_LAYOUTS.has(rawLayout) && raw.card_faces && raw.card_faces.length === 2
+      ? raw.card_faces.map(buildFace)
+      : undefined;
+
   const image =
     raw.image_uris?.normal ??
     raw.image_uris?.large ??
+    faces?.[0]?.imageUrl ??
     raw.card_faces?.[0]?.image_uris?.normal ??
     raw.card_faces?.[0]?.image_uris?.large ??
     '';
@@ -79,6 +134,8 @@ export function stripScryfallCard(raw: ScryfallCard): Card {
     rarity: normalizeRarity(raw.rarity),
     imageUrl: image,
     mtgoId: raw.mtgo_id ?? null,
+    layout,
+    ...(faces ? { faces } : {}),
     printingDetails: [{
       set: raw.set,
       collectorNumber: raw.collector_number,
