@@ -1,0 +1,121 @@
+{
+  "data": [
+    {
+      "object": "card",
+      "oracle_id": "fixture-peter-parker",
+      "name": "Peter Parker // Amazing Spider-Man",
+      "layout": "modal_dfc",
+      "set": "spm", "collector_number": "10",
+      "cmc": 2,
+      "type_line": "Legendary Creature — Human // Legendary Creature — Spider",
+      "color_identity": ["G","U","W"],
+      "keywords": ["Transform"],
+      "rarity": "mythic",
+      "card_faces": [
+        {
+          "name": "Peter Parker",
+          "mana_cost": "{1}{W}",
+          "type_line": "Legendary Creature — Human Scientist Hero",
+          "oracle_text": "When Peter Parker enters, create a 2/1 green Spider creature token with reach.",
+          "colors": ["W"], "power": "0", "toughness": "1",
+          "image_uris": { "normal": "https://example.test/peter-front.jpg" }
+        },
+        {
+          "name": "Amazing Spider-Man",
+          "mana_cost": "{1}{G}{W}{U}",
+          "type_line": "Legendary Creature — Spider Human Hero",
+          "oracle_text": "Vigilance, reach\nEach legendary spell you cast that's one or more colors has web-slinging {G}{W}{U}.",
+          "colors": ["G","U","W"], "power": "4", "toughness": "4",
+          "image_uris": { "normal": "https://example.test/peter-back.jpg" }
+        }
+      ]
+    },
+    {
+      "object": "card",
+      "oracle_id": "fixture-werewolf",
+      "name": "Were Front // Were Back",
+      "layout": "transform",
+      "set": "tdm", "collector_number": "1",
+      "cmc": 3,
+      "type_line": "Creature — Human Werewolf // Creature — Werewolf",
+      "color_identity": ["R"],
+      "rarity": "rare",
+      "card_faces": [
+        {
+          "name": "Were Front",
+          "mana_cost": "{2}{R}",
+          "type_line": "Creature — Human Werewolf",
+          "oracle_text": "At the beginning of each upkeep, if no spells were cast last turn, transform Were Front.",
+          "colors": ["R"], "power": "2", "toughness": "2",
+          "image_uris": { "normal": "https://example.test/were-front.jpg" }
+        },
+        {
+          "name": "Were Back",
+          "mana_cost": "",
+          "type_line": "Creature — Werewolf",
+          "oracle_text": "Flying. At the beginning of each upkeep, if a player cast two or more spells last turn, transform Were Back.",
+          "colors": ["R"], "power": "3", "toughness": "3",
+          "image_uris": { "normal": "https://example.test/were-back.jpg" }
+        }
+      ]
+    },
+    {
+      "object": "card",
+      "oracle_id": "fixture-meld",
+      "name": "Meld Parent // Melded Form",
+      "layout": "meld",
+      "set": "tdm", "collector_number": "2",
+      "cmc": 4,
+      "type_line": "Legendary Creature — Hero // Legendary Creature — Hero",
+      "color_identity": ["W"],
+      "rarity": "mythic",
+      "card_faces": [
+        { "name": "Meld Parent", "mana_cost": "{3}{W}", "type_line": "Legendary Creature — Hero",
+          "oracle_text": "Vigilance.", "colors": ["W"], "power": "3", "toughness": "3",
+          "image_uris": { "normal": "https://example.test/meld-front.jpg" } },
+        { "name": "Melded Form", "mana_cost": "", "type_line": "Legendary Creature — Hero",
+          "oracle_text": "Flying, vigilance, trample.", "colors": ["W"], "power": "8", "toughness": "8",
+          "image_uris": { "normal": "https://example.test/meld-back.jpg" } }
+      ]
+    },
+    {
+      "object": "card",
+      "oracle_id": "fixture-split",
+      "name": "Fire // Ice",
+      "layout": "split",
+      "set": "tdm", "collector_number": "3",
+      "cmc": 2,
+      "type_line": "Instant // Instant",
+      "color_identity": ["R","U"],
+      "rarity": "uncommon",
+      "image_uris": { "normal": "https://example.test/fire-ice.jpg" },
+      "card_faces": [
+        { "name": "Fire", "mana_cost": "{1}{R}", "type_line": "Instant",
+          "oracle_text": "Fire deals 2 damage divided as you choose among one or two targets.",
+          "colors": ["R"], "power": null, "toughness": null },
+        { "name": "Ice", "mana_cost": "{1}{U}", "type_line": "Instant",
+          "oracle_text": "Tap target permanent. Draw a card.",
+          "colors": ["U"], "power": null, "toughness": null }
+      ]
+    },
+    {
+      "object": "card",
+      "oracle_id": "fixture-adventure",
+      "name": "Brave Knight // Heroic Charge",
+      "layout": "adventure",
+      "set": "tdm", "collector_number": "4",
+      "cmc": 2,
+      "type_line": "Creature — Human Knight // Instant — Adventure",
+      "color_identity": ["W"],
+      "rarity": "uncommon",
+      "image_uris": { "normal": "https://example.test/adventure.jpg" },
+      "card_faces": [
+        { "name": "Brave Knight", "mana_cost": "{1}{W}", "type_line": "Creature — Human Knight",
+          "oracle_text": "First strike.", "colors": ["W"], "power": "2", "toughness": "2" },
+        { "name": "Heroic Charge", "mana_cost": "{W}", "type_line": "Instant — Adventure",
+          "oracle_text": "Creatures you control get +1/+1 until end of turn.",
+          "colors": ["W"], "power": null, "toughness": null }
+      ]
+    }
+  ]
+}
