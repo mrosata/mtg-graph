@@ -45,7 +45,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   const importDeck = useDeckStore((s) => s.importDeck);
 
   // Decks-only mode is Player.log only — the JSON export carries no decks.
-  const [source, setSource] = useState<Source>('log');
+  // Full mode no longer offers Player.log; only JSON and Live scan.
+  const [source, setSource] = useState<Source>('json');
   const effectiveSource: Source = mode === 'decks-only' ? 'log' : source;
 
   const [state, setState] = useState<ParseState>({ kind: 'idle' });
@@ -333,10 +334,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
       {mode === 'full' && (
         <div className="mb-3 rounded border border-ink-line-2 bg-ink-raised px-3 py-2 text-xs text-vellum-dim">
           <span className="font-semibold text-brass-hi">Heads up — </span>
-          MTGA's <code className="text-vellum-mute">Player.log</code> only carries
-          collection data on <strong>Windows</strong> with Detailed Logs enabled.
-          Mac and Linux clients no longer write the event. If that's you, switch
-          to <strong>Collection JSON</strong> below — produced by{' '}
+          Two ways to bring in your collection:{' '}
+          <strong>Collection JSON</strong> (produced by{' '}
           <a
             href="https://github.com/NthPhantom10/MTGA-collection-exporter"
             target="_blank"
@@ -345,9 +344,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           >
             MTGA-collection-exporter
           </a>
-          {' '}(Windows-side, but the JSON file is portable).
-          {' '}On <strong>Mac</strong>, skip the file entirely — use{' '}
-          <strong>Live scan</strong> above (one-click launcher reads Arena directly).
+          , Windows-side but the file is portable), or{' '}
+          <strong>Live scan</strong> (one-click launcher reads Arena directly on Mac).
         </div>
       )}
 
@@ -357,15 +355,6 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           aria-label="MTGA source"
           className="mb-3 flex gap-1 text-sm"
         >
-          <SourceButton
-            active={source === 'log'}
-            onClick={() => {
-              setSource('log');
-              resetParseState();
-            }}
-          >
-            Player.log
-          </SourceButton>
           <SourceButton
             active={source === 'json'}
             onClick={() => {

@@ -61,54 +61,10 @@ describe('MtgaImportPanel (full mode)', () => {
     importDeck.mockClear();
   });
 
-  it('library-only path: imports library, no decks', async () => {
-    const onClose = vi.fn();
-    render(<MtgaImportPanel mode="full" onClose={onClose} />);
-
-    const fileInput = screen.getByLabelText(/Choose Player\.log/i);
-    fireEvent.change(fileInput, { target: { files: [fileFrom(healthy)] } });
-
-    await waitFor(() =>
-      expect(screen.getByText(/Imported.*cards/i)).toBeInTheDocument(),
-    );
-    fireEvent.click(screen.getByRole('button', { name: /Import library/i }));
-
-    await waitFor(() => expect(importLibrary).toHaveBeenCalledTimes(1));
-    expect(importDeck).not.toHaveBeenCalled();
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
-  });
-
-  it('library + decks path: opt-in checkbox -> checklist -> imports selected decks', async () => {
-    const onClose = vi.fn();
-    render(<MtgaImportPanel mode="full" onClose={onClose} />);
-
-    fireEvent.change(screen.getByLabelText(/Choose Player\.log/i), {
-      target: { files: [fileFrom(healthy)] },
-    });
-    await waitFor(() => screen.getByText(/Imported.*cards/i));
-
-    fireEvent.click(screen.getByLabelText(/Also import my MTGA decks/i));
-    await waitFor(() => screen.getByText('Mono-Red Aggro'));
-    fireEvent.click(screen.getByLabelText('Mono-Red Aggro'));
-    fireEvent.click(
-      screen.getByRole('button', { name: /Import library \+ 1 deck/i }),
-    );
-
-    await waitFor(() => expect(importLibrary).toHaveBeenCalled());
-    expect(importDeck).toHaveBeenCalledTimes(1);
-    expect(importDeck.mock.calls[0]![0]).toBe('Mono-Red Aggro');
-  });
-
-  it('shows an error when the file contains neither event', async () => {
-    render(<MtgaImportPanel mode="full" onClose={() => {}} />);
-    fireEvent.change(screen.getByLabelText(/Choose Player\.log/i), {
-      target: { files: [new File(['[Authenticate] hello\n'], 'Player.log')] },
-    });
-    await waitFor(() =>
-      expect(
-        screen.getByText(/Neither a collection snapshot nor decks/i),
-      ).toBeInTheDocument(),
-    );
+  it('full mode no longer offers Player.log as a source', () => {
+    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
+    expect(screen.queryByRole('tab', { name: /Player\.log/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Choose Player\.log/i)).not.toBeInTheDocument();
   });
 });
 
@@ -161,18 +117,11 @@ describe('MtgaImportPanel (JSON source)', () => {
     importDeck.mockClear();
   });
 
-  it('renders source selector in full mode and defaults to Player.log', () => {
+  it('renders source selector in full mode and defaults to Collection JSON', () => {
     render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
-    expect(screen.getByRole('tab', { name: /Player\.log/i })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: /Collection JSON/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Choose Player\.log/i)).toBeInTheDocument();
-  });
-
-  it('switching to JSON source changes the file picker label', () => {
-    render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
-    fireEvent.click(screen.getByRole('tab', { name: /Collection JSON/i }));
+    expect(screen.getByRole('tab', { name: /Collection JSON/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /Live scan/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Choose collection JSON/i)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Choose Player\.log/i)).not.toBeInTheDocument();
   });
 
   it('JSON path: parses, resolves via name lookup, imports library', async () => {

@@ -97,7 +97,7 @@ describe('ImportLibraryModal', () => {
   it('switches to the MTG Arena tab when clicked', () => {
     render(<ImportLibraryModal onClose={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /MTG Arena/i }));
-    expect(screen.getByLabelText(/Choose Player\.log/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Choose collection JSON/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/Choose Manabox CSV/i)).not.toBeInTheDocument();
   });
 });
