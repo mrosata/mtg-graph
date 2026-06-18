@@ -188,4 +188,22 @@ describe('effect.deals_damage', () => {
     const c = card('Big Mole', 'when __self__ enters, __self__ deals 2 damage.');
     expect(rule.matchCard!(c, c.oracleText)).toBe(false);
   });
+
+  // v0.43.0 — period-prefixed gendered pronoun: "put a counter on __self__.
+  // he deals N damage" (Crossbones, Malicious Mercenary shape). The period
+  // boundary prevents the existing IT lookbehind (", "/"/"and ") from firing,
+  // so this needs its own matchCard arm.
+  describe('matchCard period-gendered pronoun (v0.43.0)', () => {
+    const fakeCard = { name: 'Crossbones, Malicious Mercenary', types: ['Creature'], keywords: [] } as any;
+
+    it('fires on ". he deals N damage" after __SELF__ reference', () => {
+      const t = 'whenever another villain you control enters, put a +1/+1 counter on __self__. he deals 2 damage to each opponent.';
+      expect(rule.matchCard!(fakeCard, t)).toBeTruthy();
+    });
+
+    it('does NOT fire when no __SELF__ precedes the pronoun (token-FP guard)', () => {
+      const t = 'create a 2/2 token. he deals 2 damage to target player.';
+      expect(rule.matchCard!(fakeCard, t)).toBeFalsy();
+    });
+  });
 });

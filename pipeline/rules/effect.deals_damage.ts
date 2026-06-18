@@ -105,6 +105,20 @@ export const rule: Rule = {
   // matchCard branch uses the card's first name word as a self-ref subject.
   matchCard: (card, text) => {
     if (!card.name) return false;
+    // v0.43.0 — period-prefixed gendered pronoun: "put a counter on __self__.
+    // he deals N damage" — the period boundary prevents the IT lookbehind
+    // (", " / ": " / "and ") from matching. Token-FP guard: require
+    // __self__ to precede the pronoun so "create a token. he deals" doesn't
+    // fire — the token, not the host, would be the dealer.
+    if (text.includes('__self__')) {
+      const PERIOD_GENDERED = /\. (?:he|she|they) deal[s]? \d+ (?:combat )?damage\b/;
+      const m = text.match(PERIOD_GENDERED);
+      if (m && m.index !== undefined) {
+        const pronounIdx = m.index;
+        const selfIdx = text.lastIndexOf('__self__', pronounIdx);
+        if (selfIdx !== -1) return { evidence: m[0].trim() };
+      }
+    }
     const firstWord = card.name.split(/\s+/)[0];
     if (!firstWord || firstWord.length < 4) return false;
     // Only fire when the full name didn't already become __SELF__ via the

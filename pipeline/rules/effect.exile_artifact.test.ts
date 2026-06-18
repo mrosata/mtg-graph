@@ -34,6 +34,10 @@ describe('effect.exile_artifact', () => {
     // is a flicker (bounce/blink axis), not removal. effect.bounce_artifact covers it.
     ['{1}{w}{u}: exile another target creature or artifact you control. return it to the battlefield under its owner\'s control at the beginning of the next end step.'],
     ['exile target artifact. return it to the battlefield under its owner\'s control at the beginning of the next end step.'],
+    // v0.43.0 — Thor FP: "exile target equipment, instant, or sorcery card from
+    // your graveyard" is graveyard-zone removal (effect.cast_from_exile territory),
+    // not battlefield artifact removal. GRAVEYARD_TAIL guard must suppress it.
+    ['exile target equipment, instant, or sorcery card from your graveyard.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

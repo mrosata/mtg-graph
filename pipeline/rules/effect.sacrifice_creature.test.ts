@@ -156,5 +156,31 @@ describe('effect.sacrifice_creature', () => {
     ])('does NOT match without same-card token creation: %s', (text) => {
       expect(rule.match!(text)).toBe(false);
     });
+
+    // v0.43.0 — Sub-fix 6b: "artifact creature token" must not leak "artifact"
+    // as a token subtype. Castle Doom shape: creates an artifact creature token
+    // and then says "sacrifice an artifact" — the TYPE_WORDS filter prevents
+    // "artifact" from being added to collectTokenSubtypes.
+    it('does NOT match when token type word is a permanent-type noun (Sub-fix 6b)', () => {
+      const text = 'create a 1/1 colorless artifact creature token. sacrifice an artifact: draw a card.';
+      expect(rule.match!(text)).toBe(false);
+    });
+  });
+
+  // v0.43.0 — Sub-fix 6a: tighter REANIMATE_VERB gate. Robot Domination shape:
+  // "whenever one or more creature cards are put into your graveyard, sacrifice it"
+  // has "creature cards" in a TRIGGER CONDITION, not a reanimate clause — must
+  // not match because no reanimate verb precedes the "creature card(s)" mention.
+  describe('matchAnaphoricReanimateSac tighter gate (v0.43.0)', () => {
+    it('does NOT fire on trigger-condition "creature cards into graveyard, sacrifice it" (no reanimate verb)', () => {
+      const text = 'whenever one or more creature cards are put into your graveyard, sacrifice it.';
+      expect(rule.match!(text)).toBe(false);
+    });
+
+    // Positive that must still match: a legitimate reanimate-then-sac frame.
+    it('DOES fire on reanimate-then-sac frame (REANIMATE_VERB present)', () => {
+      const text = 'put target creature card from your graveyard onto the battlefield. sacrifice it at the beginning of the next end step.';
+      expect(rule.match!(text)).toBeTruthy();
+    });
   });
 });

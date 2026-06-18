@@ -28,6 +28,9 @@ describe('condition.cares_legendary', () => {
     ['the legendary tale of the lost city.'],
     // Negated form
     ['non-legendary creatures get +1/+1.'],
+    // v0.43.0 — Sauron FP: "legendary creature" appears only inside a Ward
+    // cost — the opponent pays it, not the controller. Must NOT fire.
+    ['ward—sacrifice a legendary artifact or legendary creature.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

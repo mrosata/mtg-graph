@@ -24,11 +24,22 @@ export const tagDef: TagDef = {
 const PATTERN =
   /(?<!non-)\blegendary\s+(?:creatures?|permanents?|spells?|cards?)\b/;
 
+// v0.43.0 — Sauron FP: "Ward—Sacrifice a legendary artifact or legendary
+// creature" fires PATTERN on "legendary creature" inside the Ward cost.
+// Ward is paid by the OPPONENT targeting this card, not by the controller;
+// matching it would create misleading legendary-payoff pairings. Scrub
+// the Ward-cost segment before running PATTERN.
+const NEGATIVE_WARD = /\bward\s*[—\-][^.]*?(?=\.|$)/g;
+
 export const rule: Rule = {
   id: 'condition.cares_legendary',
   axis: 'condition',
   match: (t) => {
-    const m = t.match(PATTERN);
+    let scrubbed = t;
+    for (const m of t.matchAll(NEGATIVE_WARD)) {
+      scrubbed = scrubbed.slice(0, m.index!) + ' '.repeat(m[0].length) + scrubbed.slice(m.index! + m[0].length);
+    }
+    const m = scrubbed.match(PATTERN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['legendary'], proximity: ['you control', 'for each', 'another', 'two or more'], window: 6 },

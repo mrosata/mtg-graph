@@ -100,4 +100,17 @@ describe('effect.sacrifice_enchantment', () => {
     const c = card(['Enchantment'], 'enchanted creature gets +1/+1');
     expect(rule.matchCard!(c, c.oracleText)).toBe(false);
   });
+
+  // v0.43.0 — Sub-fix 6c: Robot Domination shape: Enchantment card that uses
+  // "sacrifice it" (pronoun anaphor) rather than "sacrifice __self__" or a
+  // named subtype. SELF_SAC_PRONOUN arm fires for Enchantment cards.
+  it('matchCard: fires on "sacrifice it" when card type includes Enchantment (Sub-fix 6c)', () => {
+    const c = card(['Enchantment'], 'whenever this enchantment enters, put a control counter on target creature. at the beginning of your end step, sacrifice it.');
+    expect(rule.matchCard!(c, c.oracleText)).toBeTruthy();
+  });
+
+  it('matchCard: does NOT fire on "sacrifice it" when card is not an Enchantment (Sub-fix 6c)', () => {
+    const c = card(['Creature'], 'whenever this creature attacks, put a counter on it. sacrifice it at the beginning of the next end step.');
+    expect(rule.matchCard!(c, c.oracleText)).toBe(false);
+  });
 });

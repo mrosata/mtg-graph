@@ -114,7 +114,20 @@ describe('effect.reanimate', () => {
     // `it` / `that creature` / `them` are admitted). Adding `that card` to
     // the pronoun alternation.
     ["whenever a nontoken, non-angel creature you control dies, return that card to the battlefield under its owner's control with a +1/+1 counter on it"],
+    // v0.43.0 — Hellcat: "when __self__ dies, return her to the battlefield tapped."
+    // Gendered pronoun "her" (and "him") must match alongside "it"/"that card"/"them".
+    ['when __self__ dies, return her to the battlefield tapped.'],
   ])('matches granted dies-then-reanimate triggers: %s', (text) => {
+    expect(rule.match(text)).toBeTruthy();
+  });
+
+  // v0.43.0 — sac-then-return: "sacrifice a creature. return that card to
+  // the battlefield tapped." (Heart-Shaped Herb shape). The sacrifice puts
+  // the creature in the graveyard; "that card" reanimates it.
+  it.each([
+    ['sacrifice a creature. return that card to the battlefield tapped.'],
+    ['sacrifice a permanent. return that card onto the battlefield under your control.'],
+  ])('matches sac-then-return (Heart-Shaped Herb shape): %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
 

@@ -52,8 +52,9 @@ const PATTERN_2 = /\b(?:you may )?cast (?:a |an )?spells? this way\b/;
 // v0.22.0 — Painter's Studio / Defaced Gallery: anaphoric "play them/it/those
 // cards" follows an exile-top-N clause. Same backward exile-window guard as
 // PATTERN_2 keeps it from FPing on graveyard reanimation.
+// v0.43.0 — add "that card" to the pronoun alternation (Moonstone, Thor shapes).
 const PATTERN_PLAY_ANAPHOR =
-  /\b(?:you may )?play (?:it|them|those cards)(?:\s+(?:this turn|until end of turn|until the end of your next turn))?\b/;
+  /\b(?:you may )?play (?:it|them|those cards|that card)(?:\s+(?:this turn|until end of turn|until the end of your next turn))?\b/;
 
 // v0.38.0 — Batch 12b: anaphoric "from among them|those cards" form.
 // Abstract Performance: "exile the top four cards of your library. ... you

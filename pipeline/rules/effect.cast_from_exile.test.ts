@@ -57,6 +57,10 @@ describe('effect.cast_from_exile', () => {
     // arm is gated on a preceding `exile` clause within ~200 chars
     // (mirrors PATTERN_2 / PATTERN_PLAY_ANAPHOR backward-window guard).
     ['exile the top four cards of your library in a face-down pile, then exile the top four cards of your library in a face-up pile. an opponent chooses one of those piles. put that pile into your graveyard. look at the cards in the other pile. you may cast a spell from among them without paying its mana cost. put the rest into your hand.'],
+    // v0.43.0 — "play that card" anaphoric arm (Moonstone, Thor shapes).
+    // "that card" binds to an earlier exile clause; same impulse-cast semantic.
+    ['exile that creature. you may play that card.'],
+    ['exile target equipment, instant, or sorcery card from your graveyard. until the end of your next turn, you may play that card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -35,6 +35,11 @@ const PATTERN_ARTIFACT_SUBTYPE =
 // contains a "return … to the battlefield" clause.
 const FLICKER_TAIL = /\breturn (?:it|them|that artifact|target artifact|those (?:artifacts|permanents)|each of those cards)\b[^.]*?\bto the battlefield\b/;
 
+// v0.43.0 — Thor FP: "exile target equipment, instant, or sorcery card FROM
+// YOUR GRAVEYARD" is graveyard-removal, not battlefield-removal of an artifact.
+// Suppress when the 80-char tail after the match contains "from <X> graveyard".
+const GRAVEYARD_TAIL = /\bfrom (?:a|your|their|an opponent'?s|any) graveyards?\b/;
+
 // Split-mode punisher: "exile X. if you controlled it, return it to the
 // battlefield ..." gates the return on ownership. For opponent-controlled
 // targets the card is removal-with-replacement, not flicker — Unyielding
@@ -53,6 +58,10 @@ export const rule: Rule = {
       t.match(PATTERN_VEHICLE) ??
       t.match(PATTERN_ARTIFACT_SUBTYPE);
     if (!m || m.index === undefined) return false;
+    // v0.43.0 — graveyard-source guard: "exile target equipment/artifact ... from
+    // your graveyard" is graveyard-removal, not battlefield artifact removal.
+    const graveyardWindow = t.slice(m.index + m[0].length, m.index + m[0].length + 80);
+    if (GRAVEYARD_TAIL.test(graveyardWindow)) return false;
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);
     const flicker = FLICKER_TAIL.exec(tail);
     if (flicker && flicker.index !== undefined) {

@@ -115,15 +115,24 @@ const TOKEN_CREATE_TYPED =
 const TOKEN_REASSIGN_TYPE =
   /\bis\s+a\s+([a-z]+)\s+in\s+addition\s+to\s+its\s+other\s+types/g;
 
+// v0.43.0 — Sub-fix 6b: filter out permanent type words that should never be
+// creature subtypes. Castle Doom creates "artifact creature tokens" and then
+// "sacrifice an artifact" — the word "artifact" was being captured as a
+// subtype from the token descriptor and then matching a sac-artifact clause.
+const TYPE_WORDS = new Set([
+  'artifact', 'enchantment', 'creature', 'land', 'instant',
+  'sorcery', 'planeswalker', 'battle', 'tribal',
+]);
+
 function collectTokenSubtypes(t: string): Set<string> {
   const out = new Set<string>();
   for (const m of t.matchAll(TOKEN_CREATE_TYPED)) {
     const word = m[1];
-    if (word && word !== 'creature' && word !== 'colorless') out.add(word);
+    if (word && word !== 'creature' && word !== 'colorless' && !TYPE_WORDS.has(word)) out.add(word);
   }
   for (const m of t.matchAll(TOKEN_REASSIGN_TYPE)) {
     const word = m[1];
-    if (word) out.add(word);
+    if (word && !TYPE_WORDS.has(word)) out.add(word);
   }
   return out;
 }
@@ -148,10 +157,18 @@ function matchTokenSubtypeSac(t: string): { evidence: string } | false {
 // must appear earlier in oracle text) keeps the broadening narrow:
 // non-creature reanimation ("search for an artifact card ... sacrifice it")
 // or unrelated "sacrifice them" frames (lands, etc.) won't fire.
+// v0.43.0 — Sub-fix 6a: tighten the antecedent gate to require a reanimate
+// VERB context (return / put / reanimate / bring) near "creature card(s)".
+// The previous "creature card" bare check was too broad — e.g. Robot Domination
+// ("whenever one or more creature cards are put into your graveyard, sacrifice it")
+// matched because "creature cards" appeared in a trigger condition, not a reanimate
+// source. Now we require the reanimation verb to confirm the creature-card binding.
 const PATTERN_ANAPHOR_SAC = /\bsacrifice(?:s)?\s+(?:them|it|those(?:\s+creatures?)?)\b/;
+const REANIMATE_VERB =
+  /\b(?:return(?:s|ed)?|put(?:s|ting)?|reanimate(?:s|d)?|bring(?:s)?|brought)\b[^.]{0,60}?\bcreatures?\s+cards?\b/;
 
 function matchAnaphoricReanimateSac(t: string): { evidence: string } | false {
-  if (!/\bcreatures?\s+cards?\b/.test(t)) return false;
+  if (!REANIMATE_VERB.test(t)) return false;
   const m = t.match(PATTERN_ANAPHOR_SAC);
   return m ? { evidence: m[0] } : false;
 }

@@ -77,12 +77,29 @@ const PATTERNS = [
   /\b(?:if|while|as long as)\s+you('ve| have)\s+cast\s+(?:an?|another|one)\s+(?:instant\s+or\s+sorcery|sorcery\s+or\s+instant|noncreature)\s+spell\b/,
 ];
 
+// v0.43.0 — Ironheart FP: "noncreature spells you cast have improvise" fires
+// PATTERN 5 (spell-anthem). Improvise/convoke/delve/affinity are cost-reduction
+// mechanics on spells, NOT payoffs for casting noncreature spells. Exclude the
+// grant frame when the anthem verb is one of these cost keywords. Anthem grants
+// of effect keywords (lifelink, cascade, etc.) are preserved.
+const COST_KEYWORDS = '(?:improvise|convoke|delve|affinity)';
+const NEGATIVE_COST_GRANT = new RegExp(
+  `\\bnoncreature spells? you (?:cast|control) (?:have|gain|has)\\s+${COST_KEYWORDS}\\b`,
+);
+
 export const rule: Rule = {
   id: 'condition.cares_noncreature_spell',
   axis: 'condition',
   match: (t) => {
+    // v0.43.0 — Ironheart FP guard: suppress cost-mechanism keyword grants
+    // before running the pattern loop. If the full text matches the cost-grant
+    // pattern, scrub that span so PATTERN 5 (spell-anthem) doesn't fire on it.
+    const costGrantMatch = NEGATIVE_COST_GRANT.exec(t);
+    const scrubbed = costGrantMatch
+      ? t.slice(0, costGrantMatch.index) + ' '.repeat(costGrantMatch[0].length) + t.slice(costGrantMatch.index + costGrantMatch[0].length)
+      : t;
     for (const p of PATTERNS) {
-      const m = t.match(p);
+      const m = scrubbed.match(p);
       if (m) return { evidence: m[0] };
     }
     return false;

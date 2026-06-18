@@ -38,6 +38,13 @@ const PATTERN_BROAD =
 // creature self-sac. Mirrors effect.sacrifice_artifact's SELF_SAC branch.
 const SELF_SAC = /\bsacrifices?\s+(?:this\s+)?__self__\b/;
 
+// v0.43.0 — Sub-fix 6c (Robot Domination): Enchantment cards that say
+// "sacrifice it" (pronoun anaphor referring to self) after an ability
+// that puts itself onto the battlefield / moves itself. The pronoun
+// "it" in "sacrifice it" refers to the Enchantment itself (not a creature).
+// Type-gated to Enchantment in matchCard to avoid false positives.
+const SELF_SAC_PRONOUN = /\bsacrifice(?:s)?\s+it\b/;
+
 // v0.14.1 — span regexes for edict / aristocrats-trigger contexts that should
 // NOT be tagged as a controller-side typed sacrifice. Inline copies per
 // AGREED PLAN; see effect.sacrifice_artifact.ts for rationale.
@@ -91,7 +98,7 @@ export const rule: Rule = {
   },
   matchCard: (card, text) => {
     if (!card.types.includes('Enchantment')) return false;
-    const m = text.match(SELF_SAC);
+    const m = text.match(SELF_SAC) ?? text.match(SELF_SAC_PRONOUN);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['sacrifice'], proximity: ['enchantment', 'permanent'], window: 8 },

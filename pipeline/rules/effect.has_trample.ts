@@ -1,13 +1,15 @@
 // pipeline/rules/effect.has_trample.ts
 //
-// Intrinsic-only — reads Scryfall's `keywords` array rather than the oracle
-// text. This avoids the recurring "keyword-grant leaking into has_<keyword>"
-// problem: cards that grant trample to others ("creatures you control have
-// trample") or to themselves conditionally ("this creature gains trample
-// until end of turn") are NOT intrinsic and shouldn't fire. The grants case
-// is handled by `effect.grants_trample`.
+// Intrinsic-only — requires the Trample keyword in Scryfall's `keywords` array
+// AND on a standalone keyword-block line via `isIntrinsicKeyword`. This avoids
+// the recurring "keyword-grant leaking into has_<keyword>" problem: token-grants
+// ("create a beast with trample"), anthem grants ("creatures you control have
+// trample"), and conditional self-grants ("this creature gains trample until end
+// of turn") all appear in Scryfall's keyword array but are NOT intrinsic.
+// The grants case is handled by `effect.grants_trample`.
 import type { Rule } from './types';
 import type { TagDef } from '../../shared/types';
+import { isIntrinsicKeyword } from '../normalize';
 
 export const tagDef: TagDef = {
   tagId: 'effect.has_trample',
@@ -20,5 +22,8 @@ export const tagDef: TagDef = {
 export const rule: Rule = {
   id: 'effect.has_trample',
   axis: 'effect',
-  matchCard: (card) => card.keywords.includes('Trample') ? { evidence: 'Trample' } : false,
+  matchCard: (card, oracleText) =>
+    card.keywords.includes('Trample') && isIntrinsicKeyword(oracleText, 'Trample')
+      ? { evidence: 'Trample' }
+      : false,
 };

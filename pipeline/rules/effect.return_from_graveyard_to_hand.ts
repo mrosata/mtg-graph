@@ -9,6 +9,18 @@ export const tagDef: TagDef = {
   pairsWith: ['condition.cares_graveyard'],
 };
 
+// v0.43.0 — Ares: "whenever a creature dies, return that card to its owner's
+// hand". The anaphoric "that card" binds to the creature that just died
+// (now in graveyard). Bounded to avoid FPs on reanimate-to-battlefield arms.
+const DIES_RETURN_TO_HAND =
+  /\bdies,\s*return (?:that card|it|them) to (?:its owner'?s|your) hand\b/;
+
+// v0.43.0 — Night Nurse: "target permanent card in your graveyard. Return it
+// to your hand." Two-sentence graveyard-to-hand recursion. Bounded windows
+// prevent spanning unrelated abilities.
+const TWO_SENTENCE_RETURN =
+  /\btarget (?:[\w\s]+\s+)?card[^.]{0,60}?in (?:your|a|an opponent'?s) graveyard\b[^.]{0,40}?\.\s+return it to (?:its owner'?s|your) hand\b/;
+
 export const rule: Rule = {
   id: 'effect.return_from_graveyard_to_hand',
   axis: 'effect',
@@ -39,7 +51,13 @@ export const rule: Rule = {
     const putFromAmongMilled = t.match(
       /\bput\s+(?:a |an |up to [\w\-]+ |any number of )?[^.]{0,40}?cards?\s+from among the (?:milled cards|cards milled this way)\s+into your hand\b/,
     );
-    return putFromAmongMilled ? { evidence: putFromAmongMilled[0] } : false;
+    if (putFromAmongMilled) return { evidence: putFromAmongMilled[0] };
+    // v0.43.0 — dies-trigger anaphoric return to hand (Ares shape).
+    const diesReturn = t.match(DIES_RETURN_TO_HAND);
+    if (diesReturn) return { evidence: diesReturn[0] };
+    // v0.43.0 — two-sentence graveyard-to-hand (Night Nurse shape).
+    const twoSentence = t.match(TWO_SENTENCE_RETURN);
+    return twoSentence ? { evidence: twoSentence[0] } : false;
   },
   nearMiss: { anchors: ['graveyard', 'graveyards'], proximity: ['return', 'hand'], window: 8 },
 };

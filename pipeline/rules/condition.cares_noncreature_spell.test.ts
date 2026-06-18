@@ -65,6 +65,11 @@ describe('condition.cares_noncreature_spell', () => {
     ['draw a card'],
     ['destroy target creature'],
     ['flying'],
+    // v0.43.0 — Ironheart FP: "noncreature spells you cast have improvise" is
+    // a cost-mechanism grant, not a noncreature-spell payoff. Must NOT fire.
+    ['noncreature spells you cast have improvise.'],
+    // Other cost-mechanism keywords that should also be excluded:
+    ['noncreature spells you control have convoke.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

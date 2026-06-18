@@ -30,6 +30,13 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // then-return-from-among-them frame as Greenhouse / Rickety Gazebo,
     // but with optional "you may" + `a` (singular indefinite) count.
     ['mill four cards, then you may return a permanent card from among them to your hand.'],
+    // v0.43.0 — Ares: dies-trigger anaphoric return to hand. "whenever a
+    // creature dies, return that card to its owner's hand." The "that card"
+    // binds to the creature in the graveyard.
+    ["whenever a creature dies, return that card to its owner's hand."],
+    // v0.43.0 — Night Nurse: two-sentence graveyard-to-hand. "target permanent
+    // card in your graveyard. return it to your hand."
+    ['target permanent card in your graveyard. return it to your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -46,6 +53,10 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // v0.30 — Group 30 — "from among the milled cards onto the battlefield"
     // is reanimation, not return-to-hand. Distinguish from the new arm.
     ['mill four cards. put a creature card from among the milled cards onto the battlefield'],
+    // v0.43.0 — negative regression: "return target creature card from your
+    // graveyard to the battlefield" is reanimation, not return-to-hand.
+    // The DIES_RETURN_TO_HAND arm must not catch reanimate-to-battlefield.
+    ['when __self__ enters, draw a card. return target creature card from your graveyard to the battlefield.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

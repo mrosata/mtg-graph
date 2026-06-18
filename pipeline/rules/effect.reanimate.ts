@@ -45,7 +45,8 @@ const PATTERNS = [
   // the battlefield...". Admit `that card` alongside `it`/`that creature`/
   // `them` in the pronoun alternation — same dies-trigger semantic with a
   // different anaphor noun.
-  /\bdies,(?:\s+if [^,.]{1,40},)?\s+return (?:it|that creature|that card|them) to the battlefield/,
+  // v0.43.0 — add `her|him` for gendered pronouns (Hellcat shape).
+  /\bdies,(?:\s+if [^,.]{1,40},)?\s+return (?:it|that creature|that card|them|her|him) to the battlefield/,
   // v0.20.0 — Come Back Wrong: anaphoric "if a creature card is put into
   // a graveyard this way, return it to the battlefield". The "this way"
   // (or "from the battlefield") anaphor binds back to a prior graveyard
@@ -130,6 +131,11 @@ const PATTERNS = [
   // the battlefield". Extends the existing dies-bridge anaphoric arm to
   // admit "is put into exile" alongside "dies" before the comma.
   /\b(?:dies\s+or\s+is\s+put\s+into\s+exile),\s+return (?:it|that creature|that card|them) to the battlefield/,
+  // v0.43.0 — sac-then-return (Heart-Shaped Herb shape): "sacrifice a
+  // creature. return that card to the battlefield tapped." The sacrifice
+  // puts the creature in the graveyard; the "that card" return clause is
+  // the reanimation. Bounded to avoid spanning unrelated effects.
+  /\bsacrifice(?:s)?\s[^.]{0,80}?(?:creature|permanent)\b[^.]{0,80}?\.\s*return (?:that card|it) (?:to|onto) (?:the )?battlefield/,
 ];
 
 export const rule: Rule = {

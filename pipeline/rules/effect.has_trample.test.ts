@@ -13,12 +13,20 @@ function card(keywords: string[], oracleText = ''): Card {
 }
 
 describe('effect.has_trample', () => {
+  // v0.43.0 — after isIntrinsicKeyword guard, positive rows must include
+  // realistic intrinsic-keyword oracle text so the guard fires correctly.
   it.each([
-    [['Trample']],
-    [['Flying', 'Trample']],
-    [['Trample', 'Vigilance']],
-  ])('matches when keywords include Trample: %j', (kw) => {
-    expect(rule.matchCard!(card(kw), '')).toBeTruthy();
+    [['Trample'], 'Trample'],
+    [['Flying', 'Trample'], 'Flying, trample'],
+    [['Trample', 'Vigilance'], 'Trample, vigilance'],
+  ])('matches when keyword Trample is intrinsic: %j', (kw, text) => {
+    expect(rule.matchCard!(card(kw, text), text.toLowerCase())).toBeTruthy();
+  });
+
+  // Multi-line keyword block
+  it('matches multi-line keyword block containing Trample', () => {
+    const text = 'Vigilance\nTrample';
+    expect(rule.matchCard!(card(['Trample', 'Vigilance'], text), text.toLowerCase())).toBeTruthy();
   });
 
   it.each([
@@ -42,7 +50,18 @@ describe('effect.has_trample', () => {
     expect(rule.matchCard!(c, c.oracleText)).toBe(false);
   });
 
+  // v0.43.0 — token-grant FP guard: "create a 4/4 colorless beast creature
+  // token with trample" puts Trample in Scryfall's keywords array but
+  // isIntrinsicKeyword should NOT fire because 'trample' appears in a prose
+  // line (contains the word "create" / has other keywords after comma / no
+  // standalone keyword-block line structure).
+  it('does not fire when Trample appears only in a token-grant clause', () => {
+    const c = card(['Trample'], 'create a 4/4 colorless beast creature token with trample.');
+    expect(rule.matchCard!(c, c.oracleText)).toBe(false);
+  });
+
   it('returns the matched keyword as evidence', () => {
-    expect(rule.matchCard!(card(['Trample']), '')).toEqual({ evidence: 'Trample' });
+    const text = 'Trample';
+    expect(rule.matchCard!(card(['Trample'], text), text.toLowerCase())).toEqual({ evidence: 'Trample' });
   });
 });
