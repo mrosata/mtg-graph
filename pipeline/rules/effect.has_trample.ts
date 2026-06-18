@@ -22,8 +22,12 @@ export const tagDef: TagDef = {
 export const rule: Rule = {
   id: 'effect.has_trample',
   axis: 'effect',
-  matchCard: (card, oracleText) =>
-    card.keywords.includes('Trample') && isIntrinsicKeyword(oracleText, 'Trample')
+  // Pass card.oracleText (raw, newlines preserved) — not the matchCard arg
+  // which is the normalized text (newlines collapsed). isIntrinsicKeyword
+  // splits on \n to find keyword-block lines, so the raw form is required.
+  // Mirrors has_flying.ts.
+  matchCard: (card) =>
+    card.keywords.includes('Trample') && isIntrinsicKeyword(card.oracleText, 'Trample')
       ? { evidence: 'Trample' }
       : false,
 };
