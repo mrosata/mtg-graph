@@ -37,6 +37,9 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // v0.43.0 — Night Nurse: two-sentence graveyard-to-hand. "target permanent
     // card in your graveyard. return it to your hand."
     ['target permanent card in your graveyard. return it to your hand.'],
+    // v0.43.0 — Night Nurse with modifier clause between graveyard locator
+    // and the sentence boundary (60→80 char window broadening).
+    ['choose target permanent card in your graveyard that was put there from anywhere this turn. return it to your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

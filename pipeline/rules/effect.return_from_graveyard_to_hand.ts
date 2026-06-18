@@ -19,7 +19,7 @@ const DIES_RETURN_TO_HAND =
 // to your hand." Two-sentence graveyard-to-hand recursion. Bounded windows
 // prevent spanning unrelated abilities.
 const TWO_SENTENCE_RETURN =
-  /\btarget (?:[\w\s]+\s+)?card[^.]{0,60}?in (?:your|a|an opponent'?s) graveyard\b[^.]{0,40}?\.\s+return it to (?:its owner'?s|your) hand\b/;
+  /\btarget (?:[\w\s]+\s+)?card[^.]{0,60}?in (?:your|a|an opponent'?s) graveyard\b[^.]{0,80}?\.\s+return it to (?:its owner'?s|your) hand\b/;
 
 export const rule: Rule = {
   id: 'effect.return_from_graveyard_to_hand',

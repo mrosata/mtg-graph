@@ -132,10 +132,12 @@ const PATTERNS = [
   // admit "is put into exile" alongside "dies" before the comma.
   /\b(?:dies\s+or\s+is\s+put\s+into\s+exile),\s+return (?:it|that creature|that card|them) to the battlefield/,
   // v0.43.0 — sac-then-return (Heart-Shaped Herb shape): "sacrifice a
-  // creature. return that card to the battlefield tapped." The sacrifice
-  // puts the creature in the graveyard; the "that card" return clause is
-  // the reanimation. Bounded to avoid spanning unrelated effects.
-  /\bsacrifice(?:s)?\s[^.]{0,80}?(?:creature|permanent)\b[^.]{0,80}?\.\s*return (?:that card|it) (?:to|onto) (?:the )?battlefield/,
+  // creature. (if you do,) return that card to the battlefield tapped."
+  // The sacrifice puts the creature in the graveyard; the "that card"
+  // return clause is the reanimation. Admits optional "if you do,"
+  // conditional connective between the two sentences. Bounded to avoid
+  // spanning unrelated effects.
+  /\bsacrifice(?:s)?\s[^.]{0,80}?(?:creature|permanent)\b[^.]{0,80}?\.\s*(?:if you do,\s*)?return (?:that card|it) (?:to|onto) (?:the )?battlefield/,
 ];
 
 export const rule: Rule = {

@@ -127,6 +127,9 @@ describe('effect.reanimate', () => {
   it.each([
     ['sacrifice a creature. return that card to the battlefield tapped.'],
     ['sacrifice a permanent. return that card onto the battlefield under your control.'],
+    // v0.43.0 — Heart-Shaped Herb full shape: "if you do," conditional
+    // connective between the sacrifice and the return clause.
+    ['you may sacrifice a creature. if you do, return that card to the battlefield under its owner\'s control with three +1/+1 counters on it.'],
   ])('matches sac-then-return (Heart-Shaped Herb shape): %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
