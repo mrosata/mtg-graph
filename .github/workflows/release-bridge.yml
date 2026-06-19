@@ -1,0 +1,108 @@
+name: release-bridge
+
+# Builds the MTGA live-scan helper for macOS + Windows via PyInstaller and
+# publishes the artifacts as a GitHub Release. Triggered by tags shaped
+# `bridge-v*` (e.g. bridge-v1.0.0) or by manual workflow_dispatch (for testing).
+
+on:
+  push:
+    tags:
+      - 'bridge-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            asset: MTGA-Bridge-mac.zip
+          - os: windows-2022
+            asset: MTGA-Bridge-windows.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          python -m pip install --upgrade pip
+          # pymem is Windows-only — install requests + pyinstaller only.
+          pip install requests pyinstaller
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt pyinstaller
+        shell: bash
+
+      - name: Build binary (macOS)
+        if: runner.os == 'macOS'
+        working-directory: scripts
+        run: |
+          pyinstaller --clean --noconfirm build/macos.spec
+          ls -la dist/
+          # Bundle binary + launcher into MTGA-Bridge folder, zip for download.
+          mkdir -p MTGA-Bridge
+          cp dist/mtga-bridge MTGA-Bridge/mtga-bridge
+          cp build/MTGA-Bridge.command MTGA-Bridge/MTGA-Bridge.command
+          chmod +x MTGA-Bridge/mtga-bridge MTGA-Bridge/MTGA-Bridge.command
+          # Use ditto rather than zip so macOS metadata survives the round trip.
+          ditto -c -k --keepParent MTGA-Bridge ../MTGA-Bridge-mac.zip
+          ls -la ../MTGA-Bridge-mac.zip
+
+      - name: Build binary (Windows)
+        if: runner.os == 'Windows'
+        working-directory: scripts
+        shell: bash
+        run: |
+          pyinstaller --clean --noconfirm build/windows.spec
+          ls -la dist/
+          mv dist/mtga-bridge.exe ../MTGA-Bridge-windows.exe
+          ls -la ../MTGA-Bridge-windows.exe
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    # Only publish on a real tag — workflow_dispatch builds upload artifacts
+    # so they're inspectable but don't cut a release.
+    if: startsWith(github.ref, 'refs/tags/bridge-v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifact tree
+        run: |
+          find artifacts -type f -print
+          mkdir -p release
+          find artifacts -type f \( -name '*.zip' -o -name '*.exe' \) -exec cp {} release/ \;
+          ls -la release/
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: MTGA Bridge ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            release/MTGA-Bridge-mac.zip
+            release/MTGA-Bridge-windows.exe

@@ -38,6 +38,23 @@ type ParseState =
 
 const KNOWN_SET_CODES = new Set(STANDARD_SET_CODES.map((c) => c.toLowerCase()));
 
+// GitHub Release downloads for the live-scan helper. The workflow
+// `release-bridge.yml` publishes these files on every `bridge-v*` tag.
+const BRIDGE_RELEASE_BASE =
+  'https://github.com/mrosata/mtg-graph/releases/latest/download';
+const BRIDGE_DL_MAC = `${BRIDGE_RELEASE_BASE}/MTGA-Bridge-mac.zip`;
+const BRIDGE_DL_WIN = `${BRIDGE_RELEASE_BASE}/MTGA-Bridge-windows.exe`;
+
+type Platform = 'mac' | 'windows' | 'other';
+
+function detectPlatform(): Platform {
+  if (typeof navigator === 'undefined') return 'other';
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('mac')) return 'mac';
+  if (ua.includes('win')) return 'windows';
+  return 'other';
+}
+
 export default function MtgaImportPanel({ mode, onClose }: Props) {
   const cards = useGraphStore((s) => s.cards);
   const importLibrary = useLibraryStore((s) => s.importLibrary);
@@ -89,7 +106,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
     setState({ kind: 'idle' });
     if (!health.online) {
       setScanMsg(
-        'Start the exporter first — double-click launch-mac.command, approve the password prompt, then Connect again.',
+        'Start the helper first — double-click MTGA-Bridge.command (Mac) or MTGA-Bridge.exe (Windows), then Connect again.',
       );
       return;
     }
@@ -331,23 +348,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
 
   return (
     <div>
-      {mode === 'full' && (
-        <div className="mb-3 rounded border border-ink-line-2 bg-ink-raised px-3 py-2 text-xs text-vellum-dim">
-          <span className="font-semibold text-brass-hi">Heads up — </span>
-          Two ways to bring in your collection:{' '}
-          <strong>Collection JSON</strong> (produced by{' '}
-          <a
-            href="https://github.com/NthPhantom10/MTGA-collection-exporter"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brass underline hover:text-brass-hi"
-          >
-            MTGA-collection-exporter
-          </a>
-          , Windows-side but the file is portable), or{' '}
-          <strong>Live scan</strong> (one-click launcher reads Arena directly on Mac).
-        </div>
-      )}
+      {mode === 'full' && <LiveScanDownload />}
 
       {mode === 'full' && (
         <div
@@ -405,10 +406,11 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
       {effectiveSource === 'scan' && (
         <div>
           <p className="text-xs text-vellum-dim">
-            Scan your live MTG Arena collection — no file needed. Requires the exporter
-            running locally (one-click launcher). <strong>Important:</strong> open your{' '}
-            <strong>Collection</strong> tab in Arena and scroll through it once so it loads
-            into memory, then scan (paste a deck, or search a card you own).
+            Scan your live MTG Arena collection — no file needed. Requires the helper
+            running locally (download links at the top). <strong>Important:</strong>{' '}
+            open your <strong>Collection</strong> tab in Arena and scroll through it
+            once so it loads into memory, then scan (paste a deck, or search a card
+            you own).
           </p>
 
           {!connected ? (
@@ -624,6 +626,73 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
         >
           {confirmLabel}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function LiveScanDownload() {
+  const platform = detectPlatform();
+  const macFirst = platform !== 'windows';
+  const macBtn = (
+    <a
+      key="mac"
+      href={BRIDGE_DL_MAC}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={[
+        'focus-brass inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+        platform === 'mac'
+          ? 'border border-brass/60 bg-brass/10 text-brass-hi hover:bg-brass/20'
+          : 'border border-ink-line-2 bg-ink-raised text-vellum-mute hover:border-brass/40 hover:text-brass-hi',
+      ].join(' ')}
+    >
+      Download for macOS
+    </a>
+  );
+  const winBtn = (
+    <a
+      key="win"
+      href={BRIDGE_DL_WIN}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={[
+        'focus-brass inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+        platform === 'windows'
+          ? 'border border-brass/60 bg-brass/10 text-brass-hi hover:bg-brass/20'
+          : 'border border-ink-line-2 bg-ink-raised text-vellum-mute hover:border-brass/40 hover:text-brass-hi',
+      ].join(' ')}
+    >
+      Download for Windows
+    </a>
+  );
+  return (
+    <div className="mb-3 rounded border border-ink-line-2 bg-ink-raised px-3 py-2 text-xs text-vellum-dim">
+      <div className="mb-2">
+        <span className="font-semibold text-brass-hi">Live scan — </span>
+        Reads your Arena collection straight from memory. Download the helper,
+        run it, then use the <strong>Live scan</strong> tab below.
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {macFirst ? [macBtn, winBtn] : [winBtn, macBtn]}
+      </div>
+      <div className="mt-2 text-[11px] leading-snug text-vellum-mute">
+        First-launch friction (unsigned binaries): macOS users right-click{' '}
+        <code>MTGA-Bridge.command</code> → Open the first time; Windows users
+        click "More info → Run anyway" past SmartScreen.
+      </div>
+      <div className="mt-1 text-[11px] leading-snug text-vellum-mute">
+        Already have a <code className="text-vellum-mute">mtga_collection.json</code>{' '}
+        from{' '}
+        <a
+          href="https://github.com/NthPhantom10/MTGA-collection-exporter"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brass underline hover:text-brass-hi"
+        >
+          MTGA-collection-exporter
+        </a>
+        ? Use the Collection JSON tab below.
       </div>
     </div>
   );

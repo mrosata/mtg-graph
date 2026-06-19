@@ -31,3 +31,8 @@ scripts/mtga_collection.txt
 scripts/mtga_collection.csv
 scripts/arena_id_lookup.json
 scripts/last_anchors.json
+
+# PyInstaller intermediate workdirs (specs themselves are checked in)
+scripts/build/macos/
+scripts/build/windows/
+scripts/MTGA-Bridge/

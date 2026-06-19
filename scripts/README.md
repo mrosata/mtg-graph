@@ -27,53 +27,97 @@ Better text file
 Progress bars: 
 <img width="388" height="96" alt="image" src="https://github.com/user-attachments/assets/ccc5c324-3f62-430b-bc74-366c4f9314d9" />
 
-# MTG Arena Collection Exporter
+# MTG Arena Live-Scan Helper
 
-This tool scans your game memory while MTG Arena is running to export your entire card collection.
-It outputs two files:
-- `mtga_collection.json`: Full data including card IDs and quantities.
-- `mtga_collection.txt`: A readable list of your cards (Count + Name).
+A small local helper that scans your live MTG Arena memory and serves your
+collection to the mtg-graph web app over `http://127.0.0.1:17171`. Nothing is
+exported or uploaded — the web app reads from the bridge directly.
 
-## How to use
+## Install (recommended — prebuilt binary)
 
-### Option 1: Run the Executable (Simplest)
-1. Navigate to **Releases**
-2. Download and extract the **zip**
-4. Navigate inside the extradted folder
-5. Ensure **MTG Arena is running**.
-6. Go to the **Decks** or **Collection** tab in-game, scroll for 30 secs through your collection (important so your collection loads into memory).
-7. Run `MTGA_Exporter.exe`.
-8. Follow the prompts to allow the tool do find and export your collection.
+The latest binaries live on
+[GitHub Releases](https://github.com/mrosata/mtg-graph/releases/latest).
+No Python install required.
 
-### Option 2: Run from Python Source
-1. Download and extract zip
-3. navigate inside folder
-4. Install Python 3.x.
-5. Run `install.bat` to install dependencies (`pymem`, `requests`).
-6. Run `python mtg.py`.
+### macOS
+
+1. Download `MTGA-Bridge-mac.zip` and unzip it.
+2. **Right-click → Open** on `MTGA-Bridge.command` (only needed the first time —
+   macOS Gatekeeper flags unsigned launchers).
+3. Enter your Mac password when prompted (memory reads require admin).
+4. Open MTG Arena and visit the **Collection** tab, scrolling through it once
+   so your collection loads into memory.
+5. Back in the mtg-graph app, open the MTGA import dialog and choose
+   **Live scan**.
+
+### Windows
+
+1. Download `MTGA-Bridge-windows.exe`.
+2. Double-click it. SmartScreen may say "Windows protected your PC" the first
+   time — click **More info → Run anyway**.
+3. Approve the UAC prompt (memory reads require admin).
+4. Same Collection-tab + Live scan steps as above.
+
+Close the terminal window (or press Ctrl-C) when you're done to stop the
+bridge.
+
+> **First-launch note.** The bridge downloads a ~10 MB card database from
+> Scryfall the first time it runs, which can take 30-60 seconds before the
+> "bridge on http://127.0.0.1:17171" message appears. The result is cached
+> next to the binary so subsequent launches are instant.
+
+## How the scan works (no card-name required)
+
+In the app's Live scan view, the default mode is **Paste a deck**. Open any
+deck you own in Arena, export it, and paste — the scanner uses the deck's card
+counts to find your collection in memory. Falls back to **Search a card** if
+the deck-anchored scan is inconclusive.
 
 ## Troubleshooting
-- If the tool cannot find your collection, ensure you have visited the Collection/Decks tab.
-- Try providing different anchor cards if the first attempt fails (rarer anchor cards such as [O:legendary] work better, as they are more unique to your collection).
-- Run as Administrator if you encounter permission errors.
 
-## macOS / cross-platform
+- "Bridge not responding" — make sure `MTGA-Bridge.command` (Mac) or
+  `MTGA-Bridge.exe` (Windows) is still running.
+- "Couldn't find your collection" — open the Collection tab in Arena and
+  scroll the full list once. Without that step, the collection isn't in
+  memory yet.
+- Mac says **"MTGA-Bridge is damaged"** — right-click → Open on the .command
+  file rather than double-clicking. Or run
+  `xattr -dr com.apple.quarantine /path/to/MTGA-Bridge.command` once.
+- Windows SmartScreen blocks the .exe — click **More info → Run anyway**.
 
-The bundled exporter under `scripts/mtga_export/` also runs on macOS:
+## For contributors — run from source
 
-1. Double-click `launch-mac.command`.
-2. Approve the macOS password prompt — reading Arena's memory needs admin.
-3. Open MTG Arena and visit the **Collection** tab; scroll through it so your collection loads into memory.
-4. Back in the mtg-graph app, open the MTGA import dialog and choose the **Live scan** source.
+```bash
+cd scripts
+python -m pip install -r requirements.txt
+python -m mtga_export --serve   # bridge mode (used by the web app)
+python -m mtga_export            # interactive CLI (writes mtga_collection.{json,txt,csv})
+```
 
-The local bridge listens on `http://127.0.0.1:17171`; the app talks to it directly, so no file is exported or uploaded.
+The Python source lives at `scripts/mtga_export/`. Per-OS memory backends are
+under `scripts/mtga_export/memory/` (`macos.py` uses mach + ctypes;
+`windows.py` uses pymem). The HTTP bridge is `server.py`.
 
-You don't have to type a card to anchor the scan: in the app's Live scan, choose
-"Paste a deck" and paste any deck you own (Arena → deck → Export). The scanner uses
-the deck's card counts to find your collection — usually no manual card entry needed.
+### Building the release binaries
+
+PyInstaller specs are in `scripts/build/`. The
+[`release-bridge`](../.github/workflows/release-bridge.yml) GitHub Actions
+workflow builds them on a `bridge-v*` tag push and attaches the artifacts to a
+GitHub Release. To build locally:
+
+```bash
+cd scripts
+pip install pyinstaller
+pyinstaller --clean --noconfirm build/macos.spec       # or build/windows.spec
+# Output: scripts/dist/mtga-bridge (Mac) or mtga-bridge.exe (Windows)
+```
 
 ## Files
-- `MTGA_Exporter.exe`: The standalone application.
-- `mtg.py`: The source code.
-- `requirements.txt`: Python dependencies.
-- `install.bat`: Setup script for Python users.
+
+- `mtga_export/` — current Python package (cross-platform).
+- `build/` — PyInstaller specs + bundled launcher (`MTGA-Bridge.command`).
+- `requirements.txt` — runtime Python dependencies (`pymem` is Windows-only).
+- `mtg.py` — legacy single-file Windows-only exporter from the upstream fork.
+  Kept for archival reasons; the supported entry point is `mtga_export`.
+- `launch-mac.command` / `launch-windows.bat` — source-checkout launchers for
+  contributors. End users should use the prebuilt binaries instead.

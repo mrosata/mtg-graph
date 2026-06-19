@@ -206,7 +206,7 @@ describe('MtgaImportPanel (Live scan source)', () => {
     render(<MtgaImportPanel mode="full" onClose={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /live scan/i }));
     fireEvent.click(screen.getByRole('button', { name: /connect/i }));
-    expect(await screen.findByText(/start the exporter/i)).toBeInTheDocument();
+    expect(await screen.findByText(/start the helper/i)).toBeInTheDocument();
   });
 
   it('scan source: connecting with no Arena process shows Collection-tab hint', async () => {
