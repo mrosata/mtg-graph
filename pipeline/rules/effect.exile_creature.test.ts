@@ -107,6 +107,14 @@ describe('effect.exile_creature', () => {
     ['trample whenever you cast a spell with mana value 4 or greater, you may exile the top card of your library. if you do, you may play that card until you exile another card with this creature.'],
     ['you may play that card until you exile another card with this creature'],
     ['you may play that card until you exile a card with __self__'],
+    // Fix D — Conjurer's Closet shape: "exile target creature you control,
+    // then return that card to the battlefield." The "that card" pronoun was
+    // previously missing from FLICKER_TAIL; must suppress exile_creature.
+    ['exile target creature you control, then return that card to the battlefield.'],
+    // Fix D — Mighty Thor shape: "exile up to one target nontoken artifact or
+    // creature, then return that card to the battlefield." Creature branch of
+    // multi-type exile-and-return.
+    ['exile up to one target nontoken artifact or creature, then return that card to the battlefield.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

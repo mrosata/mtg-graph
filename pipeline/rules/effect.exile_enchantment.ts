@@ -30,12 +30,20 @@ const PATTERN_BROAD =
 const PATTERN_EDICT =
   /\btarget (?:opponent|player) exiles? (?:a |an |one |two |three |\d+ )(?:[\w\-]+[,\s]+){0,6}?enchantments?\b/;
 
+// Fix D — blink-frame suppressor. "Exile … return [it|them|that card|…] to
+// the battlefield" is flicker/blink (covered by effect.blink / effect.flicker),
+// not permanent removal. Mirrors the post-check in exile_creature.ts.
+const FLICKER_TAIL = /\breturn (?:it|them|that card|that enchantment|target enchantment|those (?:enchantments|permanents)|each of those cards)\b[^.]*?\bto the battlefield\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_enchantment',
   axis: 'effect',
   match: (t) => {
     const m = t.match(PATTERN_OWN) ?? t.match(PATTERN_BROAD) ?? t.match(PATTERN_EDICT);
-    return m ? { evidence: m[0] } : false;
+    if (!m || m.index === undefined) return false;
+    const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);
+    if (FLICKER_TAIL.test(tail)) return false;
+    return { evidence: m[0] };
   },
   nearMiss: { anchors: ['exile'], proximity: ['enchantment', 'permanent'], window: 8 },
 };

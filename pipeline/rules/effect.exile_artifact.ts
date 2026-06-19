@@ -33,7 +33,7 @@ const PATTERN_ARTIFACT_SUBTYPE =
 // battlefield". This is bounce/blink (covered by `effect.bounce_artifact`), not
 // removal. Suppress the exile-as-removal interpretation when the local tail
 // contains a "return … to the battlefield" clause.
-const FLICKER_TAIL = /\breturn (?:it|them|that artifact|target artifact|those (?:artifacts|permanents)|each of those cards)\b[^.]*?\bto the battlefield\b/;
+const FLICKER_TAIL = /\breturn (?:it|them|that card|that artifact|target artifact|those (?:artifacts|permanents)|each of those cards)\b[^.]*?\bto the battlefield\b/;
 
 // v0.43.0 — Thor FP: "exile target equipment, instant, or sorcery card FROM
 // YOUR GRAVEYARD" is graveyard-removal, not battlefield-removal of an artifact.

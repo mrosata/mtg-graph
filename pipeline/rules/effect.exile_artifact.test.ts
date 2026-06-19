@@ -38,6 +38,10 @@ describe('effect.exile_artifact', () => {
     // your graveyard" is graveyard-zone removal (effect.cast_from_exile territory),
     // not battlefield artifact removal. GRAVEYARD_TAIL guard must suppress it.
     ['exile target equipment, instant, or sorcery card from your graveyard.'],
+    // Fix D — The Mighty Thor shape: "exile up to one target nontoken artifact
+    // or creature, then return that card to the battlefield." The "that card"
+    // pronoun now in FLICKER_TAIL must suppress artifact exile.
+    ['exile up to one target nontoken artifact or creature, then return that card to the battlefield.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

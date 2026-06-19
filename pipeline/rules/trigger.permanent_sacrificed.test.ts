@@ -30,6 +30,15 @@ describe('trigger.permanent_sacrificed', () => {
     // only admit "nontoken <CreatureType>" patterns, not arbitrary nouns.
     ["whenever you sacrifice a nontoken elemental, create a token that's a copy of it."],
     ['whenever you sacrifice a nontoken creature, draw a card'],
+    // Fix K — Mayhem Devil: any-player sacrifice trigger.
+    ['whenever a player sacrifices a permanent, __self__ deals 1 damage to any target.'],
+    // Fix K — opponent-sacrifice form (previously a negative, now admitted by PATTERN_ANY_PLAYER).
+    ['whenever an opponent sacrifices a creature'],
+    // Fix K — each-player form.
+    ['whenever each player sacrifices a permanent, draw a card.'],
+    // Fix K — passive form.
+    ['whenever a permanent is sacrificed, draw a card.'],
+    ['whenever a creature is sacrificed, you gain 1 life.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -38,8 +47,6 @@ describe('trigger.permanent_sacrificed', () => {
     // Effect, not trigger
     ['sacrifice a creature: this creature gets +1/+1'],
     ['sacrifice an artifact, then draw a card'],
-    // Opponent-sacrifice (different axis, less common)
-    ['whenever an opponent sacrifices a creature'],
     // Dies trigger (different axis)
     ['whenever a creature dies, you gain 1 life'],
     // Unrelated

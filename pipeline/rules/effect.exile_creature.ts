@@ -115,7 +115,7 @@ const PATTERN_CHOOSE_ANAPHORIC =
 // ("play that card from exile (this turn)?"). The exile is followed by
 // permission to play the exiled card — same axis as flicker (the card isn't
 // permanently removed).
-const FLICKER_TAIL = /\b(?:return (?:it|them|that creature|target creature|those creatures|each of those cards)\b[^.]*?\bto the battlefield|play (?:it|that card) from exile)\b/;
+const FLICKER_TAIL = /\b(?:return (?:it|them|that card|that creature|target creature|those creatures|those permanents|each of those cards)\b[^.]*?\bto the battlefield|play (?:it|that card) from exile)\b/;
 
 // Split-mode punisher: "exile X. if you controlled it, return it to the
 // battlefield ..." gates the return on ownership. For opponent-controlled

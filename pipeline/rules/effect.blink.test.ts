@@ -34,6 +34,10 @@ describe('effect.blink', () => {
     ['you may put a creature card exiled this way onto the battlefield. it gains haste. return it to your hand at the beginning of the next end step'],
     // Negative for pronoun arm: no "creature" antecedent in the same sentence.
     ['target artifact: exile it, then return it to the battlefield under its owner\'s control'],
+    // Fix C — Salvation Swan: flicker (delayed return at next end step), not blink.
+    // The return tail is ~92 chars after the exile, requiring the 120-char window
+    // to detect the end-step delay and suppress the blink match.
+    ['when salvation swan enters, exile another target creature you control, then return that card to the battlefield under its owner\'s control at the beginning of the next end step.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

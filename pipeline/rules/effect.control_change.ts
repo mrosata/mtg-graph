@@ -30,7 +30,7 @@ const EXCHANGE = /\bexchange control of\b/;
 // sentence terminator. Negative lookahead excludes the buff template;
 // Coerced to Kill's "you control enchanted creature." still fires because
 // the noun is followed by a period, not "gets".
-const AURA_CONTROL = /\byou control (?:enchanted|attached|equipped) (?:creature|permanent|artifact|planeswalker|land)\b(?!\s+gets?\s+[+\-](?:\d+|x)\/[+\-](?:\d+|x))/;
+const AURA_CONTROL = /\byou control (?:enchanted|attached|equipped) (?:creature|permanent|artifact|planeswalker|land)\b(?!\s+(?:gets?\s+[+\-](?:\d+|x)\/[+\-](?:\d+|x)|has\b|gains?\b))/;
 
 // v0.23 — donation suppressor. "Target opponent gains control of <X>" / "an
 // opponent gains control of <X>" is a *gift*, not a steal — the tagDef

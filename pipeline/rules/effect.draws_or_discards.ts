@@ -122,6 +122,23 @@ export const rule: Rule = {
     const compoundSubject = t.match(
       /\byou and (?:another )?target player[^.]{0,30}?each\s+(?:draw|discard)/,
     );
-    return compoundSubject ? { evidence: compoundSubject[0] } : false;
+    if (compoundSubject) return { evidence: compoundSubject[0] };
+    // Fix E — Universal Surveillance: "improvise draw x cards." After reminder
+    // text is stripped the oracle text starts with "improvise" directly before
+    // the draw verb. A broad `\s` leadin would FP on "whenever you draw a card"
+    // patterns; the improvise-specific arm is precise.
+    const improviseLeading = t.match(
+      /\bimprovise\s+(?:draw|discard)\s+(?:a card|any number of cards|x cards?|\d+ cards?|(?:two|three|four|five) cards?)\b/,
+    );
+    if (improviseLeading) return { evidence: improviseLeading[0] };
+    // Fix F — A Premonition of Your Demise: "reveal the top N cards of
+    // your/target player's library ... put them/it into your hand". Multi-card
+    // reveal-then-hand frame without a typed filter (distinct from
+    // revealMultiToHand which requires "from among them" with a type filter).
+    // The `.{0,120}?` (allows period) bridges one-sentence and two-sentence forms.
+    const revealThenPutToHand = t.match(
+      /\breveal the top (?:\w+ )?cards? of (?:your|target player'?s) library\b.{0,120}?\bput (?:them|it|those cards|that card) into your hand\b/,
+    );
+    return revealThenPutToHand ? { evidence: revealThenPutToHand[0] } : false;
   },
 };

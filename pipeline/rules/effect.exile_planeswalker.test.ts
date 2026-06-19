@@ -32,6 +32,10 @@ describe('effect.exile_planeswalker', () => {
     // shouldn't pull a planeswalker tag. The replacement arm requires
     // "permanent" or "creature or planeswalker" earlier in the text.
     ['__self__ deals 2 damage to target creature. if that creature would die this turn, exile it instead'],
+    // Fix D — blink-frame: "exile target planeswalker, then return that card
+    // to the battlefield." FLICKER_TAIL must suppress planeswalker exile.
+    ['exile target planeswalker you control, then return that card to the battlefield.'],
+    ['exile target planeswalker. return it to the battlefield under its owner\'s control at the beginning of the next end step.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

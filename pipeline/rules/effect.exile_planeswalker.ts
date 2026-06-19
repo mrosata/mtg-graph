@@ -31,6 +31,11 @@ const PATTERN_REPLACEMENT =
 const PATTERN_FORCED_EDICT =
   /\btarget opponent exiles\s+(?:[\w\-]+\s+){0,4}?(?:creatures?\s+or\s+)?planeswalkers?\s+they control\b/;
 
+// Fix D — blink-frame suppressor. "Exile … return [it|them|that card|…] to
+// the battlefield" is flicker/blink, not permanent removal. Mirrors the
+// post-check in exile_creature.ts.
+const FLICKER_TAIL = /\breturn (?:it|them|that card|that planeswalker|target planeswalker|those (?:planeswalkers|permanents)|each of those cards)\b[^.]*?\bto the battlefield\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_planeswalker',
   axis: 'effect',
@@ -40,7 +45,10 @@ export const rule: Rule = {
       t.match(PATTERN_BROAD) ??
       t.match(PATTERN_REPLACEMENT) ??
       t.match(PATTERN_FORCED_EDICT);
-    return m ? { evidence: m[0] } : false;
+    if (!m || m.index === undefined) return false;
+    const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);
+    if (FLICKER_TAIL.test(tail)) return false;
+    return { evidence: m[0] };
   },
   nearMiss: { anchors: ['exile'], proximity: ['planeswalker', 'permanent'], window: 8 },
 };

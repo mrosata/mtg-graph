@@ -11,8 +11,8 @@ import type { TagDef } from '../../shared/types';
 export const tagDef: TagDef = {
   tagId: 'trigger.permanent_sacrificed',
   axis: 'trigger',
-  label: 'Triggers when you sacrifice a permanent',
-  description: 'Has an ability that triggers when you sacrifice a creature, artifact, enchantment, land, token, or permanent (the aristocrats axis).',
+  label: 'Triggers when a player sacrifices a permanent',
+  description: 'Has an ability that triggers when any player (you, an opponent, or each player) sacrifices a creature, artifact, enchantment, land, token, or permanent (the aristocrats axis).',
   pairsWith: [
     'effect.sacrifice_creature',
     'effect.sacrifice_artifact',
@@ -42,11 +42,26 @@ const PATTERN = /\b(?:when|whenever) you sacrifice (?:a |an |another |one or mor
 const PATTERN_NONTOKEN_TYPED =
   /\b(?:when|whenever) you sacrifice (?:a |an |another )?nontoken\s+[\w-]+\b/;
 
+// Fix K — Mayhem Devil: "whenever a player sacrifices a permanent". Broadens
+// from controller-only to any-player scope (a player / an opponent / each
+// player). Distinct from the cost patterns ("sacrifice X: do Y") by the
+// when|whenever trigger anchor.
+const PATTERN_ANY_PLAYER =
+  /\b(?:when|whenever)\s+(?:a player|an opponent|each player)\s+sacrifices\s+(?:a |an |another )?(?:permanent|creature|artifact|enchantment|land|planeswalker)s?\b/;
+
+// Fix K — passive "is sacrificed" form: "whenever a permanent is sacrificed".
+const PATTERN_PASSIVE =
+  /\bwhenever\s+(?:a permanent|a creature|an artifact|an enchantment|a land|a planeswalker)\s+is sacrificed\b/;
+
 export const rule: Rule = {
   id: 'trigger.permanent_sacrificed',
   axis: 'trigger',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(PATTERN_NONTOKEN_TYPED);
+    const m =
+      t.match(PATTERN) ??
+      t.match(PATTERN_NONTOKEN_TYPED) ??
+      t.match(PATTERN_ANY_PLAYER) ??
+      t.match(PATTERN_PASSIVE);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['sacrifice'], proximity: ['whenever', 'you'], window: 6 },

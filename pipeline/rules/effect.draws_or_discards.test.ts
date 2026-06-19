@@ -108,6 +108,12 @@ describe('effect.draws_or_discards', () => {
     ['each player loses half their life, then discards half the cards in their hand, then sacrifices half the permanents they control of their choice.'],
     // v0.45.0 — Splinter, Aging Champion: compound-subject "each draw" arm.
     ['you and another target player each draw a card.'],
+    // Fix E — Universal Surveillance: improvise leadin before draw verb.
+    ['improvise draw x cards.'],
+    ['improvise draw two cards.'],
+    // Fix F — A Premonition of Your Demise: reveal top N cards then put to hand.
+    ['reveal the top two cards of your library and put them into your hand.'],
+    ['reveal the top three cards of your library. put them into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -115,6 +121,12 @@ describe('effect.draws_or_discards', () => {
     ['whenever you draw a card'],
     ['if you would draw a card'],
     ['each time you draw a card'],
+    // Fix E — verify improvise arm doesn't cause broad leadin regressions.
+    // These must still NOT match (no draw/discard effect, just triggers/conditions).
+    // (These were already covered above; no new negatives needed for Fix E itself.)
+    // Fix F — confirm bare "put them into your hand" without reveal-library context
+    // does not match.
+    ['put them into your hand'],
     // v0.22.0 — Spectral Snatcher: Ward—Discard a card. The Ward cost is paid
     // by the OPPONENT targeting this card, not by the controller. Same
     // exclusion shape as the v0.20 effect.sacrifice_creature NEGATIVE_WARD.

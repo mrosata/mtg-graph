@@ -17,6 +17,10 @@ describe('effect.exile_land', () => {
     ['exile target creature'],
     ['exile target land card from a graveyard'],
     ['destroy target land'],
+    // Fix D — blink-frame: "exile target land, then return that card to the
+    // battlefield." FLICKER_TAIL must suppress land exile.
+    ['exile target land you control, then return that card to the battlefield.'],
+    ['exile target land. return it to the battlefield under its owner\'s control at the beginning of the next end step.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

@@ -35,6 +35,10 @@ describe('effect.exile_enchantment', () => {
     // creature; "enchantment" is a duration anchor (Banishing-Light pattern).
     ['exile target creature an opponent controls until this enchantment leaves the battlefield'],
     ['exile target artifact until this enchantment leaves the battlefield'],
+    // Fix D — blink-frame: "exile target enchantment, then return that card
+    // to the battlefield." FLICKER_TAIL must suppress enchantment exile.
+    ['exile target enchantment you control, then return that card to the battlefield.'],
+    ['exile target enchantment. return it to the battlefield under its owner\'s control at the beginning of the next end step.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

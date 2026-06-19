@@ -57,7 +57,7 @@ export const rule: Rule = {
       // Look at the matched span plus ~80 chars after it for a flicker tail.
       // Stops at the next period+space — a flicker tail in a later, unrelated
       // sentence doesn't disqualify the blink.
-      const trailing = t.slice(endIdx, endIdx + 80);
+      const trailing = t.slice(endIdx, endIdx + 120);
       const trailingClause = trailing.split(/\.\s/)[0] ?? trailing;
       if (FLICKER_TAIL.test(span) || FLICKER_TAIL.test(trailingClause)) continue;
       return { evidence: span };

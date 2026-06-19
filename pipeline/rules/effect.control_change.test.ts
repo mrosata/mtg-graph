@@ -60,6 +60,11 @@ describe('effect.control_change', () => {
     ['enchant creature you control enchanted creature gets +2/+2 for each aura and equipment attached to it. all damage that would be dealt to you is dealt to enchanted creature instead.'],
     // Avatar Destiny — same Aura-buff template, different payoff.
     ['enchant creature you control enchanted creature gets +1/+1 for each creature card in your graveyard and is an avatar in addition to its other types.'],
+    // Fix A — Brilliant Wings: Aura that grants keywords via "has". The "has"
+    // after the noun is a keyword-grant, not a control steal.
+    ['enchant creature you control enchanted creature has flying and hexproof.'],
+    // Fix A — "gains" variant (lifelink grant Aura).
+    ['enchant creature you control enchanted creature gains lifelink until end of turn.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });
