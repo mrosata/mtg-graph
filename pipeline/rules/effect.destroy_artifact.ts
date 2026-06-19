@@ -22,14 +22,14 @@ export const tagDef: TagDef = {
 // Junk — all artifact subtypes that produce or scale on artifact-typed
 // payoffs.
 const PATTERN_OWN =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)?(?:[\w\-]+[,\s]+){0,6}?(?:artifacts?|vehicles?|equipment|treasures?|foods?|clues?|maps?|powerstones?|bloods?|junks?)\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)?(?:[\w\-\/]+[,\s]+){0,6}?(?:artifacts?|vehicles?|equipment|treasures?|foods?|clues?|maps?|powerstones?|bloods?|junks?)\b(?![^.]*\byou own\b)/;
 
 // Pattern B: type-inclusive broad.
 // v0.14.1 — filler relaxed to `[\w\-]+[,\s]+` so comma-separated multi-type
 // filters like "destroy target noncreature, nonland permanent" (Molten
 // Collapse) match. The "nonartifact" guard still catches explicit exclusions.
 const PATTERN_BROAD =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+[,\s]+){0,5}nonartifact\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+[,\s]+){0,5}nonartifact\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?\b(?![^.]*\byou own\b)/;
 
 export const rule: Rule = {
   id: 'effect.destroy_artifact',

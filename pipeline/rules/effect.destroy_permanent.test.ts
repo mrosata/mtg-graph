@@ -41,6 +41,9 @@ describe('effect.destroy_permanent (parent, universal-only)', () => {
     // Wrong verb
     ['exile target permanent'],
     ['return target permanent to its owner\'s hand'],
+    // v0.47.0 — Staff of Compleation: "destroy target permanent you own."
+    // Self-sacrifice framing — not removal of an opponent's permanent.
+    ['destroy target permanent you own.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

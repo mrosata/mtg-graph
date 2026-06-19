@@ -30,6 +30,11 @@ describe('effect.flicker', () => {
     // (no-pay) path is canonical flicker; the optional pay branch keeps
     // the card exiled.
     ["flying when __self__ enters, exile up to one other target creature. at the beginning of the next end step, you may pay {3}{b}. if you don't, return that card to the battlefield under its owner's control."],
+    // v0.47.0 — Wiccan, Rising Magician: "exile another target nonland,
+    // nontoken permanent". The comma between "nonland" and "nontoken"
+    // breaks the `(?:[\w\-\/]+\s+){0,5}?` filler which requires trailing
+    // whitespace. Change filler to `(?:[\w\-\/]+[,\s]+){0,5}?`.
+    ["exile another target nonland, nontoken permanent. at the beginning of the next end step, return that card to the battlefield under its owner's control."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

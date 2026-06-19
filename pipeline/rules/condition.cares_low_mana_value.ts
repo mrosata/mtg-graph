@@ -43,7 +43,7 @@ export const tagDef: TagDef = {
 // value X or less"). The X-as-count form is unambiguously low-MV scope
 // because the spell itself has X in its cost.
 const PATTERNS = [
-  /(?<!total\s)\bmana value (?:is\s+|was\s+)?(?:[1-4]|x)\s*or less\b/,
+  /(?<!total\s)\bmana value (?:is\s+|was\s+)?(?:[1-4]|x)\s*or less\b(?![^.]*,?\s*where x is)/,
   // v0.30 Group 7 — count-comparator: "mana value (is)? less than or equal
   // to the number/amount" / "≤ the number/amount/x" (Quag Feast).
   // Dynamic ceiling — still a low-MV gate axis. Per ship list tiebreaker,

@@ -27,20 +27,20 @@ export const tagDef: TagDef = {
 // type exile referenced as "the exiled cards"). Existing anaphors retained.
 // v0.33+ — count slot admits "any number of target " (Morningtide's Light).
 const PATTERN_TIGHT =
-  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+\s+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*?\.\s*return\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield[^.]{0,80}?\bat the beginning of the (?:next end step|next turn|next player'?s end step)\b/;
+  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+[,\s]+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*?\.\s*return\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield[^.]{0,80}?\bat the beginning of the (?:next end step|next turn|next player'?s end step)\b/;
 
 // Sentence-bridged form — exile and return separated by one or more
 // intervening sentences (e.g. Niko, Light of Hope's token-copy clause).
 // Same delayed-trigger anchor keeps this tight.
 const PATTERN_BRIDGED =
-  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+\s+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*\.[^.]{0,250}?(?:\.[^.]{0,250}?)*\breturn\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield(?:\s+under\s+(?:its|their|your)\s+(?:owner'?s\s+)?control)?\s+at\s+the\s+beginning\s+of\s+the\s+(?:next end step|next turn|next player'?s end step)\b/;
+  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+[,\s]+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*\.[^.]{0,250}?(?:\.[^.]{0,250}?)*\breturn\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield(?:\s+under\s+(?:its|their|your)\s+(?:owner'?s\s+)?control)?\s+at\s+the\s+beginning\s+of\s+the\s+(?:next end step|next turn|next player'?s end step)\b/;
 
 // v0.33+ — Reversed-order form (Morningtide's Light): "exile X. At the
 // beginning of the next end step, return those cards to the battlefield".
 // The delayed trigger heads the second sentence rather than trailing the
 // return clause.
 const PATTERN_REVERSED =
-  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+\s+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*?\.\s*at the beginning of the (?:next end step|next turn|next player'?s end step),\s*return\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield\b/;
+  /\bexile\s+(?:another\s+|target\s+|up to\s+(?:one|two|three)\s+(?:other\s+)?(?:target\s+)?|each\s+|all\s+|x\s+target\s+|two\s+target\s+|three\s+target\s+|any number of target\s+)?(?:[\w\-\/]+[,\s]+){0,5}?(?:creature|permanent|artifact|enchantment)s?\b[^.]*?\.\s*at the beginning of the (?:next end step|next turn|next player'?s end step),\s*return\s+(?:it|them|that card|that creature|those cards|those creatures|the exiled cards?|the exiled creatures?|the exiled permanents?)\s+to the battlefield\b/;
 
 // v0.35.0 — Batch 19: ransom-branch flicker. Koya, Death from Above:
 // "exile up to one other target creature. At the beginning of the next end

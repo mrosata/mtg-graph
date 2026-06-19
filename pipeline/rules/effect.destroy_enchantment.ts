@@ -12,7 +12,7 @@ export const tagDef: TagDef = {
 
 // Pattern A: own type (and common multi-type "artifact or enchantment" phrasing).
 const PATTERN_OWN =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?enchantments?\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?enchantments?\b(?![^.]*\byou own\b)/;
 
 // Pattern B: type-inclusive broad.
 // v0.14.1 — filler relaxed to `[\w\-]+[,\s]+` so comma-separated multi-type
@@ -20,7 +20,7 @@ const PATTERN_OWN =
 // Collapse) match. The "nonenchantment" guard still catches explicit
 // exclusions.
 const PATTERN_BROAD =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+[,\s]+){0,5}nonenchantment\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+[,\s]+){0,5}nonenchantment\s+)(?:[\w\-]+[,\s]+){0,5}?permanents?\b(?![^.]*\byou own\b)/;
 
 // Pattern C: Vindicate-style chains. "destroy up to one target X, up to one
 // target Y, up to one target enchantment, and up to one target Z" exceeds
@@ -30,7 +30,7 @@ const PATTERN_BROAD =
 // capped at 1 to avoid matching unrelated `target X with enchantments
 // attached` phrasings.
 const PATTERN_CHAINED =
-  /\bdestroy(?:s)?\b[^.\n]*?\btarget\s+(?:[\w\-]+\s+)?enchantments?\b/;
+  /\bdestroy(?:s)?\b[^.\n]*?\btarget\s+(?:[\w\-]+\s+)?enchantments?\b(?![^.]*\byou own\b)/;
 
 // v0.20.0 — enchantment-subtype-named destroys. "Destroy target Room" (and
 // Aura / Saga / Class / Curse / Shrine / Background) destroys an

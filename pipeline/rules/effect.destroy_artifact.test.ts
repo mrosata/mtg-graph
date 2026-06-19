@@ -45,6 +45,8 @@ describe('effect.destroy_artifact', () => {
     ['sacrifice an artifact'],
     // No verb
     ['artifact creatures you control have flying'],
+    // v0.47.0 — Staff of Compleation: "destroy target artifact you own."
+    ['destroy target artifact you own.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

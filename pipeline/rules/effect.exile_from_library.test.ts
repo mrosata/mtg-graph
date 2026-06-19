@@ -63,6 +63,10 @@ describe('effect.exile_from_library', () => {
     // library exile. Frame A only admits "top"; add "bottom" alternation.
     ["exile the bottom card of each opponent's library face down."],
     ['exile the bottom two cards of your library'],
+    // v0.47.0 — "that player's library" anaphoric possessive (Ramirez DePietro,
+    // Cunning Rhetoric, Vaan, Street Thief).
+    ["exile the top card of that player's library."],
+    ["exile the top three cards of that player's library."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

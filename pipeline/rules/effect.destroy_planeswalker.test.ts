@@ -18,6 +18,8 @@ describe('effect.destroy_planeswalker', () => {
     ['destroy target creature'],
     ['exile target planeswalker'],
     ['planeswalker abilities you activate cost 1 less'],
+    // v0.47.0 — self-destruction exclusion.
+    ['destroy target planeswalker you own.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
@@ -30,6 +32,15 @@ describe('effect.destroy_planeswalker', () => {
     ['destroy up to one target artifact, up to one target creature, up to one target enchantment, and up to one target planeswalker.'],
     ['destroy target creature and target planeswalker.'],
   ])('matches chained multi-target destroy: %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
+
+  // v0.47.0 — Sorin, Lord of Innistrad: "destroy up to three target creatures
+  // and/or other planeswalkers." The `/` in "and/or" breaks PATTERN_OWN's
+  // `[\w\-]+` filler. Extend to `[\w\-/]+` to admit slashes.
+  it.each([
+    ['destroy up to three target creatures and/or other planeswalkers.'],
+  ])('matches /‐separated multi-type destroy: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
 });

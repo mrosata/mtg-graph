@@ -11,10 +11,10 @@ export const tagDef: TagDef = {
 };
 
 const PATTERN_OWN =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?lands?\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,6}?lands?\b(?![^.]*\byou own\b)/;
 
 const PATTERN_BROAD =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}nonland\s+)(?:[\w\-]+\s+){0,5}?permanents?\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}nonland\s+)(?:[\w\-]+\s+){0,5}?permanents?\b(?![^.]*\byou own\b)/;
 
 // v0.14.27 — Krenko's Buzzcrusher: "destroy up to one nonbasic land that
 // player controls". The `up to N` quantifier substitutes for the

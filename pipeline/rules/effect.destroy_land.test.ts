@@ -24,6 +24,8 @@ describe('effect.destroy_land', () => {
     ['destroy target artifact'],
     ['sacrifice a land'],
     ['target land becomes a 4/4 elemental creature'],
+    // v0.47.0 — self-destruction exclusion.
+    ['destroy target land you own.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

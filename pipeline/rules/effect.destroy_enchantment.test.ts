@@ -31,6 +31,8 @@ describe('effect.destroy_enchantment', () => {
     ['exile target enchantment'],
     ['return target enchantment to its owner\'s hand'],
     ['enchanted creature gets +1/+1'],
+    // v0.47.0 — "destroy target enchantment you own." — self-destruction.
+    ['destroy target enchantment you own.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

@@ -29,7 +29,7 @@ export const tagDef: TagDef = {
 // frame (Bumbleflower's Sharepot, Vindicate). The remaining non* qualifiers
 // are real single-type exclusions and stay excluded.
 const PATTERN =
-  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+\s+){0,5}?(?:permanents?|tokens?)\b/;
+  /\bdestroy(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker)\s+)(?:[\w\-]+\s+){0,5}?(?:permanents?|tokens?)\b(?![^.]*\byou own\b)/;
 
 export const rule: Rule = {
   id: 'effect.destroy_permanent',

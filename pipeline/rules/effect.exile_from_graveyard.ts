@@ -53,7 +53,7 @@ const OWN_QUANTIFIED = /exile one or more [^:.—]+? from your graveyard(?!s*\s*
 // graveyard at once.
 // v0.46.0 — Death of Gwen Stacy: "exile any number of target players'
 // graveyards." — plural-possessive `target players'` mass wipe.
-const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponents?|players?)'s?) graveyards?|exile any number of target (?:opponents?|players?)' graveyards?/;
+const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponents?|players?)'s?) graveyards?|exile any number of target (?:opponents?|players?)' graveyards?|exile all (?:[\w\-]+ )?cards? from all graveyards?/;
 
 // 2026-06-01 audit batch — Strategic Betrayal: "target opponent exiles a
 // creature they control and their graveyard". The whole-graveyard wipe

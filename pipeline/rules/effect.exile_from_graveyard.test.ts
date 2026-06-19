@@ -91,6 +91,10 @@ describe('effect.exile_from_graveyard', () => {
     // ANAPHORIC_PUT_GRAVEYARD_EXILE arm gates on the antecedent within ~120
     // chars so bare "exile it" can't fire without the graveyard context.
     ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],
+    // v0.47.0 — Kaya, Geist Hunter: "exile all cards from all graveyards."
+    // The MASS_WIPE arm is extended to cover this "exile all X from all
+    // graveyards" frame.
+    ['exile all cards from all graveyards.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

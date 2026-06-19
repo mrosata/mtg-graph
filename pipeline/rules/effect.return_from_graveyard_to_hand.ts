@@ -21,6 +21,13 @@ const DIES_RETURN_TO_HAND =
 const TWO_SENTENCE_RETURN =
   /\btarget (?:[\w\s]+\s+)?card[^.]{0,60}?in (?:your|a|an opponent'?s) graveyard\b[^.]{0,80}?\.\s+return it to (?:its owner'?s|your) hand\b/;
 
+// v0.47.0 — Meren of Clan Nel Toth: "choose target creature card in your
+// graveyard. if ... return it to the battlefield. otherwise, put it into
+// your hand." The "otherwise" clause is the graveyard-to-hand recursion
+// arm; the antecedent graveyard source is in the opening clause.
+const OTHERWISE_TO_HAND =
+  /\btarget [^.]+? card[^.]{0,100}?in (?:your|a|an opponent'?s) graveyard[\s\S]{0,300}?\botherwise,?\s+put (?:it|them|that card) into (?:your|its owner'?s) hand\b/;
+
 export const rule: Rule = {
   id: 'effect.return_from_graveyard_to_hand',
   axis: 'effect',
@@ -57,7 +64,11 @@ export const rule: Rule = {
     if (diesReturn) return { evidence: diesReturn[0] };
     // v0.43.0 — two-sentence graveyard-to-hand (Night Nurse shape).
     const twoSentence = t.match(TWO_SENTENCE_RETURN);
-    return twoSentence ? { evidence: twoSentence[0] } : false;
+    if (twoSentence) return { evidence: twoSentence[0] };
+    // v0.47.0 — anaphoric "otherwise, put it into your hand" after a
+    // graveyard-target antecedent (Meren of Clan Nel Toth).
+    const otherwiseToHand = t.match(OTHERWISE_TO_HAND);
+    return otherwiseToHand ? { evidence: otherwiseToHand[0] } : false;
   },
   nearMiss: { anchors: ['graveyard', 'graveyards'], proximity: ['return', 'hand'], window: 8 },
 };

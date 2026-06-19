@@ -79,7 +79,7 @@ const PATTERNS = [
   // put into your graveyard this way to the battlefield"). The "this way"
   // back-references the wipe clause; the card is in graveyard at resolution
   // time, so the return-to-battlefield is reanimation.
-  /\breturn (?:a |target )?creature card put into (?:your|a|each\s+player'?s) graveyard this way to the battlefield/,
+  /\breturn (?:a |each |target )?(?:creature )?card put into (?:a |your |a player'?s |each\s+player'?s )?graveyard this way to the battlefield/,
   // v0.21.0 — dies-trigger with "under <X>'s control" destination (Meathook
   // Massacre II). The reanimation may be separated from the "dies" by a
   // "pay N life" intermediate sentence; anaphoric "return that card" binds

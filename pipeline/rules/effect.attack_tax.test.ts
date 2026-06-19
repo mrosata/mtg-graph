@@ -13,6 +13,11 @@ describe('effect.attack_tax', () => {
     ["players can't attack you unless they pay {3}."],
     // Multi-phrasing
     ["creature can't attack unless its controller pays {1}."],
+    // v0.47.0 — Baird, Steward of Argive: "creatures can't attack you or
+    // planeswalkers you control unless their controller pays {1} for each
+    // attacking creature." The "or planeswalkers you control" suffix is
+    // optional filler between the protected party and "unless".
+    ["creatures can't attack you or planeswalkers you control unless their controller pays {1} for each attacking creature."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -50,7 +50,21 @@ describe('condition.cares_low_mana_value', () => {
     // Unrelated
     ['draw a card'],
     ['destroy target creature'],
+    // v0.47.0 — Kotis, Fangkeeper: definitional clause "mana value x or less,
+    // where x is the amount of combat damage dealt". The "where x is" suffix
+    // defines what X means in Kotis's rules text; it's not a low-MV gate.
+    ['mana value x or less, where x is the amount of combat damage dealt.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
+  });
+
+  it.each([
+    // v0.47.0 — Preserved positives: Vicious Rivalry / Mind into Matter
+    // (X-count without "where x is" definition) must still fire.
+    ['as an additional cost to cast this spell, pay x life. destroy all artifacts and creatures with mana value x or less.'],
+    // Quag Feast equivalence (dynamic comparator, no "where x is").
+    ['its mana value is less than or equal to x'],
+  ])('preserved positives (not blocked by Kotis exclusion): %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
   });
 });

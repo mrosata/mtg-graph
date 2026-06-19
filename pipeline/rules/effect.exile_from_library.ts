@@ -20,7 +20,7 @@ export const tagDef: TagDef = {
 // card" = singular, no number).
 // v0.33+ — admit "a number of" (End-Blaze Epiphany).
 const NUM = '(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|twenty|x|that many|a number of)';
-const LIBRARY_OWNER = '(?:your|target opponent\'s|target player\'s|their|each opponent\'s|each player\'s)';
+const LIBRARY_OWNER = '(?:your|target opponent\'s|target player\'s|that player\'s|their|each opponent\'s|each player\'s)';
 
 export const rule: Rule = {
   id: 'effect.exile_from_library',

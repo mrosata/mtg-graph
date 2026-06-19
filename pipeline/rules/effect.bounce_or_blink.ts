@@ -8,13 +8,6 @@ export const tagDef: TagDef = {
   label: 'Bounces or blinks any permanent',
   description: 'Returns a permanent to hand without type restriction, or exiles and returns it (re-triggering ETB). Type-specific bouncing is tagged on the typed children.',
   pairsWith: ['trigger.permanent_leaves_battlefield', 'trigger.another_creature_etb'],
-  children: [
-    'effect.bounce_creature',
-    'effect.bounce_artifact',
-    'effect.bounce_enchantment',
-    'effect.bounce_planeswalker',
-    'effect.bounce_land',
-  ],
 };
 
 // `(?!\s+card)` + graveyard guard reject "return target permanent card from

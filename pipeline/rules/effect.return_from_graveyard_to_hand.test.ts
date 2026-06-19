@@ -42,6 +42,12 @@ describe('effect.return_from_graveyard_to_hand', () => {
     ['choose target permanent card in your graveyard that was put there from anywhere this turn. return it to your hand.'],
     // v0.45.0 — Together Forever: "dies this turn" interleaver in DIES_RETURN_TO_HAND.
     ["when that creature dies this turn, return that card to its owner's hand."],
+    // v0.47.0 — Meren of Clan Nel Toth: "choose target creature card in your
+    // graveyard. if its mana value is less than or equal to the number of
+    // experience counters you have, return it to the battlefield. otherwise,
+    // put it into your hand." The OTHERWISE_TO_HAND arm catches the anaphoric
+    // "otherwise, put it into your hand" after the graveyard-target antecedent.
+    ['choose target creature card in your graveyard. if its mana value is less than or equal to the number of experience counters you have, return it to the battlefield. otherwise, put it into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

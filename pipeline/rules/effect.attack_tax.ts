@@ -15,7 +15,7 @@ export const tagDef: TagDef = {
 };
 
 const PATTERNS = [
-  /creatures? can'?t attack (?:you|its controller)?\s*unless (?:its|their) controller pays/,
+  /creatures? can'?t attack (?:you|its controller)?(?:\s+or planeswalkers?\s+[\w\s]+\s+control)?\s*unless (?:its|their) controller pays/,
   /creatures? attacking you cost \{[^}]+\} more/,
   /attacking creatures? cost \{[^}]+\} more (?:to attack)?/,
   /players? can'?t attack (?:you|its controller) unless they pay/,

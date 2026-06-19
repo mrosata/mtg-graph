@@ -42,6 +42,11 @@ describe('effect.destroy_creature', () => {
     ['destroy those creatures'],
     // 2026-06-18 audit — Sadistic Shell Game: "the chosen" determiner
     ['destroy the chosen creatures.'],
+    // v0.47.0 — Sorin, Lord of Innistrad: "destroy up to three target
+    // creatures and/or other planeswalkers." The creature side should still
+    // fire even though `and/or` contains a slash. PATTERN_OWN filler
+    // extended to `[\w\-/]+` to admit slashes.
+    ['destroy up to three target creatures and/or other planeswalkers.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -56,6 +61,9 @@ describe('effect.destroy_creature', () => {
     // No verb / unrelated
     ['target creature gets -3/-3 until end of turn'],
     ['draw a card'],
+    // v0.47.0 — Staff of Compleation: "destroy target creature you own."
+    // Self-sacrifice framing — not opposing-creature removal.
+    ['destroy target creature you own.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

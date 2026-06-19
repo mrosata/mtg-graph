@@ -256,4 +256,26 @@ describe('condition.cares_tribe parametric', () => {
     expect(dm.match('a demonic display of power')).toBe(false); // 'demonic'
     expect(dm.match('demons you control have menace')).toBeTruthy();
   });
+
+  // v0.47.0 — Otherworldly Escort: "it's a spirit detective" (subtype frame
+  // without "in addition to" tail). The selfBecomesTribe strip should remove
+  // this clause so cares_tribe.spirit does not fire on the type-grant alone.
+  it('spirit does NOT match "it\'s a spirit detective" no-tail self-typing (Otherworldly Escort)', () => {
+    const sp = rules.find((r) => r.id === 'condition.cares_tribe.spirit')!;
+    expect(sp.match("it's a spirit detective.")).toBe(false);
+  });
+
+  // v0.47.0 — Figure of Fable: "this creature becomes a kithkin scout."
+  // Self-type-change without the "in addition to" tail.
+  it('kithkin does NOT match "this creature becomes a kithkin scout" no-tail self-typing (Figure of Fable)', () => {
+    const k = rules.find((r) => r.id === 'condition.cares_tribe.kithkin')!;
+    expect(k.match("this creature becomes a kithkin scout.")).toBe(false);
+  });
+
+  // Sanity: Aura/Equipment type-grant (enchanted|equipped creature) still
+  // fires positively even after the new selfBecomesTribe strip.
+  it('spirit still matches "enchanted creature is a spirit in addition to its other types" (Aura type-grant)', () => {
+    const sp = rules.find((r) => r.id === 'condition.cares_tribe.spirit')!;
+    expect(sp.match('enchanted creature is a spirit in addition to its other types.')).toBeTruthy();
+  });
 });

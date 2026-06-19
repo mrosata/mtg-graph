@@ -76,6 +76,27 @@ function makeRule(tribe: string): Rule {
   const re = new RegExp(`\\b${tribePattern(tribe)}\\b`);
   const becomesTribe = becomesTribePattern(tribe);
   const typeGrantRe = typeGrantPattern(tribe);
+  // v0.47.0 — strip "this creature becomes a <tribe>" / "__self__ becomes a
+  // <tribe>" / "it becomes a <tribe>" WITHOUT the "in addition to" tail
+  // (Figure of Fable: multiple activation tiers each say "it becomes a
+  // kithkin <subtype>"). Also strips self-subject pronoun "it becomes"
+  // in contexts like ability chains on the same card.
+  // These are self-type-change frames where the tribe word names the new type
+  // rather than a payoff referencing existing creatures of that type.
+  const selfBecomesTribe = new RegExp(
+    `\\b(?:this\\s+creature|__self__|it)\\s+becomes?\\s+(?:a\\s+|an\\s+)?(?:[\\w\\-\\/]+\\s+){0,4}?${tribePattern(tribe)}\\b`,
+    'g',
+  );
+  // v0.47.0 — strip "it's (not) a <tribe>" self-typing frame (Otherworldly
+  // Escort: "it's a spirit detective."). The negative lookahead
+  // `(?![^.]*\b(?:you|they|opponent)\b)` excludes the controller-scope
+  // payoff frame "it's a detective you control" (Detective MKM payoff) —
+  // presence of "you"/"they"/"opponent" after the tribe signals a payoff
+  // rather than a self-type assignment.
+  const itsATribe = new RegExp(
+    `\\bit'?s(?:\\s+not)?\\s+an?\\s+(?:[\\w\\-\\/]+\\s+){0,4}?${tribePattern(tribe)}\\b(?![^.]*\\b(?:you|they|opponent)\\b)`,
+    'g',
+  );
   return {
     id: `condition.cares_tribe.${tribe}`,
     axis: 'condition',
@@ -88,7 +109,9 @@ function makeRule(tribe: string): Rule {
         .replace(ABILITY_WORD_HEADER, (match) => (match.startsWith('.') ? '. ' : ''))
         .replace(TOKEN_CREATE, '')
         .replace(BECOMES_CREATURE, '')
-        .replace(becomesTribe, '');
+        .replace(becomesTribe, '')
+        .replace(selfBecomesTribe, '')
+        .replace(itsATribe, '');
       const m = t.match(re);
       return m ? { evidence: m[0] } : false;
     },

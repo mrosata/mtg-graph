@@ -84,6 +84,11 @@ describe('effect.reanimate', () => {
     // them to the battlefield." The cross-sentence anaphoric arm at v0.18
     // only matched "that card"; broadened to also admit "them".
     ["choose up to four target creature cards in your graveyard that were put there from the battlefield this turn. return them to the battlefield."],
+    // v0.47.0 — Sorin, Lord of Innistrad −6: "destroy up to three target
+    // creatures and/or other planeswalkers. return each card put into a
+    // graveyard this way to the battlefield under your control." The
+    // "put-this-way" arm is broadened to admit "each card" and "a graveyard".
+    ['destroy up to three target creatures and/or other planeswalkers. return each card put into a graveyard this way to the battlefield under your control.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

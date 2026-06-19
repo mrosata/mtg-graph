@@ -18,11 +18,11 @@ export const tagDef: TagDef = {
 // 2026-06-02 audit batch — admit "those" anaphor (Day of Black Sun:
 // "each creature ... loses all abilities. destroy those creatures.").
 const PATTERN_OWN =
-  /\bdestroy(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\w+)\s+)?(?:another\s+|other\s+|target\s+|each\s+|all\s+|that\s+|those\s+|the chosen\s+)(?:[\w\-]+[,\s]+){0,6}?creatures?\b/;
+  /\bdestroy(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\w+)\s+)?(?:another\s+|other\s+|target\s+|each\s+|all\s+|that\s+|those\s+|the chosen\s+)(?:[\w\-]+[,\s]+){0,6}?creatures?\b(?![^.]*\byou own\b)/;
 
 // Pattern B: type-inclusive broad ("destroy ... permanent" without a "noncreature" modifier).
 const PATTERN_BROAD =
-  /\bdestroy(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+|that\s+)(?!(?:[\w\-]+\s+){0,5}noncreature\s+)(?:[\w\-]+\s+){0,5}?permanents?\b/;
+  /\bdestroy(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+|that\s+)(?!(?:[\w\-]+\s+){0,5}noncreature\s+)(?:[\w\-]+\s+){0,5}?permanents?\b(?![^.]*\byou own\b)/;
 
 // Pattern C (v0.20.0): antecedent-anchored "destroy it" — Cracked Skull aura
 // ("when enchanted creature is dealt damage, destroy it") and the generic
