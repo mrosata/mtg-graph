@@ -20,7 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          # macos-latest = Apple Silicon (arm64). macos-13 (Intel) runners are
+          # being phased out and have hours-long queue times.
+          - os: macos-latest
             asset: MTGA-Bridge-mac.zip
           - os: windows-2022
             asset: MTGA-Bridge-windows.exe
