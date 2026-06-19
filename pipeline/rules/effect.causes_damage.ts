@@ -45,7 +45,10 @@ const PATTERNS = [
   // damage ..."). The sentence-boundary anchor stays the same.
   // v0.33+ — relax tail to admit "up to (one|two|three) target creature"
   // (Assert Perfection).
-  /\btarget creature(?:s)? you control\b[^.]*\.\s+(?:then\s+)?it deals damage equal to its (?:power|toughness) to (?:up to (?:one|two|three) )?target creature\b/,
+  // v0.46.0 — Venom Blast: admit `(?:other )?` before `target creature`
+  // so "to up to one other target creature" matches alongside bare
+  // "to target creature" and "to up to N target creature".
+  /\btarget creature(?:s)? you control\b[^.]*\.\s+(?:then\s+)?it deals damage equal to its (?:power|toughness) to (?:up to (?:one|two|three) )?(?:other )?target creature\b/,
   // v0.33+ — Champion of the Path: tribal-ETB anaphoric "whenever
   // (another|a) <tribe> you control enters, it deals damage equal to its
   // (power|toughness)". Tight: single-word tribe slot, comma required, no

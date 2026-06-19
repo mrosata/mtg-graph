@@ -119,6 +119,51 @@ export const rule: Rule = {
         if (selfIdx !== -1) return { evidence: m[0].trim() };
       }
     }
+    // v0.46.0 — period-prefixed bare "it" with self-reference precedence guard.
+    // Pumpkin Bombs: "put a fuse counter on this artifact. it deals damage equal
+    // to the number of fuse counters on it to any target."
+    // The period boundary prevents the IT lookbehind (`, ` / `: ` / `and `)
+    // from matching, so we need an explicit matchCard arm.
+    // Token-FP guard: no "token" noun between the self-reference and the
+    // period-it clause prevents "create a 2/2 token. it deals 2 damage" from
+    // firing. Accepts both __self__ and "this <type>" self-references.
+    {
+      const SELF_REF = /\b(?:__self__|this (?:room|creature|artifact|enchantment|land|permanent|saga|vehicle|equipment|planeswalker|class|case|aura|battle|spacecraft|planet))\b/;
+      if (SELF_REF.test(text)) {
+        const PERIOD_IT = /\. it deal[s]? [^.]*?damage\b/;
+        const m = text.match(PERIOD_IT);
+        if (m && m.index !== undefined) {
+          const pronounIdx = m.index;
+          // Find the last self-reference before the period-it clause.
+          const selfMatch = [...text.substring(0, pronounIdx).matchAll(new RegExp(SELF_REF.source, 'g'))];
+          const lastSelf = selfMatch.length > 0 ? selfMatch[selfMatch.length - 1] : null;
+          if (lastSelf && lastSelf.index !== undefined) {
+            const slice = text.slice(lastSelf.index, pronounIdx);
+            if (!slice.includes('token')) {
+              return { evidence: m[0].trim() };
+            }
+          }
+        }
+      }
+    }
+    // v0.46.0 — comma-then "it" antecedent (Rolling Hamsphere):
+    // "...create three tokens, then it deals x damage to any target."
+    // Despite the "tokens" preceding "then it", the "it" refers to the
+    // card itself (established earlier by "this vehicle attacks").
+    // Guard: a self-reference (this <type> or __self__) must precede the
+    // comma-then-it clause.
+    {
+      const SELF_REF = /\b(?:__self__|this (?:room|creature|artifact|enchantment|land|permanent|saga|vehicle|equipment|planeswalker|class|case|aura|battle|spacecraft|planet))\b/;
+      if (SELF_REF.test(text)) {
+        const COMMA_THEN_IT = /, then it deal[s]? [\dx]+ (?:combat )?damage\b/;
+        const m = text.match(COMMA_THEN_IT);
+        if (m && m.index !== undefined) {
+          const pronounIdx = m.index;
+          const selfMatch = [...text.substring(0, pronounIdx).matchAll(new RegExp(SELF_REF.source, 'g'))];
+          if (selfMatch.length > 0) return { evidence: m[0].trim() };
+        }
+      }
+    }
     const firstWord = card.name.split(/\s+/)[0];
     if (!firstWord || firstWord.length < 4) return false;
     // Only fire when the full name didn't already become __SELF__ via the

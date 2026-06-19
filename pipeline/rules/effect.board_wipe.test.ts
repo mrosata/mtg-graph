@@ -38,6 +38,9 @@ describe('effect.board_wipe', () => {
     ['sacrifices all other creatures they control'],
     ['sacrifice all other creatures'],
     ['sacrifice all creatures'],
+    // v0.46.0 — Toxic Deluge: "all creatures get -x/-x until end of turn."
+    // PATTERN_MASS_DEBUFF must admit variable `-x/-x` not just literal numbers.
+    ['all creatures get -x/-x until end of turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

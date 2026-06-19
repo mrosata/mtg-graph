@@ -34,7 +34,8 @@ export const tagDef: TagDef = {
 // possessive and `exiles` (third-person singular) as the verb form (forced
 // edict on the player). Add `their ` to the source slot AND admit
 // `exiles?` so the edict form fires alongside the imperative form.
-const FOREIGN_OR_GENERIC = /exiles? [^.]+? from (?:a |a single |an opponent's |target opponent's |target player's |their )?graveyard(?!s*\s*[:—])|exiles? [^.]+? from graveyards/;
+// v0.46.0 — Kefka: add `each opponent's ` to the source slot.
+const FOREIGN_OR_GENERIC = /exiles? [^.]+? from (?:a |a single |an opponent's |each opponent's |target opponent's |target player's |their )?graveyard(?!s*\s*[:—])|exiles? [^.]+? from graveyards/;
 const OWN_TARGETED = /exile (?:up to [\w-]+ |any number of )?target [^.]+? from your graveyard/;
 // "Exile one or more X cards from your graveyard" — variable-scope exile that
 // scales a subsequent effect by cards exiled. Excludes cost forms (colon/em-dash
@@ -50,7 +51,9 @@ const OWN_QUANTIFIED = /exile one or more [^:.—]+? from your graveyard(?!s*\s*
 // v0.15 — "exile all graveyards" / "exile each graveyard" added (Rest in
 // Peace's ETB). Broadest possible graveyard-exile — every card in every
 // graveyard at once.
-const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponent|player)'s) graveyards?/;
+// v0.46.0 — Death of Gwen Stacy: "exile any number of target players'
+// graveyards." — plural-possessive `target players'` mass wipe.
+const MASS_WIPE = /exile (?:all|each|each opponent's|target (?:opponents?|players?)'s?) graveyards?|exile any number of target (?:opponents?|players?)' graveyards?/;
 
 // 2026-06-01 audit batch — Strategic Betrayal: "target opponent exiles a
 // creature they control and their graveyard". The whole-graveyard wipe
@@ -109,6 +112,14 @@ const OWN_ANAPHORIC = /\bexile (?:that card|that creature|those cards) from your
 // searches that include graveyard.
 const SEARCH_GRAVEYARD_EXILE = /\bsearch [^.]*?\bgraveyard\b[^.]*?\bexile\s+(?:them|it|that card|those cards)\b/;
 
+// v0.46.0 — Colfenor's Urn: anaphoric "you may exile it" after a
+// "put into <X> graveyard from the battlefield" antecedent. The
+// antecedent (within ~120 chars) makes `it` unambiguously refer to the
+// creature just placed in the graveyard. This arm is tightly guarded to
+// prevent bare "exile it" from firing outside the graveyard-dies context.
+const ANAPHORIC_PUT_GRAVEYARD_EXILE =
+  /\bput into (?:your|a|the) graveyard from the battlefield\b[^.]{0,120}?,\s*(?:you may )?exile (?:it|them)\b/;
+
 export const rule: Rule = {
   id: 'effect.exile_from_graveyard',
   axis: 'effect',
@@ -125,7 +136,8 @@ export const rule: Rule = {
       t.match(OWN_AT_RANDOM) ??
       t.match(COST_NONSELF) ??
       t.match(OPTIONAL_NONSELF) ??
-      t.match(OPPONENT_FORCED_GRAVEYARD);
+      t.match(OPPONENT_FORCED_GRAVEYARD) ??
+      t.match(ANAPHORIC_PUT_GRAVEYARD_EXILE);
     return m ? { evidence: m[0] } : false;
   },
 };

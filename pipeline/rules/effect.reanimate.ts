@@ -70,7 +70,10 @@ const PATTERNS = [
   // "that card". Bounded filler so the two halves stay within a tight
   // window — guards against unrelated battlefield-return triggers later
   // in the same card.
-  /(?:from (?:your|a|an opponent's|any) graveyard|graveyards?|\bdies)[^.]{0,200}?\.[^.]{0,100}?return that card[^.]{0,40}?(?:to|onto) (?:the )?battlefield/,
+  // v0.46.0 — Continue?: add `them` to the pronoun alternation alongside
+  // `that card` so multi-target graveyard returns like "return them to the
+  // battlefield" fire the same cross-sentence anaphoric arm.
+  /(?:from (?:your|a|an opponent's|any) graveyard|graveyards?|\bdies)[^.]{0,200}?\.[^.]{0,100}?return (?:that card|them)[^.]{0,40}?(?:to|onto) (?:the )?battlefield/,
   // v0.20 — "put into graveyard this way" reanimation (Starfall Invocation:
   // "destroy all creatures. if the gift was promised, return a creature card
   // put into your graveyard this way to the battlefield"). The "this way"

@@ -66,8 +66,18 @@ const REVEAL_PUT =
 
 // Pattern C: exiled cards → battlefield. Anchors on the
 // "exiled cards"/"cards exiled"/"exiled creature card" reference.
+// v0.46.0 — Colfenor's Urn: "cards exiled with __self__" uses "to the
+// battlefield" rather than "onto the battlefield". Admit both prepositions.
 const EXILED_PUT =
-  /\b(?:exiled cards?|cards? exiled (?:this way|with [\w\s'—]+)|exiled creature cards?)[^.]{0,80}\bonto the battlefield\b/;
+  /\b(?:exiled cards?|cards? exiled (?:this way|with [\w\s'—]+)|exiled creature cards?)[^.]{0,80}\b(?:to|onto) the battlefield\b/;
+
+// v0.46.0 — Colfenor's Urn: cross-sentence anaphoric form. "cards have been
+// exiled with <this artifact/self>" establishes the exile in one sentence;
+// "return those cards to the battlefield" in a later sentence returns them.
+// The filler uses [\s\S] to admit the sentence boundary. Anchored tightly on
+// `cards have been exiled with` to avoid broad FPs.
+const EXILED_THOSE_PUT =
+  /\bcards have been exiled with (?:this|__self__)[\s\S]{0,200}?\breturn those cards (?:to|onto) the battlefield\b/;
 
 // v0.33+ — Aurora Awakener: "reveal cards from the top of your library
 // until you reveal X permanent cards. Put any number of those permanent
@@ -104,7 +114,7 @@ const HAND_PUT =
 const MULTI_ZONE_SEARCH_PUT =
   /\bsearch your (?:graveyard|hand)(?:,\s+(?:graveyard|hand|library))*(?:\s+and\/or\s+library)\b[\s\S]{0,200}?\bput (?:it|them|that card|those cards) onto the battlefield\b/;
 
-const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, REVEAL_UNTIL_PUT, EXILED_PUT, HAND_PUT, MULTI_ZONE_SEARCH_PUT];
+const PATTERNS: ReadonlyArray<RegExp> = [SEARCH_PUT, LOOK_PUT, REVEAL_PUT, REVEAL_UNTIL_PUT, EXILED_PUT, EXILED_THOSE_PUT, HAND_PUT, MULTI_ZONE_SEARCH_PUT];
 
 // Post-match filter: any of these substrings inside the matched span
 // indicate this is effect.cloak territory (face-down creation), not

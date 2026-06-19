@@ -79,6 +79,11 @@ describe('effect.reanimate', () => {
     // exile, return that card to the battlefield". The existing dies-arm
     // only accepts "dies,"; broaden to admit "dies or is put into exile,".
     ['indestructible as long as your devotion to white and black is less than seven, __self__ isn\'t a creature. at the beginning of your end step, put a coin counter on another target creature. whenever a creature with a coin counter on it dies or is put into exile, return that card to the battlefield under your control.'],
+    // v0.46.0 — Continue?: "choose up to four target creature cards in your
+    // graveyard that were put there from the battlefield this turn. return
+    // them to the battlefield." The cross-sentence anaphoric arm at v0.18
+    // only matched "that card"; broadened to also admit "them".
+    ["choose up to four target creature cards in your graveyard that were put there from the battlefield this turn. return them to the battlefield."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

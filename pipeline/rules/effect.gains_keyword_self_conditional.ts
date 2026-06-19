@@ -50,6 +50,11 @@ const PATTERNS = [
   // handles "and gains?" via the inner bridge.
   // v0.21.0 — filler also admits `+` for stat notation ("+2/+0").
   new RegExp(`\\b(?:as long as|while|if)\\b[^.]{0,80}?,\\s*(?:it|${SELF_SUBJECT})\\s+(?:has|have|gains?|gets?)\\s+(?:[\\w\\-\\s,/+]{0,80}?\\band\\s+(?:has\\s+|have\\s+|gains?\\s+)?)?${KEYWORD}\\b`),
+  // v0.46.0 — Gastal Raider: ability-word em-dash gates (max speed, start
+  // your engines!). The ability-word phrase precedes an em-dash, then the
+  // self-subject phrase grants the keyword while in that state.
+  // "max speed — this creature has menace."
+  new RegExp(`\\b(?:max speed|start your engines!)\\s*[—\\-]\\s*${SELF_SUBJECT}\\b[^.]{0,60}?\\b(?:has|have|gains?)\\s+${KEYWORD}\\b`),
 ];
 
 export const rule: Rule = {

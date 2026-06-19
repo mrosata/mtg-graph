@@ -678,4 +678,20 @@ describe('effect.grants_keyword parametric', () => {
       expect(r.match('mounts and vehicles you control have haste. whenever a mount you control enters, it becomes saddled until end of turn.')).toBeTruthy();
     });
   });
+
+  // v0.46.0 — I Am Untouchable: compound-subject hexproof anthem.
+  // "You and permanents you control have hexproof." — compound "you and
+  // permanents you control" subject; similarly "other permanents you control
+  // have hexproof."
+  describe('grants_hexproof — compound-subject anthem (v0.46.0)', () => {
+    const r = ruleFor('effect.grants_hexproof');
+
+    it('matches "you and permanents you control have hexproof" (I Am Untouchable)', () => {
+      expect(r.match('you and permanents you control have hexproof.')).toBeTruthy();
+    });
+
+    it('matches "other permanents you control have hexproof"', () => {
+      expect(r.match('other permanents you control have hexproof.')).toBeTruthy();
+    });
+  });
 });

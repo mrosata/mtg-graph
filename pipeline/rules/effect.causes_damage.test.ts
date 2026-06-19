@@ -45,6 +45,10 @@ describe('effect.causes_damage', () => {
     // HIGH-18b (Champion of the Path): tribal-ETB anaphoric arm — "whenever (another|a) <tribe> you control enters, it deals damage equal to its power".
     ['whenever another elemental you control enters, it deals damage equal to its power to each opponent.'],
     ['whenever a goblin you control enters, it deals damage equal to its toughness to each opponent'],
+    // v0.46.0 — Venom Blast: "it deals damage equal to its power to up to
+    // one other target creature." The `(?:other )?` qualifier before
+    // `target creature` at the tail was not admitted.
+    ['put two +1/+1 counters on target creature you control. it deals damage equal to its power to up to one other target creature.'],
   ])('matches indirect damage: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

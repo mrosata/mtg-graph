@@ -206,4 +206,32 @@ describe('effect.deals_damage', () => {
       expect(rule.matchCard!(fakeCard, t)).toBeFalsy();
     });
   });
+
+  // v0.46.0 — period-prefixed bare "it" with __SELF__ precedence guard.
+  // Pumpkin Bombs: "...put a fuse counter on __self__. it deals damage
+  // equal to the number of fuse counters on it to any target."
+  describe('matchCard period-it damage (v0.46.0)', () => {
+    const pumpkinCard = { name: 'Pumpkin Bombs', types: ['Artifact'], keywords: [] } as any;
+
+    it('fires on ". it deals damage equal to..." after __SELF__ reference (Pumpkin Bombs)', () => {
+      const t = 'put a fuse counter on __self__. it deals damage equal to the number of fuse counters on it to any target.';
+      expect(rule.matchCard!(pumpkinCard, t)).toBeTruthy();
+    });
+
+    it('does NOT fire on ". it deals damage" after a token creation (token-FP guard)', () => {
+      const t = 'create a 2/2 token. it deals 2 damage to target player.';
+      expect(rule.matchCard!(pumpkinCard, t)).toBeFalsy();
+    });
+  });
+
+  // v0.46.0 — comma-then "it" antecedent (Rolling Hamsphere).
+  // "...tokens, then it deals x damage to any target." with __SELF__ earlier.
+  describe('matchCard comma-then-it damage (v0.46.0)', () => {
+    const hamsphereCard = { name: 'Rolling Hamsphere', types: ['Creature'], keywords: [] } as any;
+
+    it('fires on ", then it deals x damage" when __SELF__ precedes (Rolling Hamsphere)', () => {
+      const t = 'whenever __self__ attacks, create three 1/1 red hamster creature tokens, then it deals x damage to any target.';
+      expect(rule.matchCard!(hamsphereCard, t)).toBeTruthy();
+    });
+  });
 });

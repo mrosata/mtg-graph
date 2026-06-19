@@ -43,6 +43,10 @@ describe('effect.sacrifice_artifact', () => {
     // a creature-or-vehicle includes the artifact-sac semantic.
     ['max speed — {b}, sacrifice another creature or vehicle: draw a card.'],
     ['when this creature enters, you may sacrifice a creature or vehicle. when you do, destroy target artifact an opponent controls.'],
+    // v0.46.0 — Campsite Cuisine: "sacrifice x foods" — lowercase `x` as a
+    // count slot (variable quantity of food tokens). PATTERN_SUBTYPE must
+    // admit both uppercase and lowercase x.
+    ['sacrifice x foods.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

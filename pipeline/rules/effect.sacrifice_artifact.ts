@@ -22,8 +22,10 @@ const PATTERN_BROAD =
 // v0.14.9 — added "this" determiner (Knife: "sacrifice this Equipment").
 // Common self-sac shape on Equipment / Vehicle / Food / Treasure / Map /
 // Blood / Clue.
+// v0.46.0 — Campsite Cuisine: admit lowercase `x` as a count slot alongside
+// uppercase X (the normalized text lowercases everything post-normalization).
 const PATTERN_SUBTYPE =
-  /\bsacrifice(?:s)?\s+(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+|this\s+|X\s+|\d+\s+|two\s+|three\s+|four\s+)?(?:food|treasure|clue|map|blood|powerstone|equipment|vehicle|junk|shard|gold|incubator|attraction|contraption)s?\b/g;
+  /\bsacrifice(?:s)?\s+(?:a\s+|an\s+|another\s+|target\s+|each\s+|all\s+|this\s+|[xX]\s+|\d+\s+|two\s+|three\s+|four\s+)?(?:food|treasure|clue|map|blood|powerstone|equipment|vehicle|junk|shard|gold|incubator|attraction|contraption)s?\b/g;
 
 // v0.30 — Group 2 — disjunctive "creature or Vehicle" / "Vehicle or
 // creature" sac frames (Gas Guzzler, Gastal Blockbuster). Vehicle is an

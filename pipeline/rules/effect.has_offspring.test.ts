@@ -22,6 +22,9 @@ describe('effect.has_offspring', () => {
     ['the offspring of dragons'],
     ['this is your offspring'],
     ['draw a card'],
+    // v0.46.0 — Zinnia: "gain offspring {2}" is a granter frame, not a card
+    // that has the keyword itself. Must not tag as has_offspring.
+    ['creature spells you cast gain offspring {2}.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

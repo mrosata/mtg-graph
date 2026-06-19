@@ -60,6 +60,10 @@ describe('effect.cheat_into_play', () => {
     // The library disjunct makes this a tutor-into-play (vs. pure
     // graveyard reanimation which already has its own tag).
     ['when this creature enters, you may search your graveyard, hand and/or library for a card named magnifying glass and/or a card named thinking cap and put them onto the battlefield.'],
+    // v0.46.0 — Colfenor's Urn: cross-sentence anaphoric form.
+    // "cards have been exiled with this artifact ... return those cards to
+    // the battlefield." EXILED_THOSE_PUT bridges the sentence boundary.
+    ["if three or more cards have been exiled with this artifact, sacrifice it. if you do, return those cards to the battlefield under their owner's control."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

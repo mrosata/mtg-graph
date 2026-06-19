@@ -35,8 +35,10 @@ export const tagDef: TagDef = {
 // sweep. Original tail only admitted `their owners'` plural; admit the
 // singular template `their owner's` too. The plural form still wins on
 // multi-target frames.
+// v0.46.0 — Baral's Expertise: admit "/" in the qualifier filler so
+// "artifacts and/or creatures" is consumable before the `creatures?` anchor.
 const PATTERN_RETURN_OWN =
-  /\breturn(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:this\s+|another\s+|target\s+|those\s+|each\s+|all\s+)(?:[\w\-]+[,\s]+){0,5}?creatures?\b(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)\s[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?|their\s+owner'?s)\s+hands?\b/;
+  /\breturn(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|\w+|one or two|up to two)\s+(?:other\s+)?)?(?:this\s+|another\s+|target\s+|those\s+|each\s+|all\s+)(?:[\w\-/]+[,\s]+){0,5}?creatures?\b(?!\s+card)(?![^.]*?\bfrom\s+(?:a|your|their|an\s+opponent'?s)\s+graveyards?)\s[^.]*?\bto\s+(?:its\s+owner'?s|your|their\s+owners'?|their\s+owner'?s)\s+hands?\b/;
 
 // Matches broad permanent bounce ("return target permanent to its owner's hand",
 // "return target nonland permanent to its owner's hand") but NOT noncreature.

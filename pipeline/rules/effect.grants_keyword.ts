@@ -278,14 +278,22 @@ function makeRule(slug: string, spelling: string): Rule {
   // FIX 17 (BR-12) — hexproof can be granted to PLAYERS (Crystal Barricade:
   // "you have hexproof"). Other keywords don't apply to players, so this
   // arm is restricted to slug === 'hexproof'.
+  // v0.46.0 — I Am Untouchable: compound-subject "you and permanents you
+  // control have hexproof" and anthem "other permanents you control have
+  // hexproof". The existing Frame (b) only covers `creatures?` as the
+  // subject noun; permanents need explicit arms.
   if (slug === 'hexproof') {
     const playerHexproofRe = /\byou\s+(?:have|has|gain|gains)\s+hexproof\b/;
+    // v0.46.0 — compound-subject "you and <permanents> you control have hexproof"
+    const youAndPermanentsRe = /\byou\s+(?:and\s+[^.]{0,60}?\s+)?(?:have|has|gain|gains)\s+hexproof\b/;
+    // v0.46.0 — anthem "other/all/each permanents you/an opponent control(s) have hexproof"
+    const permanentsHexproofRe = /\b(?:other|all|each)?\s*permanents?\s+(?:you|an opponent)\s+control(?:s)?\s+(?:have|has|gains?)\s+hexproof\b/;
     return {
       id: `effect.grants_${slug}`,
       axis: 'effect',
       match: (t) => {
         const cleaned = stripSpellGrants(stripSelfAnaphor(t));
-        const m = cleaned.match(re) ?? cleaned.match(playerHexproofRe);
+        const m = cleaned.match(re) ?? cleaned.match(playerHexproofRe) ?? cleaned.match(youAndPermanentsRe) ?? cleaned.match(permanentsHexproofRe);
         return m ? { evidence: m[0] } : false;
       },
       nearMiss: { anchors: [kw], proximity: ['gain', 'have', 'has'], window: 4 },

@@ -22,7 +22,10 @@ export const tagDef: TagDef = {
 // Pattern: literal "offspring " followed by a mana-cost symbol expression
 // like {2}, {b}, {3}{r}. Required cost suffix excludes flavor / non-keyword
 // uses of the word "offspring".
-const PATTERN = /\boffspring \{[^}]+\}/;
+// v0.46.0 — negative lookbehind excludes granter frames like "gain(s) offspring {N}"
+// (Zinnia: "creature spells you cast gain offspring {2}."). Cards that GRANT
+// the keyword should not be tagged as having the keyword themselves.
+const PATTERN = /(?<!\bgain(?:s)?\s+)\boffspring \{[^}]+\}/;
 
 export const rule: Rule = {
   id: 'effect.has_offspring',

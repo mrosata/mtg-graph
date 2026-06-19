@@ -50,4 +50,13 @@ describe('effect.gains_keyword_self_conditional', () => {
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });
+
+  it.each([
+    // v0.46.0 — Gastal Raider: "max speed — this creature has menace."
+    // Ability-word em-dash gate: the max speed frame conditionally grants
+    // the keyword when at max speed.
+    ['max speed — this creature has menace.'],
+  ])('matches ability-word em-dash gate (v0.46.0): %s', (text) => {
+    expect(rule.match!(text)).toBeTruthy();
+  });
 });

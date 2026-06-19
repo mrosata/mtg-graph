@@ -53,6 +53,10 @@ describe('effect.bounce_creature', () => {
     ["return up to one other target nonland permanent to its owner's hand"],
     // Cactuar — self-anaphoric "return it" with "this creature" antecedent.
     ["at the beginning of your end step, if this creature didn't enter the battlefield this turn, return it to its owner's hand."],
+    // v0.46.0 — Baral's Expertise: "return up to three target artifacts
+    // and/or creatures to their owners' hands." The "/" in "and/or" was
+    // blocked by the filler `[\w\-]+` that precedes the `creatures?` noun.
+    ["return up to three target artifacts and/or creatures to their owners' hands."],
     // v0.39.0 — 200-card audit Ship 12d — Arthur, Marigold Knight. "Put a
     // creature card from among them onto the battlefield ... return that
     // creature to its owner's hand at end of combat." The "onto the

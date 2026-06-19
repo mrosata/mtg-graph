@@ -80,6 +80,17 @@ describe('effect.exile_from_graveyard', () => {
     // graveyard-source possessive — forced symmetric exile-from-graveyard
     // on all players. Add `their` to FOREIGN_OR_GENERIC's source slot.
     ['whenever __self__ attacks, each player exiles a card from their graveyard.'],
+    // v0.46.0 — Kefka, Dancing Mad: "exile a card at random from each
+    // opponent's graveyard." — the source slot needs `each opponent's`.
+    ["exile a card at random from each opponent's graveyard."],
+    // v0.46.0 — Death of Gwen Stacy: "exile any number of target players'
+    // graveyards." — plural-possessive mass wipe form.
+    ["exile any number of target players' graveyards."],
+    // v0.46.0 — Colfenor's Urn: anaphoric "you may exile it" after a
+    // "put into your graveyard from the battlefield" antecedent. The
+    // ANAPHORIC_PUT_GRAVEYARD_EXILE arm gates on the antecedent within ~120
+    // chars so bare "exile it" can't fire without the graveyard context.
+    ['whenever a creature with toughness 4 or greater is put into your graveyard from the battlefield, you may exile it.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -112,6 +123,9 @@ describe('effect.exile_from_graveyard', () => {
     // `[^.]+?` (forbid `.` in the filler) keeps the match within one sentence.
     ['when this creature enters, exile target spell. it becomes plotted. spells your opponents cast from graveyards or from exile cost {2} more to cast.'],
     ['exile target nonland permanent. it becomes a copy of a forest. spells from graveyards cost more to cast.'],
+    // v0.46.0 — ANAPHORIC_PUT_GRAVEYARD_EXILE negative: bare "exile it"
+    // without the antecedent must not fire.
+    ['you may exile it from any zone.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

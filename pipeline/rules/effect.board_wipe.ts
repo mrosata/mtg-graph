@@ -51,8 +51,10 @@ const PATTERN_DAMAGE_SWEEP =
 // -N/-N until end of turn" (Shefet Archfiend). Functionally a wipe (any
 // creature with toughness ≤ N dies). Anchored on "all" so single-target
 // -N/-N debuffs stay outside this rule (those go to effect.debuff_minus_n).
+// v0.46.0 — Toxic Deluge: "all creatures get -x/-x until end of turn."
+// Admit `-x/-x` (variable) alongside literal `-\d+/-\d+` amounts.
 const PATTERN_MASS_DEBUFF =
-  /\ball\s+(?:other\s+)?creatures\s+[^.]{0,40}?gets?\s+-\d+\/-\d+\b/;
+  /\ball\s+(?:other\s+)?creatures\s+[^.]{0,40}?gets?\s+-(?:\d+|x)\/-(?:\d+|x)\b/;
 
 export const rule: Rule = {
   id: 'effect.board_wipe',

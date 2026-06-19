@@ -61,6 +61,9 @@ describe('effect.cast_from_exile', () => {
     // "that card" binds to an earlier exile clause; same impulse-cast semantic.
     ['exile that creature. you may play that card.'],
     ['exile target equipment, instant, or sorcery card from your graveyard. until the end of your next turn, you may play that card.'],
+    // v0.46.0 — Azula: "cast cards exiled with __self__" — controller casts
+    // from own exile pile keyed to this permanent.
+    ['you may cast cards exiled with __self__ from exile without paying their mana costs.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -21,6 +21,10 @@ describe('effect.bounce_artifact', () => {
     // admits the "other" modifier so the noun anchor is reached.
     ["when __self__ enters, return up to one other target artifact or creature to its owner's hand."],
     ["when this creature enters, return up to one other target artifact you control to its owner's hand."],
+    // v0.46.0 — Baral's Expertise: "return up to three target artifacts
+    // and/or creatures to their owners' hands." — artifact branch fires on
+    // the `artifacts?` noun before `and/or creatures`.
+    ["return up to three target artifacts and/or creatures to their owners' hands."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

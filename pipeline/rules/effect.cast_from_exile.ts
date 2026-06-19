@@ -103,6 +103,11 @@ const PATTERNS = [
   // exile clause, preventing FPs on bare "you may cast it" templates
   // outside an exile context.
   /\bexile[^.]{0,150}?\.\s*(?:until the end of your next turn,?\s*)?you may cast (?:it|that card)(?:\s+(?:this turn|until the end of your next turn))?\b/,
+  // (9) v0.46.0 — Azula: "cast cards exiled with __self__" — controller
+  // casts from their own exile pile keyed to this permanent. The
+  // "exiled with __self__" suffix is a tighter scope than pattern (3)'s
+  // "from among cards exiled" and handles the modern possessive template.
+  /\bcast (?:[^.]{0,30})?cards exiled with __self__\b/,
 ];
 
 export const rule: Rule = {
