@@ -61,6 +61,9 @@ const PATTERNS = [
   // anaphor admits singular "it"/"that card" and plural "them"/"those land
   // cards".
   /\breveal cards from the top of your library until you reveal (?:a|\d+|one|two|three|four|five) (?:basic )?land cards?\.\s*put (?:it|that card|them|those (?:basic )?lands? cards?) onto the battlefield\b/,
+  // v0.45.0 — Zimone's Experiment: "reveal top N, put all land cards revealed
+  // this way onto the battlefield". Library-reveal ramp without explicit search.
+  /\bput (?:all|up to (?:one|two|three|four|five|\w+)|one of) land cards? (?:revealed|found) this way onto the battlefield\b/,
 ];
 
 export const rule: Rule = {

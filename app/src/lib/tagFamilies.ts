@@ -336,6 +336,10 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.plus_one_counter': 'keywords',
   'trigger.attack_or_block': 'keywords',
   'trigger.counter_changed': 'keywords',
+  // v0.45.0 — new rules
+  'effect.proliferate': 'keywords',
+  'effect.attack_tax': 'destruction',
+  'trigger.surveil': 'card-selection',
 };
 
 /**

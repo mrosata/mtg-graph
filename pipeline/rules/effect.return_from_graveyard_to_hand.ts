@@ -13,7 +13,7 @@ export const tagDef: TagDef = {
 // hand". The anaphoric "that card" binds to the creature that just died
 // (now in graveyard). Bounded to avoid FPs on reanimate-to-battlefield arms.
 const DIES_RETURN_TO_HAND =
-  /\bdies,\s*return (?:that card|it|them) to (?:its owner'?s|your) hand\b/;
+  /\bdies(?:[^.]{0,25})?,\s*return (?:that card|it|them) to (?:its owner'?s|your) hand\b/;
 
 // v0.43.0 — Night Nurse: "target permanent card in your graveyard. Return it
 // to your hand." Two-sentence graveyard-to-hand recursion. Bounded windows

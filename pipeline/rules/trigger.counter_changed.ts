@@ -23,7 +23,13 @@ export const rule: Rule = {
     // quantifier and the noun.
     const alt = /whenever (?:you|a player) puts? (?:a |an |one or more )?(?:\+1\/\+1 |-1\/-1 |[a-z][a-z'\-]+ )?counters?\s+on/;
     const m = t.match(re) || t.match(alt);
-    return m ? { evidence: m[0] } : false;
+    if (m) return { evidence: m[0] };
+    // v0.45.0 — Doom Reigns Supreme: "when the fifth plan counter is put on
+    // this enchantment". Ordinal-threshold arm for milestone counter triggers.
+    const ordinal = t.match(
+      /\bwhen the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) [\w-]+ counter is put on\b/,
+    );
+    return ordinal ? { evidence: ordinal[0] } : false;
   },
   nearMiss: { anchors: ['counter', 'counters'], proximity: ['whenever'], window: 8 },
 };

@@ -40,6 +40,8 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // v0.43.0 — Night Nurse with modifier clause between graveyard locator
     // and the sentence boundary (60→80 char window broadening).
     ['choose target permanent card in your graveyard that was put there from anywhere this turn. return it to your hand.'],
+    // v0.45.0 — Together Forever: "dies this turn" interleaver in DIES_RETURN_TO_HAND.
+    ["when that creature dies this turn, return that card to its owner's hand."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

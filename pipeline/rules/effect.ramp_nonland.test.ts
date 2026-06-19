@@ -67,6 +67,9 @@ describe('effect.ramp_nonland', () => {
     // slot just needs to accept N>1.
     [['Creature'], 'flying, deathtouch exhaust — {4}: reveal cards from the top of your library until you reveal two land cards. put those land cards onto the battlefield tapped and the rest on the bottom of your library in a random order. put a +1/+1 counter on this creature.'],
     [['Sorcery'], 'reveal cards from the top of your library until you reveal three land cards. put them onto the battlefield tapped.'],
+    // v0.45.0 — Zimone's Experiment: reveal-top-N, put all land cards revealed
+    // this way onto the battlefield tapped. Library-reveal ramp.
+    [['Sorcery'], 'reveal the top three cards of your library. put all land cards revealed this way onto the battlefield tapped.'],
   ])('matches non-land cards that tutor a basic land into play: %j', (types, oracle) => {
     expect(rule.matchCard!(card(types, oracle), oracle)).toBeTruthy();
   });

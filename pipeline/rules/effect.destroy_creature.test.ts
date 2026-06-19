@@ -40,6 +40,8 @@ describe('effect.destroy_creature', () => {
     // fires.
     ['each creature with mana value x or less loses all abilities until end of turn. destroy those creatures.'],
     ['destroy those creatures'],
+    // 2026-06-18 audit — Sadistic Shell Game: "the chosen" determiner
+    ['destroy the chosen creatures.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

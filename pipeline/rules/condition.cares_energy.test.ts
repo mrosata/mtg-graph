@@ -18,6 +18,8 @@ describe('condition.cares_energy', () => {
     ['pay fifty {e}: draw seven cards'],
     ['pay twenty {e}: draw a card'],
     ['pay hundred {e}'],
+    // v0.45.0 — Territorial Aetherkite: "pay one or more {e}".
+    ['you may pay one or more {e}. it gets +1/+1 for each {e} paid this way.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

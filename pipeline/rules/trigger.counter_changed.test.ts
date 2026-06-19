@@ -24,6 +24,8 @@ describe('trigger.counter_changed', () => {
     // v0.20 — counter-type slot (Stocking the Pantry).
     ['whenever you put one or more +1/+1 counters on a creature you control, put a supply counter on this enchantment'],
     ['whenever you put a charge counter on an artifact, draw a card'],
+    // v0.45.0 — Doom Reigns Supreme: ordinal-threshold arm.
+    ['when the fifth plan counter is put on this enchantment, you win the game.'],
   ])('matches (added): %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

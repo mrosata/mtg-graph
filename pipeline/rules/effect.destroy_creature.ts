@@ -18,7 +18,7 @@ export const tagDef: TagDef = {
 // 2026-06-02 audit batch — admit "those" anaphor (Day of Black Sun:
 // "each creature ... loses all abilities. destroy those creatures.").
 const PATTERN_OWN =
-  /\bdestroy(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\w+)\s+)?(?:another\s+|other\s+|target\s+|each\s+|all\s+|that\s+|those\s+)(?:[\w\-]+[,\s]+){0,6}?creatures?\b/;
+  /\bdestroy(?:s)?\s+(?:(?:up to\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\w+)\s+)?(?:another\s+|other\s+|target\s+|each\s+|all\s+|that\s+|those\s+|the chosen\s+)(?:[\w\-]+[,\s]+){0,6}?creatures?\b/;
 
 // Pattern B: type-inclusive broad ("destroy ... permanent" without a "noncreature" modifier).
 const PATTERN_BROAD =

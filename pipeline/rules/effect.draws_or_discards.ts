@@ -116,6 +116,12 @@ export const rule: Rule = {
     const lookThenToHand = t.match(
       /\blook at the top (?:\w+ )?cards? of your library\b[^.]{0,80}\.\s*put\s+(?:\d+|one|two|three|four|five|that many) of (?:them|those)\s+into your hand\b/,
     );
-    return lookThenToHand ? { evidence: lookThenToHand[0] } : false;
+    if (lookThenToHand) return { evidence: lookThenToHand[0] };
+    // v0.45.0 — Splinter, Aging Champion: "you and another target player each
+    // draw a card". Compound subject with explicit "each" distributor.
+    const compoundSubject = t.match(
+      /\byou and (?:another )?target player[^.]{0,30}?each\s+(?:draw|discard)/,
+    );
+    return compoundSubject ? { evidence: compoundSubject[0] } : false;
   },
 };

@@ -106,6 +106,8 @@ describe('effect.draws_or_discards', () => {
     // cards in their hand" — the half-count slot was missing from the
     // primary regex.
     ['each player loses half their life, then discards half the cards in their hand, then sacrifices half the permanents they control of their choice.'],
+    // v0.45.0 — Splinter, Aging Champion: compound-subject "each draw" arm.
+    ['you and another target player each draw a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
