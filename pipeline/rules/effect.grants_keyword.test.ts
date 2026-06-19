@@ -90,6 +90,16 @@ describe('effect.grants_keyword parametric', () => {
     });
   });
 
+  describe('grants_vigilance — "they (also) have <kw>" anaphoric frame (Radiant Destiny)', () => {
+    // Radiant Destiny: "as long as you have the city's blessing, they also
+    // have vigilance." The "they" subject is anaphoric — refers to the tribe
+    // named earlier in the ability. Previously no frame matched this shape.
+    it('matches "they also have vigilance" frame', () => {
+      const r = ruleFor('effect.grants_vigilance');
+      expect(r.match("as long as you have the city's blessing, they also have vigilance.")).toBeTruthy();
+    });
+  });
+
   describe('grants_vigilance — token-creation frame', () => {
     // Regression (Virtue of Loyalty // Ardenvale Fealty): keyword baked into
     // the created token — "create a 2/2 white Knight creature token with

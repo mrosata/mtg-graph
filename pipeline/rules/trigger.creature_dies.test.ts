@@ -58,6 +58,11 @@ describe('trigger.creature_dies', () => {
     // Aatchik: Insect tribal — added to THEME_TRIBES so the tribal-dies arm
     // can match.
     ['whenever another insect you control dies, put a +1/+1 counter on __self__'],
+    // Timothar, Baron of Bats — "another nontoken vampire you control dies".
+    // The `nontoken` qualifier sits between the determiner ("another") and
+    // the tribe noun. The TRIBAL_DIES regex needs `(?:nontoken\s+)?` to
+    // skip past it.
+    ['whenever another nontoken vampire you control dies, you may pay {1} and exile it.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

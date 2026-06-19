@@ -55,6 +55,10 @@ function buildGrantRegex(kw: string): RegExp {
       // filler admits the typical conditional clause ("+1/+1 counters on them",
       // "power 3 or greater", etc.) between the subject and the anthem verb.
       `\\bcreatures?\\s+(?:you control|you don't control|an opponent controls)\\s+with\\s+[^.]{0,60}?\\s+(?:has|have)\\s+${kw}\\b`,
+      // Radiant Destiny — anaphoric "they" subject. "as long as you have the
+      // city's blessing, they also have vigilance." The antecedent is a tribe
+      // noun stated earlier in the same ability. `also` is optional.
+      `\\bthey\\s+(?:also\\s+)?have\\s+${kw}\\b`,
       // v0.14.1 — tribal anthem: "Other Dinosaurs you control have haste"
       // (Palani's Hatcher). The subject is a tribe plural noun, not the
       // generic "creatures". Require the plural-`s` suffix to keep this

@@ -64,7 +64,11 @@ const PATTERNS = [
   /\bfrom among (?:the )?exiled cards\b/,
   // v0.14.7 — (9) Duration framing — the exile pile is the persistence
   // anchor for a recasting permission. Outrageous Robbery.
-  /\bfor as long as (?:they|it) remains? exiled\b/,
+  // Narrowed (Fix 4 audit): require a controller-perspective `you may` clause
+  // upstream within the same sentence so opponent-perspective frames
+  // (Lightstall Inquisitor: "each opponent … may play that card for as long
+  // as it remains exiled") are excluded.
+  /\byou\s+may\s+(?:play|cast|look at and play)\b[^.]{0,120}?for as long as (?:they|it) remains? exiled\b/,
   // v0.19 — (10) Anaphoric "still exiled" — back-references the exile pile
   // produced earlier in the same ability. Dragonhawk, Fate's Tempest: "for
   // each of those cards that are still exiled" scales damage off the still-

@@ -17,7 +17,7 @@ export const tagDef: TagDef = {
 // alternation so unrelated nouns can't fire this arm.
 const TRIBE_ALT = THEME_TRIBES.map(tribePattern).join('|');
 const TRIBAL_DIES = new RegExp(
-  `\\bwhen(?:ever)?\\s+(?:a|an|another)\\s+(?:${TRIBE_ALT})\\s+you control(?:s)?\\s+dies\\b`,
+  `\\bwhen(?:ever)?\\s+(?:a|an|another)\\s+(?:nontoken\\s+)?(?:${TRIBE_ALT})\\s+you control(?:s)?\\s+dies\\b`,
 );
 
 export const rule: Rule = {

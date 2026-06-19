@@ -16,6 +16,11 @@ describe('effect.exile_enchantment', () => {
     ['target opponent exiles an enchantment they control'],
     ['target player exiles an enchantment'],
     ['target opponent exiles a creature, an artifact, or an enchantment they control'],
+    // Protector of the Wastes / Angel of the Ruins — "and/or" conjunction in
+    // the filler between determiners and "enchantments". The `/` in "and/or"
+    // was previously treated as a filler-aborting character.
+    ['exile up to two target artifacts and/or enchantments.'],
+    ['exile up to two target artifacts and/or enchantments controlled by different players.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

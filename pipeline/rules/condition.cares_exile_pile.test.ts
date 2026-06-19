@@ -83,6 +83,10 @@ describe('condition.cares_exile_pile', () => {
     // v0.14.7 — guard against "with its" possessive (word boundary on "it"
     // must reject the 's continuation).
     ['exile target creature, then return it to the battlefield with its abilities intact'],
+    // Lightstall Inquisitor — opponent-perspective "for as long as it remains
+    // exiled" (Pattern 9). The opponent (not you) is the one who may play the
+    // card — this is NOT a controller-perspective exile-pile payoff.
+    ['each opponent exiles a card from their hand and may play that card for as long as it remains exiled.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

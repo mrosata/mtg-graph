@@ -15,7 +15,7 @@ export const tagDef: TagDef = {
 // Cast Out, Realmbreaker's Grasp). The "enchantment" there is a duration
 // anchor referring to {self}, not the target of exile.
 const PATTERN_OWN =
-  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:(?!\buntil\b)[\w\-]+[,\s]+){0,6}?enchantments?(?! cards?)\b/;
+  /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?:(?!\buntil\b)[\w\-/]+[,\s]+){0,6}?enchantments?(?! cards?)\b/;
 
 const PATTERN_BROAD =
   /\bexile(?:s)?\s+(?:up to (?:one|two|three|four|five|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)(?!(?:[\w\-]+\s+){0,5}nonenchantment\s+)(?:(?!\buntil\b)[\w\-]+\s+){0,5}?permanents?(?! cards?)\b/;
