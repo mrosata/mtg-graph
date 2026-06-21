@@ -216,6 +216,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'condition.cares_bending': 'set-mechanics',
   'condition.cares_suspected': 'set-mechanics',
   'condition.celebration': 'set-mechanics',
+  'condition.teamwork': 'set-mechanics',
   'condition.descend': 'set-mechanics',
   'condition.evidence_collected': 'set-mechanics',
   'effect.collect_evidence': 'set-mechanics',
