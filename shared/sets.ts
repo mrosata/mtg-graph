@@ -22,6 +22,7 @@ export const STANDARD_SETS: StandardSet[] = [
   { code: 'tmt', name: 'Teenage Mutant Ninja Turtles' },
   { code: 'sos', name: 'Secrets of Strixhaven' },
   { code: 'om1', name: 'Through the Omenpaths' },
+  { code: 'msh', name: 'Marvel Super Heroes' },
 ];
 
 export const STANDARD_SET_CODES: string[] = STANDARD_SETS.map((s) => s.code);
@@ -32,7 +33,6 @@ export const STANDARD_SET_CODES: string[] = STANDARD_SETS.map((s) => s.code);
 // Includes the matching Commander companion codes (msc, hoc, trc) so
 // scope='unreleased' shows Commander previews alongside their parent set.
 export const UPCOMING_SETS: StandardSet[] = [
-  { code: 'msh', name: 'Marvel Super Heroes' },
   { code: 'msc', name: 'Marvel Super Heroes Commander' },
   { code: 'om2', name: 'Through the Omenpaths 2' },
   { code: 'hob', name: 'The Hobbit' },
