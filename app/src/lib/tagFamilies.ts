@@ -287,6 +287,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'condition.devotion': 'set-mechanics',
   // Warp-cares payoff axis.
   'condition.cares_warped': 'set-mechanics',
+  // MSH Power-up mechanic.
+  'condition.power_up': 'set-mechanics',
   // Legendary-matters payoff.
   'condition.cares_legendary': 'tribes',
 
