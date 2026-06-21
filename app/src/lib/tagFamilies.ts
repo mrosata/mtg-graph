@@ -211,6 +211,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.amplifies_triggers': 'themes',
   'condition.cares_colors_among_permanents': 'themes',
   'condition.threshold': 'themes',
+  'condition.controls_plan': 'themes',
 
   // set-mechanics
   'condition.cares_bending': 'set-mechanics',
