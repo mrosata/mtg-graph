@@ -6,7 +6,8 @@ describe('condition.cares_tribe parametric', () => {
     // 2026-06-01 audit Group 10 — added `insect` tribe (Aatchik, Emerald Radian).
     // v0.32 — Group 12 — added `sliver` tribe (Thrumming Hivepool).
     // v0.39.0 — 200-card audit Ship 1 — added `turtle` tribe.
-    expect(rules.length).toBe(40);
+    // v0.50.0 — added `hero` and `villain` tribes (MSH tribal payoffs).
+    expect(rules.length).toBe(42);
     const ids = new Set(rules.map((r) => r.id));
     expect(ids.has('condition.cares_tribe.human')).toBe(true);
     expect(ids.has('condition.cares_tribe.merfolk')).toBe(true);
@@ -28,10 +29,13 @@ describe('condition.cares_tribe parametric', () => {
     expect(ids.has('condition.cares_tribe.sliver')).toBe(true);
     // v0.39.0 — turtle tribe.
     expect(ids.has('condition.cares_tribe.turtle')).toBe(true);
+    // v0.50.0 — hero and villain tribes (MSH tribal payoffs).
+    expect(ids.has('condition.cares_tribe.hero')).toBe(true);
+    expect(ids.has('condition.cares_tribe.villain')).toBe(true);
   });
 
   it('exports a tagDef per tribe with theme category', () => {
-    expect(tagDefs.length).toBe(40);
+    expect(tagDefs.length).toBe(42);
     for (const def of tagDefs) {
       expect(def.axis).toBe('condition');
       expect(def.category).toBe('theme');

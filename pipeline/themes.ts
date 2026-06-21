@@ -89,6 +89,11 @@ export const THEME_TRIBES = [
   // (Ainok Tracker partner, plus the recurring Turtle creatures in current
   // Standard reprints). "Turtles you control" + tribal-care payoffs.
   'turtle',
+  // v0.50.0 — MSH Hero/Villain tribal. Both are named creature subtypes in the
+  // Marvel set with dense payoff families (11 Hero-matters + 16 Villain-matters
+  // cards). The TOKEN_CREATE strip in cares_tribe handles "create a ... Villain
+  // creature token" false-positive framing.
+  'hero', 'villain',
 ] as const;
 
 export type ThemeTribe = (typeof THEME_TRIBES)[number];
