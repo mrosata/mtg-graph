@@ -7,6 +7,8 @@ describe('condition.controls_plan', () => {
     ['as long as you control an artifact creature or a plan, __self__ has indestructible.'],
     // conditional with "an" + plan reference
     ['whenever you control an enchantment creature or a plan, draw a card'],
+    // third positive case: whenever clause with plan control
+    ['whenever you cast a plan, draw a card'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
