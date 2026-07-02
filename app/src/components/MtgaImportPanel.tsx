@@ -56,6 +56,9 @@ function detectPlatform(): Platform {
 }
 
 export default function MtgaImportPanel({ mode, onClose }: Props) {
+  // Computed per-render so tests can control window.location.search per test.
+  const nightlyEnabled = new URLSearchParams(window.location.search).get('nightly');
+  const isNightly = nightlyEnabled === 'true' || nightlyEnabled === '1' || nightlyEnabled === '';
   const cards = useGraphStore((s) => s.cards);
   const importLibrary = useLibraryStore((s) => s.importLibrary);
   const ownedFromStore = useLibraryStore((s) => s.owned);
@@ -64,7 +67,8 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
   // Decks-only mode is Player.log only — the JSON export carries no decks.
   // Full mode no longer offers Player.log; only JSON and Live scan.
   const [source, setSource] = useState<Source>('json');
-  const effectiveSource: Source = mode === 'decks-only' ? 'log' : source;
+  const effectiveSource: Source =
+    mode === 'decks-only' ? 'log' : source === 'scan' && !isNightly ? 'json' : source;
 
   const [state, setState] = useState<ParseState>({ kind: 'idle' });
   const [decksOptIn, setDecksOptIn] = useState(false);
@@ -348,7 +352,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
 
   return (
     <div>
-      {mode === 'full' && <LiveScanDownload />}
+      {mode === 'full' && isNightly && <LiveScanDownload />}
 
       {mode === 'full' && (
         <div
@@ -365,15 +369,17 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           >
             Collection JSON
           </SourceButton>
-          <SourceButton
-            active={source === 'scan'}
-            onClick={() => {
-              setSource('scan');
-              resetParseState();
-            }}
-          >
-            Live scan
-          </SourceButton>
+          {isNightly && (
+            <SourceButton
+              active={source === 'scan'}
+              onClick={() => {
+                setSource('scan');
+                resetParseState();
+              }}
+            >
+              Live scan
+            </SourceButton>
+          )}
         </div>
       )}
 

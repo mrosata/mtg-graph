@@ -120,7 +120,8 @@ describe('MtgaImportPanel (JSON source)', () => {
   it('renders source selector in full mode and defaults to Collection JSON', () => {
     render(<MtgaImportPanel mode="full" onClose={vi.fn()} />);
     expect(screen.getByRole('tab', { name: /Collection JSON/i })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: /Live scan/i })).toBeInTheDocument();
+    // Live scan tab is gated behind ?nightly=true; not shown in default mode.
+    expect(screen.queryByRole('tab', { name: /Live scan/i })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Choose collection JSON/i)).toBeInTheDocument();
   });
 
@@ -172,10 +173,13 @@ describe('MtgaImportPanel (Live scan source)', () => {
   beforeEach(() => {
     importLibrary.mockClear();
     importDeck.mockClear();
+    // Enable nightly mode so the Live scan tab renders.
+    window.history.replaceState(null, '', '?nightly=true');
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    window.history.replaceState(null, '', '/');
   });
 
   const healthyHealth = {
@@ -317,6 +321,8 @@ describe('MtgaImportPanel (Live scan source)', () => {
 });
 
 function connectScanTab() {
+  // Enable nightly mode so the Live scan tab renders.
+  window.history.replaceState(null, '', '?nightly=true');
   vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
     online: true, version: 2, running_as_root: true, arena_process_found: true, card_db_ready: true,
   });
@@ -325,6 +331,7 @@ function connectScanTab() {
 }
 
 it('scan: warns when the bridge reports no/old version', async () => {
+  window.history.replaceState(null, '', '?nightly=true');
   vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
     online: true, running_as_root: true, arena_process_found: true, card_db_ready: true,
   });
@@ -332,9 +339,11 @@ it('scan: warns when the bridge reports no/old version', async () => {
   fireEvent.click(screen.getByRole('tab', { name: /Live scan/i }));
   fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
   expect(await screen.findByText(/out of date/i)).toBeInTheDocument();
+  window.history.replaceState(null, '', '/');
 });
 
 it('scan: no version warning when the bridge is current', async () => {
+  window.history.replaceState(null, '', '?nightly=true');
   vi.spyOn(bridge, 'bridgeHealth').mockResolvedValue({
     online: true, version: 2, running_as_root: true, arena_process_found: true, card_db_ready: true,
   });
@@ -343,6 +352,7 @@ it('scan: no version warning when the bridge is current', async () => {
   fireEvent.click(screen.getByRole('button', { name: /^Connect$/i }));
   await screen.findByRole('button', { name: /Find my collection/i });
   expect(screen.queryByText(/out of date/i)).not.toBeInTheDocument();
+  window.history.replaceState(null, '', '/');
 });
 
 it('scan deck mode: paste deck → ok → summary with matched count', async () => {
