@@ -36,8 +36,11 @@ export const rule: Rule = {
     // the count slot so Pox Plague's "each player ... discards half the cards
     // in their hand" matches. The "in <player>'s hand" tail is optional and
     // bounded so the match terminates on the next clause.
+    // v0.50 (S17) — `instead ` added to the leadin connector set so
+    // replacement clauses reach the subject slot (Leader, Super-Genius:
+    // "if a creature you control would connive, instead you draw a card").
     const m = t.match(
-      /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player|each of (?:\w+(?:'s)?\s+){1,3}(?:opponents?|controllers?|players?))\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|any number of cards|half (?:the )?cards?(?: in [^.]+? hand)?|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
+      /(?:(?:^|[.,:\n—] ?)(?:then |and |may |• |instead )?| and | then )(?:(?:you|each player|each opponent|target player|target opponent|that player|each of (?:\w+(?:'s)?\s+){1,3}(?:opponents?|controllers?|players?))\s+(?:may )?)?(?:draws?|discards?) (?:a card|an additional card|that many cards|any number of cards|half (?:the )?cards?(?: in [^.]+? hand)?|cards equal to \S+|\d+ cards?|(?:two|three|four|five|six|seven|eight|nine|ten) cards?|[xn] cards?|(?:your|their) hand)/,
     );
     if (m) return { evidence: m[0] };
     // v0.15 — causative "have <opponent> draw/discard" frame (Alania,
@@ -139,6 +142,12 @@ export const rule: Rule = {
     const revealThenPutToHand = t.match(
       /\breveal the top (?:\w+ )?cards? of (?:your|target player'?s) library\b.{0,120}?\bput (?:them|it|those cards|that card) into your hand\b/,
     );
-    return revealThenPutToHand ? { evidence: revealThenPutToHand[0] } : false;
+    if (revealThenPutToHand) return { evidence: revealThenPutToHand[0] };
+    // v0.50 (S17) — self-discard as an activation cost (The Masters of Evil:
+    // "{1}{b}, discard this card: search your library ..."). The lookahead
+    // requires the cost colon so prose "discard this card" outside a cost
+    // frame doesn't fire.
+    const selfDiscardCost = t.match(/\bdiscard this card\b(?=[^.]{0,80}:)/);
+    return selfDiscardCost ? { evidence: selfDiscardCost[0] } : false;
   },
 };

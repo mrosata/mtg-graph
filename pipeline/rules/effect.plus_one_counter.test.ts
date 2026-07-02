@@ -59,6 +59,11 @@ describe('effect.plus_one_counter', () => {
     // Aetherborn Marauder: "move any number of +1/+1 counters from other
     // permanents you control onto this creature".
     ['when this creature enters, move any number of +1/+1 counters from other permanents you control onto this creature.'],
+    // v0.50 (S13a) — multi-word counter kind in the conjunction tail
+    // (Quicksilver, Brash Blur: "+1/+1 counter and a double strike counter").
+    ['put a +1/+1 counter and a double strike counter on __self__.'],
+    // v0.50 (S13b) — put-onto-battlefield-with form (Vision Quest).
+    ['put it onto the battlefield with x additional +1/+1 counters on it.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

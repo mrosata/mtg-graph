@@ -28,6 +28,9 @@ describe('effect.amplifies_damage_or_lifeloss', () => {
     // HIGH-13 (Collective Inferno): "double all damage that sources you control of the chosen type would deal".
     ['double all damage that sources you control of the chosen type would deal'],
     ['double all damage that creatures you control would deal'],
+    // v0.50 (S18) — specific-subject doubler without "that" (Mjölnir, Hammer
+    // of Thor: "double all damage equipped creature would deal").
+    ['double all damage equipped creature would deal.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

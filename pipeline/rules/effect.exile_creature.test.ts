@@ -37,6 +37,10 @@ describe('effect.exile_creature', () => {
     ["exile any number of target creatures."],
     // HIGH-8 (Yangchen Saga II): "each player chooses up to one permanent ... exile those permanents".
     ['each player chooses up to one permanent with mana value 3 or greater from among permanents your opponents control. exile those permanents.'],
+    // v0.50 (S10) — Cloak and Dagger, Entwined: "the chosen creature" anaphor
+    // in a disjunction ("a nonland card from their hand OR the chosen
+    // creature"). Duration exile of a battlefield creature — real removal.
+    ['you may exile a nonland card from their hand or the chosen creature until cloak and dagger leave the battlefield.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

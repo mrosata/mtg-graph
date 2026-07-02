@@ -6,7 +6,8 @@ export const tagDef: TagDef = {
   tagId: 'effect.grants_stat_buff',
   axis: 'effect',
   label: 'Grants stat buff',
-  description: 'Grants an anthem-style +N/+N buff to one or more creatures (no counter involved).',
+  description:
+    "Grants an anthem-style +N/+N buff to one or more creatures (no counter involved), or doubles a creature's power and toughness.",
   pairsWith: [],
 };
 
@@ -57,11 +58,34 @@ const PATTERN_SELF_FOR_EACH =
 const TRIBAL_PATTERN =
   /\b(?:[a-z]+(?:s|en)|merfolk|kithkin|mice|geese|dwarves|elves|wolves|men|women|fungi|axolotls)\s+you\s+control[^.]{0,40}? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
 
+// v0.50 (S26) — "each <noun>" distributive anthem (Captain America, Wings of
+// Freedom: "each other hero you control gets +x/+x until end of turn"). The
+// singular noun after "each" evades both PATTERN (needs a plural/known
+// subject) and TRIBAL_PATTERN (needs an -s/-en plural).
+const EACH_NOUN_PATTERN =
+  /\beach (?:other )?[a-z]+(?: you control)? gets? \+(?:\d+|x)\/\+(?:\d+|x)/;
+
+// v0.50 (S26) — power-and-toughness doubling (World War Hulk, Saga III:
+// "double its power and toughness"). A multiplicative stat buff — same axis.
+const DOUBLE_STATS_PATTERN =
+  /\bdouble (?:its|that creature'?s|target creature'?s) power and toughness\b/;
+
+// NOTE (v0.50): flat self-buff forms ("he gets +2/+0", "__self__ gets +4/+4"
+// — Luke Cage, Super-Skrull, Yellowjacket) are intentionally EXCLUDED. Those
+// belong to a future intrinsic has_stat_buff axis; grants_stat_buff scopes
+// to buffs granted to other creatures (plus the "__self__ ... for each"
+// scaling arm above).
+
 export const rule: Rule = {
   id: 'effect.grants_stat_buff',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(TRIBAL_PATTERN) ?? t.match(PATTERN_SELF_FOR_EACH);
+    const m =
+      t.match(PATTERN) ??
+      t.match(TRIBAL_PATTERN) ??
+      t.match(PATTERN_SELF_FOR_EACH) ??
+      t.match(EACH_NOUN_PATTERN) ??
+      t.match(DOUBLE_STATS_PATTERN);
     return m ? { evidence: m[0] } : false;
   },
 };

@@ -36,6 +36,12 @@ describe('condition.cares_plus_one_counter', () => {
     // creature, draw a card."). Direct +1/+1-specific trigger frame.
     ['whenever one or more +1/+1 counters are put on this creature, draw a card.'],
     ['whenever a +1/+1 counter is put on target creature'],
+    // v0.50 (S14) — "you've put ... +1/+1 counters on ... this turn" gates
+    // (Beast, Erudite Aerialist; Kid Loki) and "whenever you put ... +1/+1
+    // counters on" triggers (Invisible Woman, Sue Storm).
+    ["as long as you've put one or more +1/+1 counters on __self__ this turn, he has flying."],
+    ["each creature you control that you've put one or more +1/+1 counters on this turn has hexproof."],
+    ['whenever you put one or more +1/+1 counters on one or more other heroes you control, draw a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

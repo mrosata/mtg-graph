@@ -41,6 +41,15 @@ export function expandChildren(
       if (childType) {
         const nonRe = new RegExp(`\\bnon${childType}\\b`, 'i');
         if (tag.evidence && nonRe.test(tag.evidence)) continue;
+        // v0.50 — token-only suppression. When the evidence names ONLY tokens
+        // ("destroy target token" — The Ruinous Wrecking Crew) the typed
+        // children (destroy_land, destroy_planeswalker, ...) are false
+        // positives. Keep the parent tag; skip every typed child.
+        if (
+          tag.evidence &&
+          /\btokens?\b/i.test(tag.evidence) &&
+          !/\bpermanents?\b/i.test(tag.evidence)
+        ) continue;
       }
       seen.add(childId);
       result.push({

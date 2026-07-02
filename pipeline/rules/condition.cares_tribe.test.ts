@@ -206,6 +206,17 @@ describe('condition.cares_tribe parametric', () => {
     ).toBe(false);
   });
 
+  // v0.50 (S30) — "that creature" subject in the type-grant frame
+  // (Thunderbolts Conspiracy: "that creature is a hero in addition to its
+  // other types."). Type-GRANTING to another creature is a Hero-tribal
+  // enabler, same as the enchanted/equipped Aura frame.
+  it('hero matches "that creature is a hero in addition to its other types" (Thunderbolts Conspiracy)', () => {
+    const h = rules.find((r) => r.id === 'condition.cares_tribe.hero')!;
+    expect(
+      h.match('return target creature card from your graveyard to the battlefield. that creature is a hero in addition to its other types.'),
+    ).toBeTruthy();
+  });
+
   // Sanity — genuine tribal references inside an ability-word BODY still
   // fire (the body references the subtype as a payoff).
   it('food still matches "food formula — sacrifice a food" body (ability-word body references subtype)', () => {

@@ -36,7 +36,12 @@ const PATTERNS = [
   // it" where "it" is a "target nontoken creature you control"). The "of it",
   // "of __self__", "of this creature", "of target creature" sources guarantee
   // the resulting token is a creature.
-  new RegExp(`${OC}\\bcreates?\\s+[^.]{0,80}?tokens?\\s+that(?:\\s+(?:is|are)|['’]s)\\s+(?:a\\s+)?cop(?:y|ies)\\s+of\\s+(?:it|them|__self__|this creature|target creature|that creature|those creatures)`),
+  // v0.50 (S29) — optional token-typing continuation (Ultron, Artificial
+  // Malevolence: "... create a token that's a copy of it. if the token isn't
+  // a creature, it becomes a 2/2 robot villain creature in addition to its
+  // other types."). Extending the evidence span through the continuation
+  // lets extractCreatureTypes see the granted creature types.
+  new RegExp(`${OC}\\bcreates?\\s+[^.]{0,80}?tokens?\\s+that(?:\\s+(?:is|are)|['’]s)\\s+(?:a\\s+)?cop(?:y|ies)\\s+of\\s+(?:it|them|__self__|this creature|target creature|that creature|those creatures)(?:[^.]{0,40}\\.\\s*if the tokens? (?:isn't|aren't) (?:a )?creatures?, (?:it|they) becomes? (?:a |an )?(?:[\\w\\/\\-]+ ){0,5}?creatures?)?`),
 ];
 
 function extractCreatureTypes(evidence: string): string[] {

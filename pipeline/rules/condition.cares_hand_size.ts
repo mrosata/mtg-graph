@@ -46,6 +46,9 @@ const PATTERNS = [
   // The hand-owner possessive is optional because some forms use bare "in
   // hand" (The Ten Rings: "fewer than ten cards in hand").
   /\bfewer than (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) cards? in (?:(?:your|a player's|their|an opponent's|target opponent's|target player's)\s+)?hand\b/,
+  // v0.50 (S6) — "no maximum hand size" (Ms. Marvel, Kamala Khan). Lifting
+  // the hand-size cap is a hand-size-matters payoff enabler.
+  /\b(?:you have |target player has )?no maximum hand size\b/,
 ];
 
 export const rule: Rule = {

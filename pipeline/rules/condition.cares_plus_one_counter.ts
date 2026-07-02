@@ -37,6 +37,12 @@ const PATTERNS = [
   // trigger frame (Pensive Professor). The trigger gates on +1/+1 counter
   // placement directly — same cares-+1/+1 axis as the other trigger frames.
   /\bwhenever\s+(?:a|an|\d+|one or more)\s+\+1\/\+1 counters? (?:are|is) put on\b/,
+  // v0.50 (S14) — "you've put ... +1/+1 counters on ... [this turn]" gates
+  // (Beast, Erudite Aerialist; Kid Loki's static class-grant qualifier).
+  /\byou(?:'ve| have) put (?:a |an |\d+ |one or more )?\+1\/\+1 counters? on\b/,
+  // v0.50 (S14) — "whenever you put ... +1/+1 counters on" trigger frame
+  // (Invisible Woman, Sue Storm).
+  /\bwhenever you put (?:a |an |\d+ |one or more )?\+1\/\+1 counters? on\b/,
 ];
 
 // Looser phrasings that say "counter" without specifying "+1/+1". Only fire

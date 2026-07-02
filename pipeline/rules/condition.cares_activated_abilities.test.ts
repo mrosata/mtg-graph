@@ -20,6 +20,11 @@ describe('condition.cares_activated_abilities', () => {
     // `loyalty`, etc.) before "ability" must be admitted.
     ['whenever you activate an exhaust ability, put a +1/+1 counter on this creature'],
     ['whenever you activate a loyalty ability, draw a card'],
+    // v0.50 (S21) — ability-copying payoff (Echo, Perceptive Prodigy;
+    // Scientist Supreme of A.I.M.): needs activated abilities on board to
+    // have something to copy.
+    ['{1}, {t}: copy target activated or triggered ability you control from a creature source.'],
+    ['pay 2 life: copy target activated or triggered ability you control from an artifact source.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -79,7 +79,13 @@ const CHAINED_GAIN_CONTROL = /\bgain control of [^.]{0,60}?,\s*untap (?:it|that 
 // creature <verb>, ..., untap it" restricts the bare "untap it" cleanly —
 // the self-trigger preamble guarantees "it" refers to the host creature.
 // Bare "untap it" without antecedent stays unmatched.
-const SELF_TRIGGER_PRONOUN = /\bwhenever this creature (?:attacks|blocks|attacks or blocks|becomes tapped|becomes blocked|deals (?:combat )?damage)[^.]{0,80}?,\s*untap it\b/;
+// v0.50 (S25) — subject broadened to equipped/enchanted creature (S.H.I.E.L.D.
+// Spy Kit: "whenever equipped creature attacks alone, untap it and scry 1").
+const SELF_TRIGGER_PRONOUN = /\bwhenever (?:this creature|equipped creature|enchanted creature) (?:attacks|blocks|attacks or blocks|becomes tapped|becomes blocked|deals (?:combat )?damage)[^.]{0,80}?,\s*untap it\b/;
+
+// v0.50 (S25) — becomes-tapped trigger with an untap payload ("whenever a
+// creature you control becomes tapped ..., untap it").
+const BECOMES_TAPPED_PRONOUN = /\bwhenever a creature you control becomes tapped\b[^.]{0,80}?,\s*untap it\b/;
 
 // v0.38.0 — Batch 10: ENTERS_TAPPED_PRONOUN. Amulet of Vigor: "whenever a
 // permanent you control enters tapped, untap it". Scoped: requires a
@@ -119,6 +125,7 @@ export const rule: Rule = {
         after.match(CHAINED_GAIN_CONTROL) ??
         after.match(GAIN_CONTROL_PRONOUN) ??
         after.match(SELF_TRIGGER_PRONOUN) ??
+        after.match(BECOMES_TAPPED_PRONOUN) ??
         after.match(ENTERS_TAPPED_PRONOUN);
       return m ? { evidence: m[0] } : false;
     }
@@ -131,6 +138,7 @@ export const rule: Rule = {
       t.match(CHAINED_GAIN_CONTROL) ??
       t.match(GAIN_CONTROL_PRONOUN) ??
       t.match(SELF_TRIGGER_PRONOUN) ??
+      t.match(BECOMES_TAPPED_PRONOUN) ??
       t.match(ENTERS_TAPPED_PRONOUN);
     return m ? { evidence: m[0] } : false;
   },

@@ -22,6 +22,10 @@ describe('trigger.tapped_or_untapped', () => {
     // permanent you control enters tapped, untap it".
     ['whenever a permanent you control enters tapped, untap it'],
     ['whenever a creature enters untapped, draw a card'],
+    // v0.50 (S24) — plural collective subject (Rewrite History: "whenever
+    // one or more creatures you control become tapped").
+    ['whenever one or more creatures you control become tapped, draw a card.'],
+    ['whenever creatures you control are tapped, scry 1.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

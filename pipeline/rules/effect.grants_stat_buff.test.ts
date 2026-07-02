@@ -48,6 +48,12 @@ describe('effect.grants_stat_buff', () => {
     ['they each get +1/+0'],
     // HIGH-10 (Champion of the Clachan): "other Kithkin you control get +1/+1". "Kithkin" is an irregular plural (no -s/-en suffix).
     ['other kithkin you control get +1/+1'],
+    // v0.50 (S26) — "each <noun>" subject (Captain America, Wings of
+    // Freedom: "each other hero you control gets +x/+x until end of turn").
+    ['each other hero you control gets +x/+x until end of turn.'],
+    // v0.50 (S26) — power-and-toughness doubling (World War Hulk, Saga III).
+    ['double its power and toughness until end of turn.'],
+    ["double target creature's power and toughness until end of turn."],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -58,6 +64,11 @@ describe('effect.grants_stat_buff', () => {
     ['target creature gets -3/-3 until end of turn'],
     ['draw a card'],
     ['creatures you control have flying'],
+    // v0.50 (S26) — flat self-buff forms are intentionally EXCLUDED (Luke
+    // Cage, Super-Skrull, Yellowjacket) — owned by a future has_stat_buff
+    // axis, not the grants axis.
+    ['he gets +2/+0 and gains indestructible until end of turn.'],
+    ['{3}{g}: __self__ gets +4/+4 until end of turn.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

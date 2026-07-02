@@ -31,7 +31,9 @@ const PATTERNS = [
   // (Jaded Analyst). Trigger fires when the controller draws the Nth card
   // of the turn — same axis (count of cards drawn this turn) as the
   // cumulative-gate patterns above.
-  /\byou draw your (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\d+(?:st|nd|rd|th)) card each turn\b/,
+  // v0.50 (S23) — subject broadened to third-person players (King T'Challa
+  // // Black Panther: "whenever a player draws their second card each turn").
+  /\b(?:you draw your|(?:a player|each player|an opponent) draws (?:their|his or her)) (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\d+(?:st|nd|rd|th)) card each turn\b/,
 ];
 
 export const rule: Rule = {

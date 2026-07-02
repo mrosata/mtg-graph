@@ -31,6 +31,10 @@ describe('condition.cares_hand_size', () => {
     // difference." Cares about hand size by gating on a below-threshold count.
     ['at the beginning of your end step, if you have fewer than ten cards in hand, draw cards equal to the difference.'],
     ['draw cards until you have fewer than 4 cards in hand'],
+    // v0.50 (S6) — "no maximum hand size" (Ms. Marvel, Kamala Khan). Lifting
+    // the hand-size cap is a hand-size-matters payoff enabler.
+    ['you have no maximum hand size.'],
+    ['target player has no maximum hand size until end of turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

@@ -23,10 +23,14 @@ export const tagDef: TagDef = {
   ],
 };
 
-const LTB_VERB = '(?:leaves? the battlefield|(?:is|are) put into a graveyard(?: from the battlefield)?)';
+// v0.50 (S22) — "is returned to its owner's hand" added: returned-to-hand IS
+// leaving the battlefield (Justice, Vance Astrovik).
+const LTB_VERB = "(?:leaves? the battlefield|(?:is|are) put into a graveyard(?: from the battlefield)?|is returned to its owner'?s hand)";
 
+// v0.50 (S22) — `nonland` removed from the exclusion lookahead: "nonland
+// permanent" is functionally universal (v0.15 destroy_permanent precedent).
 const PATTERN = new RegExp(
-  `\\bwhen(?:ever)?\\s+(?:a\\s+|an\\s+|another\\s+|the\\s+|each\\s+)(?!(?:[\\w\\-]+\\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|nonland|creature|artifact|enchantment|planeswalker|land)\\s+)(?:[\\w\\-]+\\s+){0,4}?permanents?\\s+(?:[\\w\\-\\s]+? )?${LTB_VERB}\\b`,
+  `\\bwhen(?:ever)?\\s+(?:a\\s+|an\\s+|another\\s+|the\\s+|each\\s+)(?!(?:[\\w\\-]+\\s+){0,5}(?:noncreature|nonartifact|nonenchantment|nonplaneswalker|creature|artifact|enchantment|planeswalker|land)\\s+)(?:[\\w\\-]+\\s+){0,4}?permanents?\\s+(?:[\\w\\-\\s]+? )?${LTB_VERB}\\b`,
 );
 
 export const rule: Rule = {

@@ -61,6 +61,20 @@ describe('effect.create_creature_token', () => {
     );
   });
 
+  // v0.50 (S29) — Ultron, Artificial Malevolence: copy-token whose creature
+  // typing lives in the "if the token isn't a creature, it becomes a 2/2
+  // Robot Villain creature" continuation sentence. The evidence span must
+  // extend through that continuation so creatureTypes extraction sees it.
+  it("populates metadata.creatureTypes from the token-typing continuation (Ultron)", () => {
+    const out = rule.match(
+      "whenever another nontoken artifact you control enters, you may pay {2}. if you do, create a token that's a copy of it. if the token isn't a creature, it becomes a 2/2 robot villain creature in addition to its other types.",
+    );
+    expect(out).toBeTruthy();
+    expect((out as { metadata?: { creatureTypes?: string[] } }).metadata?.creatureTypes).toEqual(
+      expect.arrayContaining(['villain']),
+    );
+  });
+
   it('omits metadata when no known tribe in the token type-line', () => {
     // v0.17: "demon" is now a known tribe; use a creature type not in
     // THEME_TRIBES to test the metadata-omitted path.

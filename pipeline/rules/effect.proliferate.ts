@@ -21,7 +21,15 @@ export const rule: Rule = {
   matchCard: (card, normalizedText) => {
     if (card.keywords.includes('Proliferate')) return { evidence: 'Proliferate' };
     const m = normalizedText.match(/\bproliferate\b/);
-    return m ? { evidence: m[0] } : false;
+    if (m) return { evidence: m[0] };
+    // v0.50 (S12) — functional proliferate spelled out in comp-rules prose
+    // without the keyword (Powerful Broker: "for each kind of counter on
+    // target permanent or player, give that permanent or player another
+    // counter of that kind"). Identical semantics to the keyword action.
+    const functional = normalizedText.match(
+      /\bfor each kind of counter on (?:target|each|a|any) (?:permanent or player|player or permanent|permanent|player)\b[^.]{0,80}?\banother counter of that kind\b/,
+    );
+    return functional ? { evidence: functional[0] } : false;
   },
   nearMiss: { anchors: ['proliferate'], proximity: ['counter'], window: 5 },
 };

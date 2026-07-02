@@ -70,6 +70,10 @@ describe('effect.ramp_nonland', () => {
     // v0.45.0 — Zimone's Experiment: reveal-top-N, put all land cards revealed
     // this way onto the battlefield tapped. Library-reveal ramp.
     [['Sorcery'], 'reveal the top three cards of your library. put all land cards revealed this way onto the battlefield tapped.'],
+    // v0.50 (S20) — third-person "target player ... searches their library"
+    // ramp (Restorative Technique). Whoever you point it at, the effect is
+    // still Rampant Growth-shaped ramp.
+    [['Sorcery'], 'target player gains 2 life, then searches their library for a basic land card, puts it onto the battlefield tapped, then shuffles.'],
   ])('matches non-land cards that tutor a basic land into play: %j', (types, oracle) => {
     expect(rule.matchCard!(card(types, oracle), oracle)).toBeTruthy();
   });
@@ -93,6 +97,9 @@ describe('effect.ramp_nonland', () => {
     [['Sorcery'], 'search your library for a basic land card, reveal it, put it into your hand, then shuffle.'],
     // Lands themselves searching for basics (e.g. Evolving Wilds) must not become ramp
     [['Land'], '{t}, sacrifice this land: search your library for a basic land card, put it onto the battlefield tapped, then shuffle.'],
+    // v0.50 (S20) — opponent-compensation fetch (Assassin's Trophy shape:
+    // "its controller may search ...") must NOT read as your ramp.
+    [['Instant'], "destroy target permanent an opponent controls. its controller may search their library for a basic land card, put it onto the battlefield, then shuffle."],
   ])('does not match non-mana effects: %j / %s', (types, oracle) => {
     expect(rule.matchCard!(card(types, oracle), oracle)).toBe(false);
   });

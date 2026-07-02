@@ -63,6 +63,10 @@ describe('condition.cares_graveyard', () => {
     // "whenever one or more creature cards are put into your graveyard from
     // anywhere". Pattern 4 only matched singular "card is put into".
     ['whenever one or more creature cards are put into your graveyard from anywhere, you draw a card, lose 1 life, and put a plan counter on this enchantment.'],
+    // v0.50 (S7) — copy-source-from-graveyard (Taskmaster, Mercenary Mimic):
+    // copying a creature card that sits in a graveyard uses graveyard
+    // contents as a resource, same axis as cast-from-graveyard.
+    ['becomes a copy of up to one target creature on the battlefield or creature card in a graveyard'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

@@ -55,6 +55,13 @@ const PATTERNS = [
   // Flotsam // Jetsam: "cast a spell from each opponent's graveyard".
   // Tarrian's Journal-style: "cast this card from your graveyard".
   /\bcast\s+(?:[\w\-' ]+? )?from\s+(?:your|each opponent's|each player's|an opponent's|target opponent's|a)\s+graveyards?\b/,
+  // v0.50 (S7) — copy-source-from-graveyard (Taskmaster, Mercenary Mimic:
+  // "becomes a copy of up to one target creature on the battlefield or
+  // creature card in a graveyard"). Copying out of a graveyard uses its
+  // contents as a resource — same axis as cast-from-graveyard. Requires the
+  // "cop(y|ies) of" frame so producer-frame zone references (Animate Dead's
+  // "enchant creature card in a graveyard") stay out.
+  /\b(?:becomes? a )?cop(?:y|ies) of [^.]{0,60}?cards? in (?:a|your|target|any) graveyard\b/,
 ];
 
 export const rule: Rule = {

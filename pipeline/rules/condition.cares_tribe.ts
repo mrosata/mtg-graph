@@ -70,9 +70,14 @@ function becomesTribePattern(tribe: string): RegExp {
 // SELF-subject pronoun "it" — the typeGrantRe explicitly requires
 // "(enchanted|equipped) creature" so those still hit the strip and stay
 // negative.
+// v0.50 (S30) — subject slot widened with "that creature" (Thunderbolts
+// Conspiracy: "that creature is a hero in addition to its other types.") —
+// type-granting to another creature is a tribal enabler like the Aura/
+// Equipment frame. Self-typing frames ("it", "he's", "__self__") still hit
+// the strips and stay negative.
 function typeGrantPattern(tribe: string): RegExp {
   return new RegExp(
-    `\\b(?:enchanted|equipped)\\s+creature\\b[^.]{0,200}?\\bis\\s+an?\\s+(?:[\\w\\-/]+\\s+){0,4}?${tribePattern(tribe)}\\b[^.]{0,40}?\\s+in addition to`,
+    `\\b(?:enchanted|equipped|that)\\s+creature\\b[^.]{0,200}?\\bis\\s+an?\\s+(?:[\\w\\-/]+\\s+){0,4}?${tribePattern(tribe)}\\b[^.]{0,40}?\\s+in addition to`,
     'i',
   );
 }

@@ -111,6 +111,29 @@ describe('expandChildren', () => {
     expect(ids).not.toContain('effect.destroy_land');
   });
 
+  // v0.50 — token-only suppression. "destroy target token." (The Ruinous
+  // Wrecking Crew) is a destroy_permanent parent whose evidence names ONLY
+  // tokens; fanning that out to destroy_land / destroy_planeswalker / etc. is
+  // a false positive. Keep the parent, skip all typed children.
+  it('suppresses typed children when parent evidence names only tokens', () => {
+    const tags: CardTag[] = [
+      { tagId: 'effect.destroy_permanent', axis: 'effect', evidence: 'destroy target token' },
+    ];
+    const expanded = expandChildren(tags, catalog);
+    const ids = expanded.map((t) => t.tagId).sort();
+    expect(ids).toEqual(['effect.destroy_permanent']);
+  });
+
+  it('still expands typed children when evidence names permanents alongside tokens', () => {
+    const tags: CardTag[] = [
+      { tagId: 'effect.destroy_permanent', axis: 'effect', evidence: 'destroy target permanent or token' },
+    ];
+    const expanded = expandChildren(tags, catalog);
+    const ids = expanded.map((t) => t.tagId);
+    expect(ids).toContain('effect.destroy_land');
+    expect(ids).toContain('effect.destroy_creature');
+  });
+
   it('suppresses multiple typed children when multiple non<type> tokens appear', () => {
     const tags: CardTag[] = [
       {

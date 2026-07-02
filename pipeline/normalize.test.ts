@@ -163,6 +163,32 @@ describe('replaceSelfReferences', () => {
     ).toBe('When __SELF__ dies, create a 0/1 colorless Eldrazi Spawn creature token.');
   });
 
+  // v0.50 — name segments must be replaced with word boundaries. "Hercules,
+  // Prince of Power" yields the segment "Power", which was substring-eating
+  // the "Power" in "Power-up —" (the MSH keyword header), corrupting it to
+  // "__SELF__-up" and blocking condition.power_up.
+  it('does not eat hyphenated compounds sharing a name segment (Hercules "Power-up")', () => {
+    expect(
+      replaceSelfReferences(
+        'Power-up — {4}{G}: Put a +1/+1 counter on Hercules. He gains vigilance, indestructible, and haste until end of turn.',
+        'Hercules, Prince of Power',
+        true,
+      ),
+    ).toBe(
+      'Power-up — {4}{G}: Put a +1/+1 counter on __SELF__. He gains vigilance, indestructible, and haste until end of turn.',
+    );
+  });
+
+  it('still replaces standalone occurrences of every name segment (Hercules / Prince / Power)', () => {
+    expect(
+      replaceSelfReferences(
+        'Whenever Hercules attacks, Power gets +1/+1.',
+        'Hercules, Prince of Power',
+        true,
+      ),
+    ).toBe('Whenever __SELF__ attacks, __SELF__ gets +1/+1.');
+  });
+
   it('still splits on " the " for legendary cards (Ajani the Greathearted)', () => {
     expect(
       replaceSelfReferences(

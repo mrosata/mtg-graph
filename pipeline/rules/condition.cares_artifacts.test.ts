@@ -78,6 +78,10 @@ describe('condition.cares_artifacts', () => {
     // cast have improvise."
     ['improvise flying noncreature spells you cast have improvise.'],
     ['improvise'],
+    // v0.50 (S15) — artifact-source ability gate (Scientist Supreme of
+    // A.I.M.: "copy target activated or triggered ability you control from
+    // an artifact source").
+    ['pay 2 life: copy target activated or triggered ability you control from an artifact source.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

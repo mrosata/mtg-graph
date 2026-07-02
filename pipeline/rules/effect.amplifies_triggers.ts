@@ -33,11 +33,16 @@ export const tagDef: TagDef = {
 // sentence varies (which trigger, which subject, what condition).
 const PATTERN = /\btriggers? an additional time\b/;
 
+// v0.50 (S21) — ability-copying (Echo, Perceptive Prodigy; Scientist Supreme
+// of A.I.M.): copying a triggered ability doubles it, same axis as the
+// Strionic Resonator family.
+const COPY_ABILITY = /\bcopy target activated or triggered ability\b/;
+
 export const rule: Rule = {
   id: 'effect.amplifies_triggers',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN);
+    const m = t.match(PATTERN) ?? t.match(COPY_ABILITY);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: {

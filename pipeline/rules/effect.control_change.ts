@@ -13,8 +13,10 @@ export const tagDef: TagDef = {
   pairsWith: [],
 };
 
-// "gain[s] control of [target|another target] [adjectives] (creature|permanent|artifact|...)"
-const GAIN_CONTROL = /\b(?:gain|gains) control of (?:target |another target |that )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|enchantment|planeswalker|land)\b/;
+// "gain[s] control of [up to N] [target|another target] [adjectives] (creature|permanent|artifact|...)"
+// v0.50 (S19) — "up to N" count slot (The Super Hero Civil War: "gain control
+// of up to two target creatures ...").
+const GAIN_CONTROL = /\b(?:gain|gains) control of (?:up to (?:one|two|three|\d+) )?(?:target |another target |that )?(?:[\w\-]+ ){0,3}(?:creature|permanent|artifact|enchantment|planeswalker|land)s?\b/;
 // "exchange control of …" — both Threads of Disloyalty-style swaps.
 const EXCHANGE = /\bexchange control of\b/;
 // Aura/Equipment static control grant: "you control enchanted|attached|equipped <type>".

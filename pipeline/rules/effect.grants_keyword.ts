@@ -47,7 +47,10 @@ function buildGrantRegex(kw: string): RegExp {
       `\\bgains?\\s+${kw}\\b`,
       // Frame (b): added `this` to qualifier set so "this creature has trample
       // as long as…" (Grand Ball Guest, Gallant Pie-Wielder) matches.
-      `\\b(?:other|target|enchanted|equipped|all|each|this)\\s+(?:[\\w\\-]+\\s+){0,4}?creatures?[^.]{0,50}?(?:has|have)\\s+${kw}\\b`,
+      // v0.50 (S16) — filler {0,50} → {0,80}: Kid Loki's qualifier clause
+      // ("each creature you control that you've put one or more +1/+1
+      // counters on this turn has hexproof") runs ~70 chars.
+      `\\b(?:other|target|enchanted|equipped|all|each|this)\\s+(?:[\\w\\-]+\\s+){0,4}?creatures?[^.]{0,80}?(?:has|have)\\s+${kw}\\b`,
       `\\bcreatures?\\s+(?:you control|you don't control|an opponent controls)\\s+(?:has|have)\\s+${kw}\\b`,
       // v0.35.0 — Batch 23: conditional anthem — "creatures you control with
       // <modifier> have <kw>" (Emil, Vastlands Roamer: "creatures you control
@@ -155,7 +158,9 @@ function buildGrantRegex(kw: string): RegExp {
       // Frame (i): keyword-counter form — "put a <kw> counter on" (DOM/SNC/MKM
       // era). The counter grants the keyword to the target creature.
       // Call a Surprise Witness: "put a flying counter on it".
-      `\\bput a ${kw} counter\\b`,
+      // v0.50 (S16) — admit "an" for vowel-initial keywords (Claim the
+      // Kingdom: "put an indestructible counter on target creature").
+      `\\bput (?:a|an) ${kw} counter\\b`,
       // 2026-06-01 audit batch — Frame (i2): multi-counter clause. Qarsi
       // Revenant: "put a flying counter, a deathtouch counter, and a
       // lifelink counter on target creature". Each grants_<kw> needs to

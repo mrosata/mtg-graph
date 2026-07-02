@@ -30,6 +30,8 @@ describe('effect.control_change', () => {
     ['you control enchanted permanent'],
     ['you control attached creature'],
     ['you control equipped creature'],
+    // v0.50 (S19) — "up to N" count slot (The Super Hero Civil War, Saga I).
+    ['gain control of up to two target creatures with total mana value 6 or less for as long as this saga remains on the battlefield.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

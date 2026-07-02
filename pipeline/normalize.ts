@@ -55,7 +55,14 @@ export function replaceSelfReferences(
   let result = withTilde;
   for (const seg of segments) {
     const escaped = seg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(escaped, 'gi'), '__SELF__');
+    // v0.50 — word-boundary guards. Name segments must not be replaced when
+    // embedded in a larger word or hyphenated compound: "Power" (from
+    // "Hercules, Prince of Power") was eating the "Power" in "Power-up —",
+    // corrupting the keyword header to "__SELF__-up".
+    result = result.replace(
+      new RegExp('(?<![\\w-])' + escaped + '(?![\\w-])', 'gi'),
+      '__SELF__',
+    );
   }
   return result;
 }

@@ -721,4 +721,35 @@ describe('effect.grants_keyword parametric', () => {
       expect(r.match('first strike')).toBe(false);
     });
   });
+
+  // v0.50 (S16) — two frame fixes.
+  describe('grants_hexproof — long-qualifier static class-grant (Kid Loki, v0.50 S16)', () => {
+    const r = ruleFor('effect.grants_hexproof');
+
+    it('matches "each creature you control that you\'ve put ... counters on this turn has hexproof"', () => {
+      // Frame (b)'s 50-char filler cut off before "has hexproof"; the
+      // qualifier clause here runs ~70 chars.
+      expect(
+        r.match(
+          "each creature you control that you've put one or more +1/+1 counters on this turn has hexproof.",
+        ),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('grants_indestructible — "put an indestructible counter" (Claim the Kingdom, v0.50 S16)', () => {
+    const r = ruleFor('effect.grants_indestructible');
+
+    it('matches "put an indestructible counter on target creature you control"', () => {
+      // Frame (i) hardcoded "put a <kw> counter"; vowel-initial keywords
+      // take "an".
+      expect(
+        r.match('when you do, put an indestructible counter on target creature you control.'),
+      ).toBeTruthy();
+    });
+
+    it('still matches "put a hexproof counter on it" via grants_hexproof', () => {
+      expect(ruleFor('effect.grants_hexproof').match('put a hexproof counter on it')).toBeTruthy();
+    });
+  });
 });

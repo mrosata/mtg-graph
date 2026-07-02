@@ -101,6 +101,10 @@ const PATTERNS = [
   // drives a damage or scaling effect.
   /\bnumber of artifacts? (?:your opponents?|each opponent) controls?\b/,
   /\bartifacts? your opponents control\b/,
+  // v0.50 (S15) — artifact-source ability gate (Scientist Supreme of A.I.M.:
+  // "copy target activated or triggered ability you control from an artifact
+  // source"). The payoff only works with artifacts on board.
+  /\babilit(?:y|ies) you control from an artifact source\b/,
 ];
 
 export const rule: Rule = {

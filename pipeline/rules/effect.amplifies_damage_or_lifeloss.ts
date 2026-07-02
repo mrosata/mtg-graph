@@ -43,7 +43,10 @@ const PATTERNS = [
   // control of the chosen type would deal". Tribal/source-scoped damage
   // doubler — different lexical shape (verb "double" precedes the
   // subject) but same axis as the replacement-effect doublers.
-  /\bdouble all damage that (?:sources?|creatures?|permanents?)[^.]{0,80}? would deal\b/,
+  // v0.50 (S18) — generalized: the subject slot admits specific subjects
+  // without the "that" relativizer (Mjölnir, Hammer of Thor: "double all
+  // damage equipped creature would deal").
+  /\bdouble all damage (?:that )?[^.]{0,80}? would deal\b/,
 ];
 
 export const rule: Rule = {

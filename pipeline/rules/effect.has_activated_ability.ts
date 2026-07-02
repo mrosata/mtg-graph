@@ -58,8 +58,12 @@ const SYMBOL_ACTIVATED_PATTERN = /\{(?:[wubrgcxstq]|\d+)(?:\/[wubrgcps])?\}[^.\n
 // subheaders like "Solved — Sacrifice this Case:" (Case of the Uneaten
 // Feast). The em-dash is the canonical separator between a header word
 // and the activated-cost clause that follows.
+// v0.50 (S8) — cost window {0,80} → {0,120}. Baron Helmut Zemo's Boast cost
+// ("exile any number of black cards from your graveyard with fifteen or more
+// black mana symbols among their mana costs:") runs 108 chars from the verb
+// to the colon.
 const PROSE_ACTIVATED_PATTERN =
-  /(?:^|\.\s|\n|—\s)(?:sacrifice|discard|exile|pay|tap|untap|reveal|remove|return) [^.\n]{0,80}?:\s/i;
+  /(?:^|\.\s|\n|—\s)(?:sacrifice|discard|exile|pay|tap|untap|reveal|remove|return) [^.\n]{0,120}?:\s/i;
 
 const PERMANENT_TYPES = ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'];
 

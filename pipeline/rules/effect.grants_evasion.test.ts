@@ -24,6 +24,11 @@ describe('effect.grants_evasion', () => {
     // FG-1 — "he controls" is a possessive, not a self-conditional subject;
     // "target creature" is the subject of "has menace" → still a grant.
     ['as long as enchanted creature has a counter on it, target creature he controls has menace'],
+    // v0.50 (S9) — Black Widow, Double Agent: the trigger subject is ANOTHER
+    // creature you control, so the "it gains ... menace" grant is a real
+    // other-creature grant, not a self-buff. TRIGGERED_SELF_BUFF must not
+    // strip when the trigger clause names a non-self creature subject.
+    ['whenever a creature you control attacks alone, it gains first strike and menace until end of turn.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

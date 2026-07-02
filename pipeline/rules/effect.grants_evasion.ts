@@ -90,8 +90,17 @@ const PATTERNS = [
 // lookahead `(?!other|creatures you control)` aborts the strip if the trailing
 // clause contains an anthem subject — preserves the grants_<kw> match on the
 // rare mixed self+anthem trigger templating.
+//
+// v0.50 (S9) — the "it"-subject branch is gated on a SELF trigger subject.
+// When the trigger clause names another creature ("whenever a creature you
+// control attacks alone, it gains first strike and menace" — Black Widow,
+// Double Agent), the "it" refers to THAT creature and the grant is a real
+// other-creature grant; the strip must not eat it. The tempered filler on
+// the it-branch rejects trigger clauses containing a non-self creature
+// subject; explicit self subjects ("this creature", "__self__") keep the
+// permissive filler.
 const TRIGGERED_SELF_BUFF = new RegExp(
-  String.raw`\b(?:when|whenever)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?|gets?)\s+(?:(?!\bother\s+creatures?\b|\bcreatures?\s+you\s+control\b)[^.])*?\.`,
+  String.raw`\b(?:when|whenever)\b(?:[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__)|(?:(?!\b(?:a|another|each|target|one or more)\s+creatures?\b)[^.])*?,\s*it)\s+(?:has|have|gains?|gets?)\s+(?:(?!\bother\s+creatures?\b|\bcreatures?\s+you\s+control\b)[^.])*?\.`,
   'g',
 );
 

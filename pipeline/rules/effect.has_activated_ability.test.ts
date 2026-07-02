@@ -33,6 +33,10 @@ describe('effect.has_activated_ability', () => {
     // value X other than Sidisi: ..."). The cost-line distance from `{T}`
     // to `:` is 74 chars; the prior 60-char window cut off the colon.
     ['{T}, Sacrifice a creature you control with mana value X other than Sidisi: Return target creature card with mana value X plus 1 from your graveyard to the battlefield. Activate only as a sorcery.'],
+    // v0.50 (S8) — Baron Helmut Zemo: ability-word-prefixed prose cost with a
+    // very long cost clause (108 chars between the verb and the colon). The
+    // prior 80-char window cut off before the colon.
+    ['Boast — Exile any number of black cards from your graveyard with fifteen or more black mana symbols among their mana costs: Copy those exiled cards. You may cast up to three of the copies without paying their mana costs.'],
   ])('matches creatures with an activated ability: %s', (oracleText) => {
     expect(rule.matchCard!(card({ oracleText }))).toBeTruthy();
   });

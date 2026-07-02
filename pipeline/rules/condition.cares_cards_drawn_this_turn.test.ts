@@ -22,6 +22,11 @@ describe('condition.cares_cards_drawn_this_turn', () => {
     ['whenever you draw your second card each turn, this creature loses defender'],
     ['whenever you draw your third card each turn, draw an additional card'],
     ['whenever you draw your first card each turn, create a clue token'],
+    // v0.50 (S23) — third-person subjects in the ordinal frame (King
+    // T'Challa // Black Panther: "whenever a player draws their second card
+    // each turn, you draw a card.").
+    ['whenever a player draws their second card each turn, you draw a card.'],
+    ['whenever an opponent draws their second card each turn, they lose 2 life.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

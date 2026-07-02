@@ -27,6 +27,11 @@ describe('effect.copy_spell', () => {
     // between "copy it" and "cast the copy"). Same anaphoric copy frame
     // as Reenact the Crime, just templated as one sentence.
     ['when __self__ enters, exile target nonland card with mana value 3 or less from your graveyard. copy it, then you may cast the copy without paying its mana cost.'],
+    // v0.50 (S28) — plural exiled-cards copy frame (Baron Helmut Zemo;
+    // Surge to Victory). "Copy those exiled cards ... cast up to N of the
+    // copies" is the plural sibling of the Reenact the Crime frame.
+    ['copy those exiled cards. you may cast up to three of the copies without paying their mana costs.'],
+    ['whenever a creature you control deals combat damage to a player this turn, copy the exiled card. you may cast the copy without paying its mana cost.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

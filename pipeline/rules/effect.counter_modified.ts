@@ -88,6 +88,17 @@ export const rule: Rule = {
     const moveCounter = t.match(
       /\bmove\s+(?:\d+|x|one|two|three|four|five|any number of)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
     );
-    return moveCounter ? { evidence: moveCounter[0] } : false;
+    if (moveCounter) return { evidence: moveCounter[0] };
+    // v0.50 (S11) — replacement-amplifier frame (Doc Samson, Super
+    // Psychiatrist; Doubling Season): "if <actor> would put one or more
+    // counters on <subject>, put/it puts <amplified> counters ... instead."
+    // The replacement half places counters, so it belongs to this axis.
+    const replacementAmplifier = t.match(
+      /\bif (?:you|a player|an effect) would put one or more counters on [^.]{0,60}?,\s*(?:put|it puts)\b[^.]{0,80}?counters?\b[^.]{0,60}?\binstead\b/,
+    );
+    if (replacementAmplifier) return { evidence: replacementAmplifier[0] };
+    // v0.50 (S11) — give-another-of-each-kind frame (Powerful Broker).
+    const giveAnother = t.match(/\bgive [^.]{0,60}?\banother counter of that kind\b/);
+    return giveAnother ? { evidence: giveAnother[0] } : false;
   },
 };

@@ -15,7 +15,10 @@ const PATTERNS = [
   // v0.24 — admits a trailing "and a/N <X> counter(s)" tail before "on" so
   // DSK keyword-counter cards ("put a +1/+1 counter and a trample counter on
   // target creature") still match. Champion of Dusan, Kheru Goldkeeper.
-  /\bputs? (?:a |an |another |\d+ |that many |x |one |two |three |four |five |six |seven |eight |target |any number of |up to (?:a |an |\d+ |one |two |three )?)?\+1\/\+1 counters?(?:\s+and\s+(?:a |an |\d+ |one |two |three )?\w+ counters?)? on/,
+  // v0.50 (S13a) — the tail's counter-kind slot admits multi-word kinds
+  // ("double strike counter" — Quicksilver, Brash Blur); the old `\w+ `
+  // single-word slot broke the match on the space.
+  /\bputs? (?:a |an |another |\d+ |that many |x |one |two |three |four |five |six |seven |eight |target |any number of |up to (?:a |an |\d+ |one |two |three )?)?\+1\/\+1 counters?(?:\s+and\s+(?:a |an |\d+ |one |two |three )?(?:[\w\-]+ ){1,3}?counters?)? on/,
   // variable-count: "put a number of +1/+1 counters equal to … on …" (Gruff Triplets)
   /\bputs? a number of \+1\/\+1 counters? (?:equal to |on )/,
   // multi-target distribute: "distribute N +1/+1 counters among <targets>"
@@ -45,6 +48,10 @@ const PATTERNS = [
   // the plus_one_counter axis. The source-side removal also fits
   // effect.counter_modified.
   /\bmove\s+(?:\d+|x|one|two|three|four|five|any number of)\s+\+1\/\+1 counters?\s+from\s+[^.]{0,40}?\s+onto\b/,
+  // v0.50 (S13b) — "put it onto the battlefield with X additional +1/+1
+  // counters" (Vision Quest). Cheat-into-play frame whose ETB carries the
+  // counters; the "enters with" arm misses because the verb is "put".
+  /\bput (?:it|them|that card) onto the battlefield with (?:a |an |\d+ |x )?(?:additional )?\+1\/\+1 counters?/,
 ];
 
 export const rule: Rule = {

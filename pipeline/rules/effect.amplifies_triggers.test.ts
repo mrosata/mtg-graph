@@ -17,6 +17,11 @@ describe('effect.amplifies_triggers', () => {
     ['as long as cloud is equipped, if a triggered ability of cloud or an equipment attached to it triggers, that ability triggers an additional time'],
     // Generic "triggers an additional time" (anaphoric).
     ['that ability triggers an additional time'],
+    // v0.50 (S21) — ability-copying (Echo, Perceptive Prodigy; Scientist
+    // Supreme of A.I.M.): copying a triggered ability is trigger
+    // amplification by another name.
+    ['{1}, {t}: copy target activated or triggered ability you control from a creature source.'],
+    ['pay 2 life: copy target activated or triggered ability you control from an artifact source.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

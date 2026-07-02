@@ -69,6 +69,12 @@ describe('effect.counter_modified', () => {
     // Aetherborn Marauder: "move any number of +1/+1 counters from other
     // permanents you control onto this creature".
     ['when this creature enters, move any number of +1/+1 counters from other permanents you control onto this creature.'],
+    // v0.50 (S11) — replacement-amplifier frame (Doc Samson, Super
+    // Psychiatrist; same shape as Doubling Season).
+    ['if you would put one or more counters on a permanent you control, put that many plus one of each of those kinds of counters on that permanent instead.'],
+    ['if an effect would put one or more counters on a permanent you control, it puts twice that many of those counters on that permanent instead.'],
+    // v0.50 (S11) — give-another-of-each-kind frame (Powerful Broker).
+    ['for each kind of counter on target permanent or player, give that permanent or player another counter of that kind.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

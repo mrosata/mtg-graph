@@ -107,6 +107,15 @@ const PATTERN_TOKEN_ANAPHORIC =
 const PATTERN_CHOOSE_ANAPHORIC =
   /\bchoose(?:s)?\s+(?:up to (?:one|two|three|\d+)\s+)?permanents?\b[^.]*?\.\s*exile those permanents?\b/;
 
+// v0.50 (S10) — "the chosen creature" anaphor (Cloak and Dagger, Entwined:
+// "you may exile a nonland card from their hand or the chosen creature until
+// __self__ leaves the battlefield"). The chosen creature was established by a
+// prior choose clause; exiling it is battlefield removal. The `(?!\s+from)`
+// lookahead keeps zone-qualified forms out; the shared FLICKER_TAIL check
+// still suppresses blink shapes.
+const PATTERN_CHOSEN_ANAPHOR =
+  /\bexile (?:a |an )?[^.]{0,60}?\bthe chosen creature\b(?!\s+from)/;
+
 // Flicker frame: "exile … Return [it|them|that creature|target creature] to the
 // battlefield". This is bounce/blink (covered by `effect.bounce_creature`), not
 // removal. If the local tail contains a "return … to the battlefield" clause we
@@ -140,7 +149,8 @@ export const rule: Rule = {
       t.match(PATTERN_TOKEN_SWEEP) ??
       t.match(PATTERN_FORCED_EDICT) ??
       t.match(PATTERN_TOKEN_ANAPHORIC) ??
-      t.match(PATTERN_CHOOSE_ANAPHORIC);
+      t.match(PATTERN_CHOOSE_ANAPHORIC) ??
+      t.match(PATTERN_CHOSEN_ANAPHOR);
     if (!m || m.index === undefined) return false;
     // Check the next ~200 chars after the match for a flicker tail.
     const tail = t.slice(m.index + m[0].length, m.index + m[0].length + 200);

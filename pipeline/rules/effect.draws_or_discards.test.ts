@@ -114,6 +114,13 @@ describe('effect.draws_or_discards', () => {
     // Fix F — A Premonition of Your Demise: reveal top N cards then put to hand.
     ['reveal the top two cards of your library and put them into your hand.'],
     ['reveal the top three cards of your library. put them into your hand.'],
+    // v0.50 (S17) — "instead" replacement-clause leadin (Leader, Super-Genius:
+    // "if a creature you control would connive, instead you draw a card,
+    // then that creature connives.").
+    ['if a creature you control would connive, instead you draw a card, then that creature connives.'],
+    // v0.50 (S17) — self-discard as activation cost (The Masters of Evil:
+    // "{1}{b}, discard this card: search your library for a plan card...").
+    ['{1}{b}, discard this card: search your library for a plan card, reveal it, put it into your hand, then shuffle.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

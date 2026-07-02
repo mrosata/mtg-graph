@@ -19,6 +19,10 @@ describe('effect.proliferate', () => {
     ['whenever you cast a spell, proliferate.'],
     ['proliferate twice.'],
     ['you may proliferate.'],
+    // v0.50 (S12) — functional comp-rules proliferate without the keyword
+    // (Powerful Broker): "for each kind of counter on target permanent or
+    // player, give that permanent or player another counter of that kind."
+    ['for each kind of counter on target permanent or player, give that permanent or player another counter of that kind.'],
   ])('matches text: %s', (text) => {
     expect(rule.matchCard!(card([], text), text)).toBeTruthy();
   });

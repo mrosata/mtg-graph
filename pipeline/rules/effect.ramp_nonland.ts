@@ -64,6 +64,11 @@ const PATTERNS = [
   // v0.45.0 — Zimone's Experiment: "reveal top N, put all land cards revealed
   // this way onto the battlefield". Library-reveal ramp without explicit search.
   /\bput (?:all|up to (?:one|two|three|four|five|\w+)|one of) land cards? (?:revealed|found) this way onto the battlefield\b/,
+  // v0.50 (S20) — third-person "target player ... searches their library"
+  // ramp (Restorative Technique). Requires the "target player" subject so
+  // opponent-compensation fetches ("its controller may search" — Assassin's
+  // Trophy shape) stay out.
+  /\btarget player [^.]{0,60}?searches their library for [^.]{0,40}?basic (?:land|plains|island|swamp|mountain|forest)[^.]{0,80}?onto the battlefield\b/,
 ];
 
 export const rule: Rule = {

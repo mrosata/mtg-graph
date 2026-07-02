@@ -39,12 +39,19 @@ const COPY_IT_FOR_EACH_SPELL = /\bcopy it (?:for each|once for each|twice|.{0,40
 // continuation "copy it, then you may cast the copy" (no period between
 // "copy it" and "cast the copy"). Admit comma+then as well as the period.
 const COPY_IT_CAST_THE_COPY = /\bcopy it\b[^.]{0,40}?(?:\.\s*|,\s*then\s+)[^.]{0,60}?\bcast (?:the|that) copy\b/;
+// v0.50 (S28) — plural/exiled-cards sibling of the Reenact the Crime frame
+// (Baron Helmut Zemo: "copy those exiled cards. you may cast up to three of
+// the copies without paying their mana costs."; Surge to Victory: "copy the
+// exiled card. you may cast the copy without paying its mana cost."). The
+// trailing "cast ... cop(y|ies)" clause confirms the copies are spells.
+const COPY_EXILED_CARDS_CAST_COPIES =
+  /\bcop(?:y|ies) (?:those|the) (?:exiled )?cards?\b[^.]{0,40}?(?:\.\s*|,\s*then\s+)[^.]{0,60}?\bcast (?:the |that |up to \w+ of the |any number of the )cop(?:y|ies)\b/;
 
 export const rule: Rule = {
   id: 'effect.copy_spell',
   axis: 'effect',
   match: (t) => {
-    const m = t.match(PATTERN) ?? t.match(CAST_SPELL_THEN_COPY_IT) ?? t.match(CAST_SPELL_THEN_COPY_IT_SPANNING) ?? t.match(COPY_IT_FOR_EACH_SPELL) ?? t.match(COPY_IT_CAST_THE_COPY);
+    const m = t.match(PATTERN) ?? t.match(CAST_SPELL_THEN_COPY_IT) ?? t.match(CAST_SPELL_THEN_COPY_IT_SPANNING) ?? t.match(COPY_IT_FOR_EACH_SPELL) ?? t.match(COPY_IT_CAST_THE_COPY) ?? t.match(COPY_EXILED_CARDS_CAST_COPIES);
     return m ? { evidence: m[0] } : false;
   },
   nearMiss: { anchors: ['copy'], proximity: ['spell', 'instant', 'sorcery'], window: 6 },

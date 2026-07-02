@@ -6,8 +6,11 @@ export const tagDef: TagDef = {
   tagId: 'effect.debuff_minus_n',
   axis: 'effect',
   label: 'Applies a -N/-N debuff',
+  // v0.50 (S27) — description widened: static/continuous mass-debuffs
+  // (M.O.D.O.K.: "creatures your opponents control get -1/-1") are true
+  // positives on this axis, not just until-end-of-turn one-shots.
   description:
-    'Gives a creature -N/-N until end of turn (can kill via toughness ≤ 0).',
+    'Gives creatures -N/-N — one-shot or static/continuous (can kill via toughness ≤ 0).',
   pairsWith: ['trigger.creature_dies'],
 };
 

@@ -281,6 +281,8 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.has_changeling': 'set-mechanics',
   // DSK Endure keyword action.
   'effect.endure': 'set-mechanics',
+  // Connive keyword action (SNC, reappears in MSH).
+  'effect.connive': 'set-mechanics',
   // Energy counter mechanic.
   'effect.produces_energy': 'set-mechanics',
   'condition.cares_energy': 'set-mechanics',
@@ -305,6 +307,7 @@ const TAG_TO_FAMILY: Record<string, FamilyId> = {
   'effect.has_activated_ability': 'keywords',
   'effect.has_mana_activated_ability': 'keywords',
   'effect.has_cycling': 'keywords',
+  'effect.has_extort': 'keywords',
   'effect.has_deathtouch': 'keywords',
   'effect.has_defender': 'keywords',
   'effect.grants_deathtouch': 'keywords',

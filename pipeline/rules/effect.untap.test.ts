@@ -58,6 +58,13 @@ describe('effect.untap', () => {
     // Scoped to a "when[ever] X enters tapped, untap (it|them)" preamble.
     ['whenever a permanent you control enters tapped, untap it.'],
     ['when a creature you control enters tapped, untap them'],
+    // v0.50 (S25) — SELF_TRIGGER_PRONOUN subject broadened to equipped/
+    // enchanted creature (S.H.I.E.L.D. Spy Kit: "whenever equipped creature
+    // attacks alone, untap it and scry 1.").
+    ['whenever equipped creature attacks alone, untap it and scry 1.'],
+    ['whenever enchanted creature blocks, untap it.'],
+    // v0.50 (S25) — becomes-tapped trigger with an untap payload.
+    ['whenever a creature you control becomes tapped, untap it.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

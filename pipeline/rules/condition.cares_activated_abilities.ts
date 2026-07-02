@@ -29,6 +29,10 @@ const SCOPE_PATTERN = /\bactivated abilities? of\b/;
 const TRIGGER_PATTERN = /\bwhenever (?:you|[a-z' ]{0,30}?)\s+activates?\s+an?\s+(?:[a-z\-]+\s+)*ability\b/;
 // Resolve/trigger references to an activated ability.
 const RESOLVE_PATTERN = /\bactivated abilit(?:y|ies)\s+(?:resolves?|triggers?)/;
+// v0.50 (S21) — ability-copying payoff (Echo, Perceptive Prodigy; Scientist
+// Supreme of A.I.M.): "copy target activated or triggered ability" needs
+// activated abilities on board to have something to copy.
+const COPY_ABILITY_PATTERN = /\bcopy target activated or triggered ability\b/;
 
 // Pure mana-cost reducers (Agatha, Training Grounds, Heartstone, Blossoming
 // Tortoise, Forensic Gadgeteer, Mutagen Man) match SCOPE_PATTERN but their
@@ -48,6 +52,8 @@ export const rule: Rule = {
     if (triggerMatch) return { evidence: triggerMatch[0] };
     const resolveMatch = t.match(RESOLVE_PATTERN);
     if (resolveMatch) return { evidence: resolveMatch[0] };
+    const copyMatch = t.match(COPY_ABILITY_PATTERN);
+    if (copyMatch) return { evidence: copyMatch[0] };
     const scopeMatch = t.match(SCOPE_PATTERN);
     if (scopeMatch && !COST_REDUCER_TEMPLATE.test(t)) {
       return { evidence: scopeMatch[0] };
