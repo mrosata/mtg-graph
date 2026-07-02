@@ -68,7 +68,23 @@ export const rule: Rule = {
     // v0.47.0 — anaphoric "otherwise, put it into your hand" after a
     // graveyard-target antecedent (Meren of Clan Nel Toth).
     const otherwiseToHand = t.match(OTHERWISE_TO_HAND);
-    return otherwiseToHand ? { evidence: otherwiseToHand[0] } : false;
+    if (otherwiseToHand) return { evidence: otherwiseToHand[0] };
+    // FG-12 — mill-guarded "from among those cards" arm (Rick Jones,
+    // Destined Sidekick). "{3}, {T}: Mill four cards. You may put a Hero or
+    // enchantment card from among those cards into your hand."
+    // The "from among those cards" anaphor is guarded by requiring a
+    // `\bmills?\b` verb within ~150 chars BEFORE the phrase, preventing
+    // FPs on library look-and-put ("look at the top 4 cards ... put a card
+    // from among those cards into your hand" is a library dig, not graveyard
+    // recursion).
+    const fromAmong = t.match(/\bfrom among those cards\b[^.]{0,80}?\binto (?:your|its owner'?s) hand\b/);
+    if (fromAmong && fromAmong.index !== undefined) {
+      const before = t.substring(Math.max(0, fromAmong.index - 150), fromAmong.index);
+      if (/\bmills?\b/.test(before)) {
+        return { evidence: fromAmong[0] };
+      }
+    }
+    return false;
   },
   nearMiss: { anchors: ['graveyard', 'graveyards'], proximity: ['return', 'hand'], window: 8 },
 };

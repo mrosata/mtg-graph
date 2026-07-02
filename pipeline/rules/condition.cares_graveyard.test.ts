@@ -59,6 +59,10 @@ describe('condition.cares_graveyard', () => {
     // apostrophe in `opponents'` doesn't break the regex anchor on
     // "graveyards".
     ["__self__'s power and toughness are each equal to the number of cards in your opponents' graveyards."],
+    // FG-11 — plural form + "one or more" quantifier (Robot Domination):
+    // "whenever one or more creature cards are put into your graveyard from
+    // anywhere". Pattern 4 only matched singular "card is put into".
+    ['whenever one or more creature cards are put into your graveyard from anywhere, you draw a card, lose 1 life, and put a plan counter on this enchantment.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

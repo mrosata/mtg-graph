@@ -16,6 +16,10 @@ describe('trigger.upkeep', () => {
     ["at the beginning of each opponent's upkeep, that player draws a card"],
     // "Target player's upkeep" — Future Sight oddball.
     ["at the beginning of target player's upkeep, exile the top card of their library"],
+    // FG-13 — "the upkeep of enchanted creature's controller" (Super
+    // Intelligence Aura). The "of <X>'s controller" form is not in the
+    // current possessive-form alternation.
+    ["enchant creature at the beginning of the upkeep of enchanted creature's controller, that player draws a card."],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

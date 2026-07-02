@@ -39,7 +39,11 @@ export const rule: Rule = {
       // (Dream Harvest). The "top N" / "top card" arm above misses this
       // shape because "cards" precedes "from the top of" rather than
       // following "the top".
-      + `|\\b(?:target (?:player|opponent)|each opponent|each player) exiles (?:${NUM} )?cards? from the top of ${LIBRARY_OWNER} library\\b`
+      // FG-7 — add "that player" to the subject alternation. Black Widow,
+      // Super Spy: "that player exiles cards from the top of their library
+      // until they exile a nonland card." The anaphoric "that player" refers
+      // to the damaged player established earlier in the trigger clause.
+      + `|\\b(?:target (?:player|opponent)|each opponent|each player|that player) exiles (?:${NUM} )?cards? from the top of ${LIBRARY_OWNER} library\\b`
       // Frame C: "exile (that many|N|count-less) cards from the top of
       // <library>" — life-cost replacement and Embereth-style payoffs.
       // v0.20 — NUM made optional so "exile cards from the top of your

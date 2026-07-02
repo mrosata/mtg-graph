@@ -72,6 +72,12 @@ describe('condition.cares_artifacts', () => {
     ['the number of artifacts each opponent controls'],
     ['for each artifact your opponents control, draw a card'],
     ['artifacts your opponents control have ward 1'],
+    // FG-8 — "improvise" keyword. Improvise scales spell cost by artifacts
+    // tapped after mana abilities — definitionally cares about artifacts.
+    // Ironheart, Clever Champion: "improvise flying noncreature spells you
+    // cast have improvise."
+    ['improvise flying noncreature spells you cast have improvise.'],
+    ['improvise'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

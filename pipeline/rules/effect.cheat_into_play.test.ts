@@ -64,6 +64,11 @@ describe('effect.cheat_into_play', () => {
     // "cards have been exiled with this artifact ... return those cards to
     // the battlefield." EXILED_THOSE_PUT bridges the sentence boundary.
     ["if three or more cards have been exiled with this artifact, sacrifice it. if you do, return those cards to the battlefield under their owner's control."],
+    // FG-17 — Worlds Within Worlds: "each player may put any number of
+    // creature cards from their hand onto the battlefield". Two issues:
+    // (1) possessive is "their hand" not "your hand"; (2) quantity is
+    // "any number of" not in the current quantity slot.
+    ['exile all creatures. each player may put any number of creature cards from their hand onto the battlefield. then put all cards exiled this way into their owners\' hands. exile __self__.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

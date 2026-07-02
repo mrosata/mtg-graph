@@ -74,6 +74,11 @@ const PATTERNS = [
   // reminder text "(This spell costs {1} less ... for each artifact you
   // control)" is stripped before rules run, so only the bare keyword remains.
   /\baffinity for artifacts\b/,
+  // FG-8 — "improvise" keyword (Ironheart, Clever Champion). Improvise lets
+  // artifacts you tap after mana abilities pay for {1} each — definitionally
+  // a "cares about artifacts" mechanic. Reminder text is stripped, leaving
+  // only the bare keyword.
+  /\bimprovise\b/,
   // v0.30 — Group 4 — cost-reducer frame (Voyager Quickwelder): "Artifact
   // spells you cast cost {1} less" — payoff that scales utility per artifact
   // spell cast.

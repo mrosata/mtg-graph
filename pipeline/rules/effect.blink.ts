@@ -27,8 +27,15 @@ export const tagDef: TagDef = {
 // — verb-adjacent, no end-step delay. Negative lookahead rejects "at the
 // beginning of the next end step / next turn" anywhere in the matched span
 // (that's flicker).
+// FG-9 — two extensions to PATTERN_NAMED:
+//   (a) Before the determiner slot, add `(?:up to (?:one|two|three|\w+)\s+)?`
+//       to admit "exile up to one target nontoken artifact or creature" (The
+//       Mighty Thor, Jane Foster). The "up to N" quantifier precedes the
+//       determiner ("target") in this template.
+//   (b) Bump the filler `{0,5}` → `{0,7}` to allow "nontoken artifact or"
+//       (three words) plus the usual adjective/qualifier chain.
 const PATTERN_NAMED =
-  /\bexile\s+(?:another\s+|target\s+|each\s+|all\s+)?(?:[\w\-]+\s+){0,5}?creatures?\b(?![^.]*?\bat the beginning of the (?:next end step|next turn|next player'?s end step))[^.]*?(?:,\s*then\s+return|\.\s*return)\s+(?:it|them|that card|that creature)\s+to the battlefield/;
+  /\bexile\s+(?:up to (?:one|two|three|\w+)\s+)?(?:another\s+|target\s+|each\s+|all\s+)?(?:[\w\-]+\s+){0,7}?creatures?\b(?![^.]*?\bat the beginning of the (?:next end step|next turn|next player'?s end step))[^.]*?(?:,\s*then\s+return|\.\s*return)\s+(?:it|them|that card|that creature)\s+to the battlefield/;
 
 // Pronoun-anchored blink: "whenever a creature ... deals combat damage ...,
 // you may exile it, then return it to the battlefield". The "it" antecedent

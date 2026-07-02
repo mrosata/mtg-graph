@@ -282,4 +282,28 @@ describe('condition.cares_tribe parametric', () => {
     const sp = rules.find((r) => r.id === 'condition.cares_tribe.spirit')!;
     expect(sp.match('enchanted creature is a spirit in addition to its other types.')).toBeTruthy();
   });
+
+  // FG-2 — TOKEN_CREATE comma in token name (The Sentry, Golden Guardian).
+  // "creates the void, a legendary 5/5 black horror villain creature token" —
+  // the comma inside the token name broke the [\w\/]+ character class, so
+  // TOKEN_CREATE failed to strip the span and "villain" leaked through as a FP.
+  it('villain does NOT match Sentry "creates the void, villain creature token" (comma in token name)', () => {
+    const v = rules.find((r) => r.id === 'condition.cares_tribe.villain')!;
+    expect(
+      v.match(
+        'flying, vigilance, indestructible when __self__ enters, target opponent creates the void, a legendary 5/5 black horror villain creature token with flying, indestructible, and "the void attacks each combat if able."',
+      ),
+    ).toBe(false);
+  });
+
+  // FG-14 — hero irregular plural "heroes" not matched by default `heros?`.
+  it('hero matches "heroes you control have hexproof" (irregular plural)', () => {
+    const h = rules.find((r) => r.id === 'condition.cares_tribe.hero')!;
+    expect(h.match('heroes you control have hexproof')).toBeTruthy();
+  });
+
+  it('hero matches "whenever one or more heroes you control deal damage" (irregular plural)', () => {
+    const h = rules.find((r) => r.id === 'condition.cares_tribe.hero')!;
+    expect(h.match('whenever one or more heroes you control deal damage')).toBeTruthy();
+  });
 });

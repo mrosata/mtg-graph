@@ -14,6 +14,11 @@ describe('effect.blink', () => {
     // Gossip's Talent (level 3) — pronoun-anchored flicker via combat-damage
     // trigger; immediate return (no end-step delay) → blink.
     ['whenever a creature you control deals combat damage to a player, you may exile it, then return it to the battlefield under its owner\'s control'],
+    // FG-9 — "up to one" prefix + wider filler (The Mighty Thor, Jane Foster):
+    // "exile up to one target nontoken artifact or creature, then return that
+    // card to the battlefield". Two issues: (a) "up to one" not in the
+    // determiner slot, (b) "nontoken artifact or" counts as >5 filler words.
+    ['flying whenever __self__ attacks, exile up to one target nontoken artifact or creature, then return that card to the battlefield tapped under its owner\'s control. whenever an equipment you control enters, draw a card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

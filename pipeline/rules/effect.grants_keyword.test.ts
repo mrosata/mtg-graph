@@ -694,4 +694,31 @@ describe('effect.grants_keyword parametric', () => {
       expect(r.match('other permanents you control have hexproof.')).toBeTruthy();
     });
   });
+
+  // FG-16 — "creature tokens" anthem frame (Okoye, Dora Milaje Leader).
+  // "Attacking creature tokens you control have first strike." The subject
+  // starts with "attacking" (a state adjective) followed by "creature tokens"
+  // — a compound noun. This doesn't fit the existing tribe-anthem Frame (b)
+  // (which requires a noun ending in `s` to be the subject) or Frame (g)
+  // (which requires the token to be created in the same clause).
+  describe('grants_first_strike — creature-token anthem frame (FG-16)', () => {
+    const r = ruleFor('effect.grants_first_strike');
+
+    it('matches "attacking creature tokens you control have first strike" (Okoye)', () => {
+      expect(
+        r.match(
+          'when __self__ enters, create two 1/1 white soldier creature tokens. attacking creature tokens you control have first strike.',
+        ),
+      ).toBeTruthy();
+    });
+
+    it('matches "creature tokens you control have first strike" (bare form)', () => {
+      expect(r.match('creature tokens you control have first strike.')).toBeTruthy();
+    });
+
+    // Negative: a card that just HAS first strike must not fire as a grant.
+    it('grants_first_strike does NOT fire on bare intrinsic "first strike"', () => {
+      expect(r.match('first strike')).toBe(false);
+    });
+  });
 });

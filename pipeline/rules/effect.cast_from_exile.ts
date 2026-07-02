@@ -88,9 +88,15 @@ const PATTERNS = [
   // zone — distinct phrasing from the existing anaphoric forms.
   /\bplay that card from exile(?:\s+this turn)?\b/,
   // (6) v0.33+ — Dream Harvest / Sanar: "cast the exiled cards" / "cast (any
-  // number of )?cards exiled this way". Both are explicit cast verbs binding
-  // to a prior exile-cards clause; the phrase is distinctive on its own.
-  /\bcast (?:the exiled cards|(?:any number of )?cards exiled this way)\b/,
+  // number of )?cards exiled this way". Both are explicit cast/play verbs
+  // binding to a prior exile-cards clause; the phrase is distinctive on its own.
+  // FG-6a — extend `cast` → `(?:cast|play)` to admit "play cards exiled this
+  // way" (Hex Magic: "you may play cards exiled this way").
+  // FG-6b — extend trailing noun to also admit adjective-modified singular
+  // "the exiled [\w\s]+ card" (Black Widow, Super Spy: "the exiled nonland
+  // card"). The modifier slot `[\w\s]+` matches one or more words between
+  // "exiled" and "card".
+  /\b(?:cast|play) (?:the exiled [\w\s]+card|the exiled cards|(?:any number of )?cards exiled this way)\b/,
   // (7) v0.33+ — Taster of Wares: anchored "exile ... you may cast it/that
   // card for as long as you control this creature". Tight anchor required
   // because the bare "you may cast it" template appears in many contexts.

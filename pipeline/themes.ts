@@ -109,5 +109,9 @@ export function tribePattern(s: string): string {
   if (s === 'mouse') return '(?:mouse|mice)';
   // v0.24 — ally → allies irregular y→ies plural.
   if (s === 'ally') return 'all(?:y|ies)';
+  // FG-14 — hero → heroes standard English plural. The default `${s}s?`
+  // would produce `heros?` which matches "hero" or "heros" but NOT
+  // "heroes". English "-o" words form plurals with "-es" (heroes, tomatoes).
+  if (s === 'hero') return 'hero(?:es?)?';
   return `${s}s?`;
 }

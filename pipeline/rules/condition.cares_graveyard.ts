@@ -41,7 +41,13 @@ const PATTERNS = [
   // now they need a payoff-frame antecedent.
   /\b(?:if|as long as|while|when|whenever) there are (?:[\d]+ or more |[\w\s\-]+ )?cards? in [\w\s']+?graveyards?\b/,
   // "whenever a [type] card is put into a graveyard"
-  /\bwhenever (?:a |an |another )?(?:[\w\-]+ )?card is put into [\w\s']+?graveyards?\b/,
+  // FG-11 — extend Pattern 4 in two ways:
+  //   (1) pluralize: `cards? (?:is|are) put into` — admits "creature cards
+  //       are put into" (Robot Domination: "one or more creature cards are
+  //       put into your graveyard from anywhere").
+  //   (2) leading quantifier: admit `(?:one or more )?` before the type slot
+  //       so "whenever one or more creature cards are put into" also fires.
+  /\bwhenever (?:a |an |another |one or more )?(?:[\w\-]+ )?cards? (?:is|are) put into [\w\s']+?graveyards?\b/,
   // v0.14.7 — cast-from-graveyard as a graveyard-cares reference. Casting
   // out of a graveyard uses graveyard contents as a resource — distinct
   // from removal effects like "exile target card from a graveyard" (which

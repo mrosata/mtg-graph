@@ -64,6 +64,14 @@ describe('effect.cast_from_exile', () => {
     // v0.46.0 — Azula: "cast cards exiled with __self__" — controller casts
     // from own exile pile keyed to this permanent.
     ['you may cast cards exiled with __self__ from exile without paying their mana costs.'],
+    // FG-6a — "play cards exiled this way" uses "play" not "cast"
+    // (Hex Magic: "exile all the cards from your hand ... you may play cards
+    // exiled this way"). The existing Pattern 6 only matched "cast".
+    ['exile all the cards from your hand, then draw that many cards. until the end of your next turn, you may play cards exiled this way.'],
+    // FG-6b — "the exiled nonland card" is adjective-modified singular
+    // (Black Widow, Super Spy: "you may cast the exiled nonland card until
+    // end of turn"). Pattern 6 only matched the bare plural "the exiled cards".
+    ['menace whenever __self__ deals combat damage to a player, that player exiles cards from the top of their library until they exile a nonland card. you may put a +1/+1 counter on __self__. if you don\'t, you may cast the exiled nonland card until end of turn and mana of any type can be spent to cast that spell.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

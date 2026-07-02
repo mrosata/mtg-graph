@@ -28,8 +28,11 @@ export const tagDef: TagDef = {
 //   - "your upkeep" (the dominant form)
 //   - "each upkeep" / "each player's upkeep" / "each opponent's upkeep"
 //   - "target player's upkeep"
+//   - FG-13: "the upkeep of [enchanted|equipped] [creature|permanent]'s
+//     controller" — Aura/Equipment form (Super Intelligence). The trigger
+//     phrase uses "of" possession rather than the possessive apostrophe form.
 const PATTERN =
-  /\bat the beginning of (?:your|each(?:\s+(?:player'?s|opponent'?s))?|target\s+player'?s|the\s+chosen\s+player'?s)\s+upkeep\b/;
+  /\bat the beginning of (?:your|each(?:\s+(?:player'?s|opponent'?s))?|target\s+player'?s|the\s+chosen\s+player'?s)\s+upkeep\b|\bthe\s+upkeep\s+of\s+(?:enchanted|equipped)\s+(?:creature|permanent)'?s?\s+controller\b/;
 
 export const rule: Rule = {
   id: 'trigger.upkeep',

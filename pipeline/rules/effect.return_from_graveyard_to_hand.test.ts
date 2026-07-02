@@ -48,6 +48,12 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // put it into your hand." The OTHERWISE_TO_HAND arm catches the anaphoric
     // "otherwise, put it into your hand" after the graveyard-target antecedent.
     ['choose target creature card in your graveyard. if its mana value is less than or equal to the number of experience counters you have, return it to the battlefield. otherwise, put it into your hand.'],
+    // FG-12 — mill-guarded "from among those cards" arm (Rick Jones):
+    // "mill four cards. you may put a hero or enchantment card from among
+    // those cards into your hand." A raw "from among those cards" arm would
+    // FP on library look-and-put; requiring a `\bmills?\b` verb within ~150
+    // chars BEFORE the "from among those cards" phrase guards against that.
+    ['{3}, {t}: mill four cards. you may put a hero or enchantment card from among those cards into your hand.'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });
@@ -68,6 +74,10 @@ describe('effect.return_from_graveyard_to_hand', () => {
     // graveyard to the battlefield" is reanimation, not return-to-hand.
     // The DIES_RETURN_TO_HAND arm must not catch reanimate-to-battlefield.
     ['when __self__ enters, draw a card. return target creature card from your graveyard to the battlefield.'],
+    // FG-12 — negative: library look without mill must NOT match. "Look at
+    // the top 4 cards ... put a creature card from among those cards into
+    // your hand" is a library-dig, not a graveyard-to-hand recursion.
+    ['look at the top 4 cards of your library. you may put a creature card from among those cards into your hand. put the rest on the bottom.'],
   ])('does not match: %s', (text) => {
     expect(rule.match(text)).toBe(false);
   });

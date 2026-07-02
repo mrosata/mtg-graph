@@ -67,6 +67,9 @@ describe('effect.exile_from_library', () => {
     // Cunning Rhetoric, Vaan, Street Thief).
     ["exile the top card of that player's library."],
     ["exile the top three cards of that player's library."],
+    // FG-7 — "that player exiles cards from the top of their library" —
+    // "that player" as the Frame B subject (not in the current alternation).
+    ['that player exiles cards from the top of their library until they exile a nonland card.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

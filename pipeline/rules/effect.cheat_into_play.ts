@@ -102,8 +102,14 @@ const REVEAL_UNTIL_PUT =
 // your hand onto the battlefield") match. The disjunction's second branch
 // also admits "land" as a noun (the leading branch already excludes it via
 // the negative-list guard above).
+// FG-17 — two extensions for Worlds Within Worlds:
+//   (1) Extend "from your hand" → "from (?:your|their|each player's) hand"
+//       so "from their hand" (symmetric effect on each player) matches.
+//   (2) Add "any number of " to the quantity slot (currently only admits
+//       "a|an|one|target") so "any number of creature cards from their hand"
+//       matches.
 const HAND_PUT =
-  /\bput (?:a |an |one |target )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?(?:\s+and\/or\s+(?:a |an )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|land)\s+cards?)?\s+(?:with [^.]{0,60}?)?from your hand onto the battlefield\b/;
+  /\bput (?:a |an |one |target |any number of )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker)\s+cards?(?:\s+and\/or\s+(?:a |an )?(?:[\w\-]+ ){0,3}?(?:permanent|creature|artifact|enchantment|planeswalker|land)\s+cards?)?\s+(?:with [^.]{0,60}?)?from (?:your|their|each player's) hand onto the battlefield\b/;
 
 // v0.38.0 — Batch 12c: multi-zone search with mandatory `library` disjunct.
 // Agency Outfitter: "search your graveyard, hand and/or library for a card

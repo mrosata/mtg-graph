@@ -102,7 +102,15 @@ function stripSelfAnaphor(t: string): string {
       // "as long as ..., __self__ gets +1/+1 and has menace" (Elenda,
       // Saint of Dusk) matches the strip span. Mirrors the parallel
       // alternation already present in gains_keyword_self_conditional.ts.
-      /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it)\s+(?:has|have|gains?|gets?)\s+[^.]*?\./g,
+      // FG-1 — extend self-subject slot to include gendered pronouns he/she
+      // (Beast, Erudite Aerialist: "as long as …, he has flying"). Both
+      // pronouns can only refer to the card's own creature in a self-
+      // conditional clause because MTG oracle text uses "it" for other
+      // permanents. The pronoun must be followed by has/have/gains?/gets?
+      // (the grant verb) to keep the strip from affecting possession forms
+      // like "target creature he controls has menace" (subject = "target
+      // creature", not "he").
+      /\b(?:as long as|while|if|during)\b[^.]*?,\s*(?:this\s+(?:creature|artifact|enchantment|land|permanent|vehicle|equipment|saga|planeswalker)|__self__|it|he|she)\s+(?:has|have|gains?|gets?)\s+[^.]*?\./g,
       '',
     )
     .replace(TRIGGERED_SELF_BUFF, '')

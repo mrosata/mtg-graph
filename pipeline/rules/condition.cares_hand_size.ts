@@ -40,6 +40,12 @@ const PATTERNS = [
   // hand than you" (Joined Researchers). Symmetric "you have more cards in
   // hand than" reverse-comparison forms also accepted.
   /\b(?:an?\s+(?:opponent|player)|target\s+(?:opponent|player)|you)\s+(?:has|have)\s+more\s+cards?\s+in\s+hand\s+than\s+(?:you|target\s+opponent|each\s+opponent|any\s+opponent)\b/,
+  // (6) FG-15 — "fewer than N cards in hand" form (The Ten Rings). The
+  // below-threshold count gates a draw effect in the same way as the other
+  // hand-size patterns. Admits both digit literals and spelled-out numerals.
+  // The hand-owner possessive is optional because some forms use bare "in
+  // hand" (The Ten Rings: "fewer than ten cards in hand").
+  /\bfewer than (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) cards? in (?:(?:your|a player's|their|an opponent's|target opponent's|target player's)\s+)?hand\b/,
 ];
 
 export const rule: Rule = {

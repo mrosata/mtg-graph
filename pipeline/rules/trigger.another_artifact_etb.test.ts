@@ -17,6 +17,15 @@ describe('trigger.another_artifact_etb', () => {
     // v0.15 — broad "noncreature, nonland permanents" framing (Builder's
     // Talent) is a superset that includes artifacts. Fires this trigger.
     ['whenever one or more noncreature, nonland permanents you control enter, put a +1/+1 counter on target creature you control'],
+    // FG-5a — pre-qualifier "nontoken" before "artifact" (Ultron, Artificial
+    // Malevolence: "whenever another nontoken artifact you control enters").
+    ['whenever another nontoken artifact you control enters, you may pay {2}'],
+    // FG-5b — Equipment ETB uses "equipment" noun not "artifact"
+    // (Thunder Lasso: "when this equipment enters" self-ETB excluded, but
+    // "whenever an equipment you control enters" is another-artifact form).
+    ['whenever an equipment you control enters, draw a card'],
+    // FG-5c — compound "Villain and/or artifact" form (HYDRA cards).
+    ['whenever a villain and/or artifact you control enters, create a treasure token'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });

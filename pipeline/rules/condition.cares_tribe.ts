@@ -9,7 +9,12 @@ import { THEME_TRIBES, tribePattern, capitalize, pluralize } from '../themes';
 // Window bumped from {1,7} to {1,12} for long multi-type, multi-color token
 // templates like "create a 4/3 white and black vampire demon creature token
 // with flying" (Canonized in Blood — 9+ words between "create" and "token").
-const TOKEN_CREATE = /\bcreates?\s+(?:[\w\/]+\s+){1,12}?tokens?\b/g;
+// FG-2 — admit comma in character class so named tokens like "The Void,"
+// (The Sentry: "creates the void, a legendary 5/5 black horror villain
+// creature token") don't break the lazy word-slot matching. Without the
+// comma, TOKEN_CREATE stopped at "void," and failed to strip the span,
+// letting "villain" leak through as a false positive.
+const TOKEN_CREATE = /\bcreates?\s+(?:[\w\/,]+\s+){1,12}?tokens?\b/g;
 const BECOMES_CREATURE = /\bbecomes?\s+(?:[\w\/]+\s+){1,12}?creature\b/g;
 
 // 2026-06-02 audit batch — strip sentence-leading ability-word headers

@@ -95,6 +95,10 @@ describe('effect.exile_from_graveyard', () => {
     // The MASS_WIPE arm is extended to cover this "exile all X from all
     // graveyards" frame.
     ['exile all cards from all graveyards.'],
+    // FG-10 — "exile any number of X cards from your graveyard" — OWN_QUANTIFIED
+    // only matched "one or more"; "any number of" is the same variable-scope
+    // exile frame (Baron Helmut Zemo Boast ability).
+    ['boast — exile any number of black cards from your graveyard with fifteen or more black mana symbols among their mana costs: copy those exiled cards.'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
@@ -130,6 +134,10 @@ describe('effect.exile_from_graveyard', () => {
     // v0.46.0 — ANAPHORIC_PUT_GRAVEYARD_EXILE negative: bare "exile it"
     // without the antecedent must not fire.
     ['you may exile it from any zone.'],
+    // FG-10 — cost form with colon terminator must still be rejected.
+    // The negative lookahead `(?!s*\s*[:—])` guards OWN_QUANTIFIED against
+    // cost-form activation.
+    ['exile any number of artifacts from your graveyard: draw a card.'],
   ])('does not match: %s', (text) => {
     expect(rule.match!(text)).toBe(false);
   });

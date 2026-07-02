@@ -26,6 +26,11 @@ describe('condition.cares_hand_size', () => {
     // v0.35.0 — Batch 15: relative comparison "an opponent has more cards
     // in hand than you" (Joined Researchers).
     ['at the beginning of each end step, if an opponent has more cards in hand than you, this creature becomes prepared.'],
+    // FG-15 — "fewer than N cards in hand" form (The Ten Rings):
+    // "if you have fewer than ten cards in hand, draw cards equal to the
+    // difference." Cares about hand size by gating on a below-threshold count.
+    ['at the beginning of your end step, if you have fewer than ten cards in hand, draw cards equal to the difference.'],
+    ['draw cards until you have fewer than 4 cards in hand'],
   ])('matches: %s', (text) => {
     expect(rule.match(text)).toBeTruthy();
   });

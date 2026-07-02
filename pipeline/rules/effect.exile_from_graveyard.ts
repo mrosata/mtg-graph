@@ -45,7 +45,11 @@ const OWN_TARGETED = /exile (?:up to [\w-]+ |any number of )?target [^.]+? from 
 // with total mana value x: return target artifact card with mana value x or
 // less from your graveyard" used to FP because the greedy `.+?` ate the
 // colon.
-const OWN_QUANTIFIED = /exile one or more [^:.—]+? from your graveyard(?!s*\s*[:—])/;
+// FG-10 — extend quantifier to also admit "any number of" (Baron Helmut Zemo
+// Boast: "exile any number of black cards from your graveyard with fifteen or
+// more black mana symbols among their mana costs"). "Any number of" has the
+// same variable-scope semantics as "one or more" in this exile frame.
+const OWN_QUANTIFIED = /exile (?:one or more|any number of) [^:.—]+? from your graveyard(?!s*\s*[:—])/;
 // Bulk single-graveyard exile ("exile target player's graveyard" — Sentinel
 // of Lost Lore) joins the plural mass-wipe form on this arm.
 // v0.15 — "exile all graveyards" / "exile each graveyard" added (Rest in

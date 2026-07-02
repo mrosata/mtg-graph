@@ -174,6 +174,14 @@ function buildGrantRegex(kw: string): RegExp {
       // descriptor before "counter(s)" handles "+1/+1" or other simple
       // counter names.
       `\\bput\\s+(?:a|an|one|two|three|four|five|six|seven|\\d+|x)\\s+(?:[\\w\\-+/]+\\s+)?counters?\\s+and\\s+(?:a\\s+|an\\s+)?${kw}\\s+counter\\b`,
+      // FG-16 — Frame (j4): "creature tokens" anthem. "Attacking creature
+      // tokens you control have <kw>" (Okoye, Dora Milaje Leader). The
+      // subject is "creature tokens" (a compound noun, optionally prefixed
+      // by a state adjective like "attacking" or "blocking"). This doesn't
+      // fit the existing tribe-anthem Frame (b) (which requires a single
+      // plural noun ending in `s`) or Frame (g) (which requires the token
+      // to be created inline in the same clause).
+      `\\b(?:attacking\\s+|blocking\\s+)?creature\\s+tokens?\\s+(?:you\\s+control\\s+)?(?:has|have)\\s+${kw}\\b`,
       // 2026-06-01 follow-up — Frame (i4): "with a <kw> counter ... on it"
       // — reanimation/return-with frame. Perennation: "return target
       // permanent card from your graveyard to the battlefield with a

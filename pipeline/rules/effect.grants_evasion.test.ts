@@ -21,11 +21,21 @@ describe('effect.grants_evasion', () => {
     // item in an "and"-list after a non-evasion keyword.
     ['vigilance, menace when this creature enters, other creatures you control get +2/+2 and gain vigilance and menace until end of turn. damage can\'t be prevented this turn.'],
     ['target creature gains haste, vigilance, and menace until end of turn'],
+    // FG-1 — "he controls" is a possessive, not a self-conditional subject;
+    // "target creature" is the subject of "has menace" → still a grant.
+    ['as long as enchanted creature has a counter on it, target creature he controls has menace'],
   ])('matches: %s', (text) => {
     expect(rule.match!(text)).toBeTruthy();
   });
 
   it.each([
+    // FG-1 — gendered pronoun as self-anaphor (Beast, Erudite Aerialist).
+    // "he has flying as long as __self__ ..." — "he" is self-referential, so
+    // this is a self-conditional grant that belongs to
+    // gains_keyword_self_conditional, NOT an anthem/other-creature grant.
+    ['as long as you\'ve put one or more +1/+1 counters on __self__ this turn, he has flying.'],
+    // Beast's full oracle text (normalized):
+    ['as long as you\'ve put one or more +1/+1 counters on __self__ this turn, he has flying. whenever __self__ deals combat damage to a player, draw a card.'],
     // Pure intrinsic keyword line — handled by has_flying / has_menace, not here
     ['flying'],
     ['flying, vigilance'],
