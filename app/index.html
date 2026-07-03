@@ -7,6 +7,17 @@
     <meta name="robots" content="index, follow" />
     <meta name="application-name" content="MTG Graph" />
 
+    <!-- Google tag (gtag.js) — SPA page_views are sent manually; see src/lib/analytics.ts -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', { send_page_view: false });
+    </script>
+
     <title>MTG Graph</title>
     <meta
       name="description"
