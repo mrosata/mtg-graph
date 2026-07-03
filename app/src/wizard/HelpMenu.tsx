@@ -98,6 +98,11 @@ export default function HelpMenu() {
               Show {tourLabel(pageTour)}
             </button>
           )}
+          <hr className="border-ink-line" />
+          <p className="px-3 py-2 text-[11px] leading-snug text-vellum-dim">
+            Usage is measured with Google Analytics and Cloudflare Web Analytics. No
+            account, no deck contents, no search text is collected.
+          </p>
         </div>
       )}
       {cheatsheetOpen && <CheatsheetModal onClose={() => setCheatsheetOpen(false)} />}
