@@ -11,6 +11,7 @@ import { useFilterSectionCollapsed } from '../lib/useFilterSectionCollapsed';
 import { TOUR_IDS } from '../wizard/selectors';
 import TagFilterSection from './filters/TagFilterSection';
 import LibrarySection from './LibrarySection';
+import { trackFilterApplied, trackSearchDebounced } from '../lib/analytics';
 
 const SETS_STORAGE_KEY = 'mtg-graph:filter-sets-collapsed';
 const INTERACTIONS_STORAGE_KEY = 'mtg-graph:filter-interactions-collapsed';
@@ -63,6 +64,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   const graphCards = useGraphStore((s) => s.cards);
 
   const toggleColor = (c: Color) => {
+    trackFilterApplied('color');
     const colors = value.colors ?? [];
     onChange({
       ...value,
@@ -71,6 +73,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   };
 
   const toggleSet = (code: string) => {
+    trackFilterApplied('set');
     const sets = value.sets ?? [];
     onChange({
       ...value,
@@ -79,6 +82,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   };
 
   const toggleTag = (id: string) => {
+    trackFilterApplied('tag');
     const tags = value.tags ?? [];
     onChange({
       ...value,
@@ -87,6 +91,7 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
   };
 
   const toggleRarity = (r: Rarity) => {
+    trackFilterApplied('rarity');
     const rarities = value.rarities ?? [];
     onChange({
       ...value,
@@ -254,7 +259,10 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
               placeholder="Card name"
               aria-label="Card name"
               value={value.name ?? ''}
-              onChange={(e) => onChange({ ...value, name: e.target.value || undefined })}
+              onChange={(e) => {
+                trackSearchDebounced('name', e.target.value.length);
+                onChange({ ...value, name: e.target.value || undefined });
+              }}
               className="w-full bg-transparent text-sm text-vellum placeholder:text-vellum-dim focus:outline-none"
             />
           </div>
@@ -272,7 +280,10 @@ export default function FilterPanel({ value, onChange, cards, tagCatalog }: Prop
               placeholder="Oracle text contains…"
               aria-label="Oracle text"
               value={value.text ?? ''}
-              onChange={(e) => onChange({ ...value, text: e.target.value || undefined })}
+              onChange={(e) => {
+                trackSearchDebounced('text', e.target.value.length);
+                onChange({ ...value, text: e.target.value || undefined });
+              }}
               className="w-full bg-transparent text-sm text-vellum placeholder:text-vellum-dim focus:outline-none"
             />
           </div>
