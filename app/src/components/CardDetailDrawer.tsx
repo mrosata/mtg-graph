@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Card } from '@shared/types';
 import { useGraphStore } from '../stores/graphStore';
+import { trackCardViewed } from '../lib/analytics';
 import TagChip from './TagChip';
 import InteractionsPanel from './InteractionsPanel';
 import AddToDeckButton from './AddToDeckButton';
@@ -57,6 +58,11 @@ export default function CardDetailDrawer({
   useEffect(() => {
     setFace('front');
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [card.oracleId]);
+
+  useEffect(() => {
+    trackCardViewed(card.name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.oracleId]);
 
   const activeFace = isFlippable ? card.faces![face === 'front' ? 0 : 1]! : null;

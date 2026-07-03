@@ -165,3 +165,15 @@ describe('CardDetailDrawer multi-face', () => {
     expect(screen.getByText(/Has vigilance/i)).toBeInTheDocument();
   });
 });
+
+describe('analytics wiring', () => {
+  it('fires card_viewed with the card name when the drawer opens', () => {
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    renderDrawer(dfcCard());
+    expect(gtag).toHaveBeenCalledWith('event', 'card_viewed', {
+      card_name: 'Peter Parker // Amazing Spider-Man',
+    });
+    delete window.gtag;
+  });
+});
