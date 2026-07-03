@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, NavLink, Link } from 'react-router-dom';
+import { Routes, Route, NavLink, Link, useLocation } from 'react-router-dom';
 import WorkspacePage from './pages/WorkspacePage';
 import DecksPage from './pages/DecksPage';
 import DeckGraphPage from './pages/DeckGraphPage';
@@ -10,6 +10,7 @@ import WizardProvider from './wizard/WizardProvider';
 import HelpMenu from './wizard/HelpMenu';
 import LibraryStatusBadge from './components/LibraryStatusBadge';
 import { TOUR_IDS } from './wizard/selectors';
+import { trackPageView } from './lib/analytics';
 
 const ARTIFACT_URL = (() => {
   const set = import.meta.env.VITE_SET_CODE ?? 'standard';
@@ -19,6 +20,11 @@ const ARTIFACT_URL = (() => {
 
 export default function App() {
   const activeDeck = useActiveDeck();
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     useGraphStore.getState().hydrate(ARTIFACT_URL);
