@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useGraphStore } from '../stores/graphStore';
 import { useActiveDeck } from '../stores/deckStore';
 import { useLibraryStore } from '../stores/libraryStore';
+import { trackInteractionExplored } from '../lib/analytics';
 import { getNeighbors, type Neighbor } from '../lib/traversal';
 import { applyFilter, type Filter } from '../lib/filter';
 import { useDeckPanelCollapsed } from '../lib/useDeckPanelCollapsed';
@@ -294,6 +295,7 @@ export default function InteractionsPanel({ oracleId, onFocusCard }: Props) {
               <button
                 onClick={() => {
                   setHoverUrl(null);
+                  trackInteractionExplored();
                   onFocusCard(n.oracleId);
                 }}
                 onMouseEnter={() => {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGraphStore } from '../stores/graphStore';
 import { useLibraryStore } from '../stores/libraryStore';
 import { useDeckStore } from '../stores/deckStore';
+import { trackMtgaImportUsed } from '../lib/analytics';
 import { STANDARD_SET_CODES } from '@shared/sets';
 import { parseMtgaLogFile } from '../lib/mtgaLogParser';
 import { parseMtgaCollectionJson } from '../lib/mtgaJsonParser';
@@ -308,6 +309,7 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
 
       if (wantsCollection && state.libraryResult) {
         await importLibrary(state.libraryResult, state.filename);
+        trackMtgaImportUsed();
       }
 
       const wantsDecks = mode === 'decks-only' || (mode === 'full' && decksOptIn);

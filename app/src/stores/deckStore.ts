@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { db, type Deck, type DeckCard } from '../lib/db';
 import type { ResolvedEntry } from '../lib/deckImport';
+import { trackDeckCardAdded } from '../lib/analytics';
 
 const ACTIVE_DECK_KEY = 'mtg-graph:activeDeckId';
 
@@ -150,7 +151,10 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       return target === 'main' ? { ...d, workingCards: next } : { ...d, sideboardCards: next };
     });
     const updated = decks.find((d) => d.id === id);
-    if (updated) await persist(updated);
+    if (updated) {
+      await persist(updated);
+      trackDeckCardAdded(updated.workingCards.reduce((s, c) => s + c.count, 0));
+    }
     set({ decks });
   },
 

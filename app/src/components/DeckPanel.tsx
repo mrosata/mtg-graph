@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useGraphStore } from '../stores/graphStore';
 import { useActiveDeck, useDeckStore } from '../stores/deckStore';
+import { trackDeckExported } from '../lib/analytics';
 import { useLibraryStore } from '../stores/libraryStore';
 import { deckLegality } from '../lib/legality';
 import { manaCurveBuckets, TYPE_ORDER, TYPE_PLURAL, type DeckType } from '../lib/deckStats';
@@ -194,6 +195,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                   const text = deckToArenaText(deck, cards);
                   try {
                     await navigator.clipboard.writeText(text);
+                    trackDeckExported('arena');
                     showToast(`Copied "${deck.name}" (${total} cards)`);
                   } catch {
                     showToast('Copy failed. Select the text and copy manually.');
@@ -208,6 +210,7 @@ export default function DeckPanel({ onCardClick, drawerOpen = false }: Props = {
                   const xml = deckToDekXml(deck, cards);
                   try {
                     await navigator.clipboard.writeText(xml);
+                    trackDeckExported('dek');
                     showToast(`Copied "${deck.name}" as .dek`);
                   } catch {
                     showToast('Copy failed. Select the text and copy manually.');

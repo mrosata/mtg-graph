@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { trackDeckCreated, trackDeckExported } from '../lib/analytics';
 import { useDeckStore } from '../stores/deckStore';
 import { useGraphStore } from '../stores/graphStore';
 import { useToastStore } from '../stores/toastStore';
@@ -93,6 +94,7 @@ export default function DecksPage() {
 
   const handleCreate = async () => {
     await createDeck(`Untitled Deck ${decks.length + 1}`);
+    trackDeckCreated();
     navigate('/');
   };
 
@@ -111,6 +113,7 @@ export default function DecksPage() {
     const text = deckToArenaText(deck, cards);
     try {
       await navigator.clipboard.writeText(text);
+      trackDeckExported('arena');
       const total = deck.workingCards.reduce((s, c) => s + c.count, 0);
       showToast(`Copied "${deck.name}" (${total} cards)`);
     } catch {
