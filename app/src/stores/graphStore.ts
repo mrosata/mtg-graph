@@ -50,9 +50,13 @@ function computeEdges(cards: Card[], catalog: TagDef[]): Promise<InteractionEdge
       new URL('../workers/buildEdges.worker.ts', import.meta.url),
       { type: 'module' },
     );
-    worker.onmessage = (e: MessageEvent<{ edges: InteractionEdge[] }>) => {
-      resolve(e.data.edges);
-      worker.terminate();
+    const edges: InteractionEdge[] = [];
+    worker.onmessage = (e: MessageEvent<{ edges: InteractionEdge[]; done: boolean }>) => {
+      for (const edge of e.data.edges) edges.push(edge);
+      if (e.data.done) {
+        resolve(edges);
+        worker.terminate();
+      }
     };
     worker.onerror = (e) => {
       reject(new Error(`buildEdges worker failed: ${e.message}`));

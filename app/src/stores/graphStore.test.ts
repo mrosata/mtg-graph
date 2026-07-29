@@ -7,13 +7,26 @@ import type { Artifact } from '@shared/types';
 import { buildEdges } from '../../../pipeline/graph';
 import type { Card, InteractionEdge, TagDef } from '@shared/types';
 
+// Mirrors buildEdges.worker.ts, with a chunk size of 1 so multi-chunk
+// assembly is exercised by any artifact producing 2+ edges.
 class FakeWorker {
-  onmessage: ((e: MessageEvent<{ edges: InteractionEdge[] }>) => void) | null = null;
+  onmessage: ((e: MessageEvent<{ edges: InteractionEdge[]; done: boolean }>) => void) | null = null;
   onerror: ((e: ErrorEvent) => void) | null = null;
   postMessage(data: { cards: Card[]; catalog: TagDef[] }) {
     queueMicrotask(() => {
       const edges = buildEdges(data.cards, data.catalog);
-      this.onmessage?.({ data: { edges } } as MessageEvent<{ edges: InteractionEdge[] }>);
+      const emit = (chunk: InteractionEdge[], done: boolean) =>
+        this.onmessage?.({ data: { edges: chunk, done } } as MessageEvent<{
+          edges: InteractionEdge[];
+          done: boolean;
+        }>);
+      if (edges.length === 0) {
+        emit([], true);
+        return;
+      }
+      for (let i = 0; i < edges.length; i += 1) {
+        emit(edges.slice(i, i + 1), i + 1 >= edges.length);
+      }
     });
   }
   terminate() {}
@@ -189,5 +202,44 @@ describe('graphStore.hydrate', () => {
     const inbound = useGraphStore.getState().edgesInbound.get('b');
     expect(inbound).toHaveLength(1);
     expect(inbound?.[0]?.source).toBe('a');
+  });
+
+  it('assembles edges delivered across multiple worker chunks', async () => {
+    const consumer = (id: string, num: string) => ({
+      oracleId: id, name: id.toUpperCase(), set: 't', printings: ['t'], collectorNumber: num,
+      manaCost: null, cmc: 0, colors: [], colorIdentity: [],
+      typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
+      oracleText: '', keywords: [], power: '1', toughness: '1',
+      rarity: 'common' as const, imageUrl: '',
+      tags: [{ tagId: 'trigger.token_created', axis: 'trigger' as const, evidence: 'token created' }],
+    });
+    const artifact = makeArtifact({
+      sourceSet: 't',
+      ruleVersion: RULE_VERSION,
+      cards: [
+        {
+          oracleId: 'a', name: 'A', set: 't', printings: ['t'], collectorNumber: '1',
+          manaCost: null, cmc: 0, colors: [], colorIdentity: [],
+          typeLine: 'Creature', types: ['Creature'], subtypes: [], supertypes: [],
+          oracleText: '', keywords: [], power: '1', toughness: '1',
+          rarity: 'common', imageUrl: '',
+          tags: [{ tagId: 'effect.create_token', axis: 'effect' as const, evidence: 'token' }],
+        },
+        consumer('b', '2'),
+        consumer('c', '3'),
+      ],
+      tagCatalog: [
+        { tagId: 'effect.create_token', axis: 'effect', label: 'Create token', description: '', pairsWith: ['trigger.token_created'] },
+        { tagId: 'trigger.token_created', axis: 'trigger', label: 'Token created', description: '', pairsWith: [] },
+      ],
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => artifact }));
+
+    await useGraphStore.getState().hydrate('/data/cards-t.json');
+
+    expect(useGraphStore.getState().status).toBe('ready');
+    const outbound = useGraphStore.getState().edges.get('a');
+    expect(outbound).toHaveLength(2);
+    expect(outbound?.map((e) => e.target).sort()).toEqual(['b', 'c']);
   });
 });
