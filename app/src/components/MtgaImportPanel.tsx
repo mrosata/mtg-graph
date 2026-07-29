@@ -307,9 +307,11 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
           ? state.libraryResult !== null
           : state.libraryResult !== null && crossSectionOptIn;
 
+      let didImport = false;
+
       if (wantsCollection && state.libraryResult) {
         await importLibrary(state.libraryResult, state.filename);
-        trackMtgaImportUsed();
+        didImport = true;
       }
 
       const wantsDecks = mode === 'decks-only' || (mode === 'full' && decksOptIn);
@@ -329,8 +331,11 @@ export default function MtgaImportPanel({ mode, onClose }: Props) {
             name: '',
           }));
           await importDeck(d.mtgaName, resolved, side);
+          didImport = true;
         }
       }
+
+      if (didImport) trackMtgaImportUsed();
       onClose();
     } finally {
       setBusy(false);

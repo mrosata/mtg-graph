@@ -153,7 +153,8 @@ export const useDeckStore = create<DeckState>((set, get) => ({
     const updated = decks.find((d) => d.id === id);
     if (updated) {
       await persist(updated);
-      trackDeckCardAdded(updated.workingCards.reduce((s, c) => s + c.count, 0));
+      const zone = target === 'main' ? updated.workingCards : (updated.sideboardCards ?? []);
+      trackDeckCardAdded(zone.reduce((s, c) => s + c.count, 0));
     }
     set({ decks });
   },

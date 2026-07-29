@@ -24,11 +24,21 @@ describe('analytics', () => {
     expect(gtag).toHaveBeenCalledWith('event', 'deck_created', {});
   });
 
-  it('trackPageView sends page_path', () => {
+  it('trackPageView sends page_path, page_location, and page_title', () => {
     const gtag = vi.fn();
     window.gtag = gtag;
+    document.title = 'Test Page';
     trackPageView('/decks');
-    expect(gtag).toHaveBeenCalledWith('event', 'page_view', { page_path: '/decks' });
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'page_view',
+      expect.objectContaining({
+        page_path: '/decks',
+        page_location: expect.any(String),
+        page_title: 'Test Page',
+      }),
+    );
+    document.title = '';
   });
 
   it('trackCardViewed sends card_name', () => {
@@ -68,5 +78,23 @@ describe('analytics', () => {
     trackSearchDebounced('text', 0);
     vi.advanceTimersByTime(3000);
     expect(gtag).not.toHaveBeenCalled();
+  });
+
+  it('interleaved fields each fire their own event', () => {
+    vi.useFakeTimers();
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    trackSearchDebounced('name', 3);
+    trackSearchDebounced('text', 7);
+    vi.advanceTimersByTime(1500);
+    expect(gtag).toHaveBeenCalledTimes(2);
+    expect(gtag).toHaveBeenCalledWith('event', 'search_performed', {
+      field: 'name',
+      query_length: 3,
+    });
+    expect(gtag).toHaveBeenCalledWith('event', 'search_performed', {
+      field: 'text',
+      query_length: 7,
+    });
   });
 });

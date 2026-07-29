@@ -14,7 +14,11 @@ export function trackEvent(name: string, params: EventParams = {}): void {
 }
 
 export function trackPageView(path: string): void {
-  trackEvent('page_view', { page_path: path });
+  trackEvent('page_view', {
+    page_path: path,
+    page_location: window.location.href,
+    page_title: document.title,
+  });
 }
 
 export function trackCardViewed(cardName: string): void {
@@ -28,14 +32,16 @@ export function trackFilterApplied(filterType: FilterType): void {
 }
 
 const SEARCH_DEBOUNCE_MS = 1500;
-let searchTimer: ReturnType<typeof setTimeout> | undefined;
+const searchTimers: Partial<Record<'name' | 'text', ReturnType<typeof setTimeout>>> = {};
 
 // Search inputs fire onChange per keystroke; only report a search once typing
 // stops, and never report the (private) query text — only its length.
+// Each field gets its own timer so interleaved typing in different fields
+// doesn't cancel each other's pending events.
 export function trackSearchDebounced(field: 'name' | 'text', queryLength: number): void {
-  clearTimeout(searchTimer);
+  clearTimeout(searchTimers[field]);
   if (queryLength === 0) return;
-  searchTimer = setTimeout(() => {
+  searchTimers[field] = setTimeout(() => {
     trackEvent('search_performed', { field, query_length: queryLength });
   }, SEARCH_DEBOUNCE_MS);
 }
